@@ -132,8 +132,18 @@ aside{background:var(--panel);border-right:1px solid var(--line);overflow:auto;m
 .tools button:hover{background:var(--bg);color:var(--ink)}
 .tools .sp{flex:1}
 .tools .meta{font-size:11px;color:var(--muted);align-self:center}
-.ed{flex:1;overflow:auto;padding:18px 40px 80px;font:15px/1.6 var(--ui);outline:none}
-.ed:empty::before{content:attr(data-ph);color:var(--muted);white-space:pre-line;pointer-events:none}
+.edscroll{flex:1;overflow:auto;padding:4px 40px 0}
+.ed{padding:6px 0 18px;font:15px/1.6 var(--ui);outline:none;min-height:28px}
+.dsec{border-left:2px solid transparent;margin-left:-14px;padding-left:12px}
+.dsec.cur{border-left-color:var(--accent)}
+.sec-h{margin:18px 0 2px;font:600 15px var(--ui);display:flex;align-items:center;gap:8px}
+h2.sec-h{font-size:18px}
+.sec-name{font:600 15px var(--ui);border:0;background:none;color:var(--ink);padding:0;flex:1;outline:none;min-width:0}
+.sec-cov{font:11px var(--mono);color:var(--muted)}
+.mode-h{margin:28px 0 0;padding-top:12px;border-top:1px solid var(--line);font:600 12px var(--ui);text-transform:uppercase;letter-spacing:.04em;color:var(--muted);display:flex;align-items:center;gap:8px}
+.mode-h a{color:var(--accent);text-decoration:none;text-transform:none;letter-spacing:0;font-weight:500}
+.ed:empty::before{content:'—';color:var(--line);pointer-events:none}
+.ed:empty:focus::before{content:attr(data-ph);color:var(--muted);white-space:pre-line}
 .ed h1{font-size:20px;margin:18px 0 6px}.ed h2{font-size:17px;margin:16px 0 4px}.ed h3{font-size:15px;margin:14px 0 4px}
 .ed p{margin:0 0 6px}
 .ed ol,.ed ul{margin:2px 0 6px;padding-left:26px}
@@ -286,7 +296,7 @@ pre.md{white-space:pre-wrap;background:var(--bg);border-radius:8px;padding:12px;
     <label class="dd">Context <select id="sel-ctx"></select></label>
     <span class="sp"></span>
     <span class="sync" id="sync">connecting…</span>
-    <div class="split" id="split"><a class="hbtn sp-main" id="b-proto" href="https://claude.ai/artifact/HcT5jKnudFCFWE9zc1peMR#prototype" target="_blank" rel="noopener">Open prototype</a><button class="hbtn sp-dd" id="b-qr" aria-haspopup="true" aria-expanded="false" title="Open on your phone">▾</button>
+    <div class="split" id="split"><a class="hbtn sp-main" id="b-proto" href="https://hennes95.github.io/brian-prototypes/br-7147/" target="_blank" rel="noopener">Open prototype</a><button class="hbtn sp-dd" id="b-qr" aria-haspopup="true" aria-expanded="false" title="Open on your phone">▾</button>
       <div class="qr-pop" id="qr-pop" hidden><div id="qr"></div><p>Scan to open the prototype on your phone</p><code id="qr-url"></code><button class="hbtn" id="qr-copy">Copy link</button></div></div>
     <button class="hbtn" id="b-ticket">Ticket draft</button>
     <a class="hbtn pri" id="b-figma" target="_blank" rel="noopener">Figma ↗</a>
@@ -361,11 +371,12 @@ async function initDb(){
     let d=unwrap(await DOC.get());
     if(!valid(d)){ const old=unwrap(await db.doc("workbench/br-7147").get()); d=migrate(old); S=d; flush(); }
     else S=structuredClone(d);
-    clearTimeout(guard); render(); setSync("saved"); loadPreviews();
+    try{ await db.doc("history/pre-unified-doc").get().then(async x=>{ if(!unwrap(x)) await db.doc("history/pre-unified-doc").set({at:new Date().toISOString(),data:JSON.parse(JSON.stringify(d))}); }); }catch(e){}
+    clearTimeout(guard); render(true); setSync("saved"); loadPreviews();
     try{ DOC.onSnapshot(snap=>{ const r=unwrap(snap); if(!valid(r)||r.updated===lastSaved||r.updated===S.updated) return;
       if(saving||tmr||dirty) return;
-      const a=document.activeElement; if(a&&(a.id==="ed"||a.id==="doc-title")){ pendingRemote=r; setSync("Claude updated · click outside to load"); return; }
-      S=structuredClone(r); render(); setSync("updated by Claude"); }); }catch(e){}
+      const a=document.activeElement; if(a&&a.closest&&a.closest(".ed,.sec-name")){ pendingRemote=r; setSync("Claude updated · click outside to load"); return; }
+      S=structuredClone(r); render(true); setSync("updated by Claude"); }); }catch(e){}
   }catch(e){ loadLocal(); setSync("offline · local"); }
 }
 function loadLocal(){ try{ const d=JSON.parse(localStorage.getItem("wb-br7147-v2")||"null"); if(valid(d)){ S=structuredClone(d); render(); } }catch(e){} }
@@ -463,7 +474,7 @@ function phoneHTML(st,live={},interactive=true){
   const extra=(live.sent||[]).map(t=>`<div class="m-s"><div>${esc(t)}</div><div class="wl"></div></div>`).join("");
   const typing=q.typing||live.waiting;
   const reply=live.reply?`<div class="m-t"><p>${esc(live.reply)}</p><div class="act"><button ${el("speaker2","Read answer aloud")} aria-label="Read aloud">${I.speaker}</button></div></div>`:"";
-  return `<div class="phone ${dark?"dark":""} ${q.reserved?"reserved":""}">
+  return `<div class="phone ${dark?"dark":""} ${q.reserved?"reserved":""} ${q.picker?"headhidden":""}">
     <div class="p-status"><span>9:41</span><svg width="66" height="12" viewBox="0 0 66 12" fill="currentColor"><rect x="0" y="7" width="3" height="4" rx=".7"/><rect x="4.5" y="5" width="3" height="6" rx=".7"/><rect x="9" y="3" width="3" height="8" rx=".7"/><rect x="13.5" y="0" width="3" height="11" rx=".7"/><path d="M28 3.2a9 9 0 0 1 12 0l-1.2 1.3a7.2 7.2 0 0 0-9.6 0zM30.4 5.8a5.4 5.4 0 0 1 7.2 0L36.4 7a3.6 3.6 0 0 0-4.8 0zM34 10.6l-1.4-1.5a2 2 0 0 1 2.8 0z"/><rect x="44" y=".5" width="20" height="11" rx="2.7" fill="none" stroke="currentColor"/><rect x="46" y="2.5" width="16" height="7" rx="1.3"/></svg></div>
     <div class="p-head">${dark?`<button ${el("close","Close dialog")} aria-label="Close">${I.close}</button>`:`<button ${el("menu","Open chat history")} aria-label="Menu">${I.menu}</button>`}<span class="t">${dark?"Creating Linear Equations":"AI-Tutor"}</span>${dark?`<span style="width:24px"></span>`:`<button ${el("newchat","New chat")} aria-label="New chat">${I.newchat}</button>`}</div>
     <div class="p-chat">
@@ -529,10 +540,10 @@ function placeBadges(){
   const svg=document.getElementById("lines"); svg.innerHTML="";
   const pr=ph.getBoundingClientRect(), sc=ui.scale, PW=402, PH=874;
   const els=[...ph.querySelectorAll("[data-el]")].filter(e=>e.offsetParent!==null);
-  const doc=textOf(curState().doc);
+  const refs=allRefs();
   const used={left:[],right:[],top:[],bottom:[]};
   els.forEach((e,i)=>{
-    const n=i+1, r=e.getBoundingClientRect();
+    const n=elNum(e.dataset.el), r=e.getBoundingClientRect();
     const cx=(r.left+r.width/2-pr.left)/sc, cy=(r.top+r.height/2-pr.top)/sc;
     let side = cy<110?"top":cy>PH-90?"bottom":cx>PW/2?"right":"left";
     let bx,by;
@@ -542,7 +553,7 @@ function placeBadges(){
     let pos=axis==="y"?by:bx; while(used[side].some(u=>Math.abs(u-pos)<36)) pos+=36; used[side].push(pos);
     if(axis==="y") by=pos; else bx=pos;
     const b=document.createElement("button");
-    b.className="badge"+(new RegExp("#"+n+"(?!\\d)").test(doc)?" cov":"");
+    b.className="badge"+(refs.has(n)?" cov":"");
     b.textContent=n; b.style.left=bx+"px"; b.style.top=by+"px";
     b.dataset.el=e.dataset.el; b.dataset.label=e.dataset.label; b.setAttribute("aria-label",`#${n} ${e.dataset.label}`);
     W.appendChild(b);
@@ -553,8 +564,9 @@ function placeBadges(){
   ui.elCount=els.length;
 }
 function refreshCoverage(){
-  const doc=textOf(curState().doc);
-  document.querySelectorAll("#pwrap .badge").forEach(b=>b.classList.toggle("cov",new RegExp("#"+b.textContent+"(?!\\d)").test(doc)));
+  const refs=allRefs();
+  document.querySelectorAll("#pwrap .badge").forEach(b=>b.classList.toggle("cov",refs.has(+b.textContent)));
+  document.querySelectorAll(".sec-cov[data-state]").forEach(c=>{ const f=find(c.dataset.state); if(f){ const v=covOf(f.s); c.textContent=v.n?`${v.c}/${v.n}`:""; } });
   renderLeft();
 }
 const tip=document.getElementById("tip");
@@ -592,7 +604,7 @@ function badgeClick(id,label){
   if(existing){ st.links[id]=existing.s.id; save(); go(existing.s.id); return; }
   const ns={id:uid("s-"),name:`After: ${label}`,kind:"custom",doc:"",links:{}};
   m.states.splice(m.states.indexOf(st)+1,0,ns); st.links[id]=ns.id; save(); go(ns.id);
-  setTimeout(()=>{ const t=$("#doc-title"); t?.focus(); t?.select(); },30);
+  setTimeout(()=>{ const i=document.querySelector(`.sec-name[data-state="${ns.id}"]`); i?.focus(); i?.select(); },60);
 }
 document.getElementById("pwrap").addEventListener("focusin",e=>{
   if(e.target.tagName!=="TEXTAREA"||ui.live.focused||preset(curState().kind).focused) return;
@@ -605,20 +617,23 @@ document.getElementById("pwrap").addEventListener("input",e=>{
   if(before!==(e.target.value.trim().length>0)){ const pos=e.target.selectionStart; renderStage(); const t=$("#pwrap textarea"); t.focus(); t.setSelectionRange(pos,pos); }
   else growInput();
 });
-function go(stateId){ const x=find(stateId); if(!x) return; ui.sel={kind:"state",mode:x.m.id,state:x.s.id}; ui.live={}; render(); }
+function go(stateId){ const x=find(stateId); if(!x) return; ui.sel={kind:"state",mode:x.m.id,state:x.s.id}; ui.live={}; render(); scrollToSel(); }
 function goKind(kind){ const x=flat().find(y=>y.s.kind===kind); if(x) go(x.s.id); }
 
+/* ================= stable element numbers (same number on every screen) ================= */
+const EL_ORDER=["menu","close","newchat","speaker","speaker2","field","plus","mic","send","att-rm-0","att-rm-1","att-rm-2","att-rm-3","opt-gallery","opt-camera","opt-doc","opt-draw","pick-cancel","pick-add","tab-map","tab-chat","tab-stats"];
+function elNum(id){ S.elnums=S.elnums||{}; if(!S.elnums[id]){ let i=EL_ORDER.indexOf(id); const used=new Set(Object.values(S.elnums)); let n=i>=0?i+1:Math.max(EL_ORDER.length,...used)+1; while(used.has(n)&&S.elnums[id]!==n) n++; S.elnums[id]=n; } return S.elnums[id]; }
+const allRefs=()=>{ let t=textOf(S.docs.brief)+" "+textOf(S.docs.rules)+" "+textOf(S.docs.questions); for(const {s} of flat()) t+=" "+textOf(s.doc); return new Set((t.match(/#\d+/g)||[]).map(x=>+x.slice(1))); };
 /* ================= coverage for every screen ================= */
 const covCache={};
 function countFor(st){
   const key=st.id+"|"+ui.variant+"|"+ui.context+"|"+st.kind;
   if(covCache[key]) return covCache[key];
   const box=document.getElementById("measure"); box.innerHTML=phoneHTML(st,{},false);
-  const n=[...box.querySelectorAll("[data-el]")].filter(e=>e.offsetParent!==null).length; box.innerHTML="";
-  return covCache[key]=n;
+  const ids=[...box.querySelectorAll("[data-el]")].filter(e=>e.offsetParent!==null).map(e=>e.dataset.el); box.innerHTML="";
+  return covCache[key]=ids;
 }
-const refsIn=st=>new Set((textOf(st.doc).match(/#\d+/g)||[]).map(x=>+x.slice(1)));
-function covOf(st){ const n=countFor(st), r=refsIn(st); let c=0; for(let i=1;i<=n;i++) if(r.has(i)) c++; return {c,n,r}; }
+function covOf(st){ const nums=countFor(st).map(elNum), r=allRefs(); const c=nums.filter(n=>r.has(n)).length; return {c,n:nums.length,r,nums}; }
 
 /* ================= comments for Claude on the screen ================= */
 const cbtn=document.getElementById("cbtn");
@@ -652,7 +667,7 @@ document.getElementById("minimap").addEventListener("click",()=>{ renderOverview
 function renderOverview(){
   const O=document.getElementById("overview");
   O.innerHTML=`<div class="ov-top"><h3>All screens</h3><span class="tid">${flat().length} screens · ${ui.variant==="open"?"Open":"Pill"} variant</span><span class="sp"></span><button class="hbtn" id="ov-close">Back to screen (Esc)</button></div>`+
-    S.modes.map(m=>`<div class="ov-mode"><h4><span class="stat ${m.status}">${STAT[m.status]}</span>${esc(m.name)}</h4><div class="ov-row">${m.states.map(s=>`<button class="ov-item ${s.id===ui.sel.state?"cur":""}" data-go="${s.id}"><div class="ov-thumb">${phoneHTML(s,{},false)}</div><span class="ov-name">${esc(s.name)} · ${covOf(s).c}/${covOf(s).n}</span><span class="ov-dots">${(()=>{ const v=covOf(s); return Array.from({length:v.n},(_,i)=>`<i class="${v.r.has(i+1)?"f":""}">${i+1}</i>`).join(""); })()}</span></button>`).join("")}</div></div>`).join("");
+    S.modes.map(m=>`<div class="ov-mode"><h4><span class="stat ${m.status}">${STAT[m.status]}</span>${esc(m.name)}</h4><div class="ov-row">${m.states.map(s=>`<button class="ov-item ${s.id===ui.sel.state?"cur":""}" data-go="${s.id}"><div class="ov-thumb">${phoneHTML(s,{},false)}</div><span class="ov-name">${esc(s.name)} · ${covOf(s).c}/${covOf(s).n}</span><span class="ov-dots">${(()=>{ const v=covOf(s); return v.nums.map(n=>`<i class="${v.r.has(n)?"f":""}">${n}</i>`).join(""); })()}</span></button>`).join("")}</div></div>`).join("");
 }
 document.getElementById("overview").addEventListener("click",e=>{
   if(e.target.id==="ov-close"){ stageEl.classList.remove("ov"); return; }
@@ -682,10 +697,10 @@ function renderLeft(){
 }
 document.getElementById("left").addEventListener("click",e=>{
   const t=e.target.closest("button"); if(!t) return;
-  if(t.dataset.nav){ ui.sel={...ui.sel,kind:t.dataset.nav}; renderLeft(); renderDoc(); }
+  if(t.dataset.nav){ ui.sel={...ui.sel,kind:t.dataset.nav}; renderLeft(); scrollToSel(); }
   else if(t.dataset.st){ go(t.dataset.st.split("|")[1]); }
   else if(t.dataset.stat){ const m=mode(t.dataset.stat); m.status={open:"rework",rework:"done",done:"open"}[m.status]; save(); renderLeft(); }
-  else if(t.dataset.adds){ const m=mode(t.dataset.adds); const s={id:uid("s-"),name:"New screen",kind:"custom",doc:"",links:{}}; m.states.push(s); save(); go(s.id); setTimeout(()=>{ $("#doc-title")?.focus(); $("#doc-title")?.select(); },30); }
+  else if(t.dataset.adds){ const m=mode(t.dataset.adds); const s={id:uid("s-"),name:"New screen",kind:"custom",doc:"",links:{}}; m.states.push(s); save(); go(s.id); setTimeout(()=>{ const i=document.querySelector(`.sec-name[data-state="${s.id}"]`); i?.focus(); i?.select(); },60); }
   else if(t.dataset.delm){ if(t.dataset.arm){ S.modes=S.modes.filter(m=>m.id!==t.dataset.delm); ui.sel={kind:"brief"}; save(); render(); } else { t.dataset.arm=1; t.textContent="Sure?"; t.style.visibility="visible"; } }
   else if(t.id==="addm"){ const m={id:uid("m-"),name:"New mode",status:"open",figma:"",states:[{id:uid("s-"),name:"Default",kind:"custom",doc:"",links:{}}]}; S.modes.push(m); save(); go(m.states[0].id); }
 });
@@ -698,46 +713,69 @@ document.getElementById("left").addEventListener("dblclick",e=>{
 });
 document.getElementById("tog-sb").addEventListener("click",()=>{ ui.sb=!ui.sb; document.getElementById("main").classList.toggle("nosb",!ui.sb); setTimeout(()=>{ fit(); placeBadges(); },220); });
 
-/* ================= spec doc (rich editor with nested lists) ================= */
-const DOCMETA={brief:["Brief","Problem, goal, success criteria, scope"],rules:["Global rules","Behavior that holds on every screen. One rule per line, with an ID: R1, R2 …\nScreens reference rules by ID instead of repeating them."],questions:["Open questions","Anything undecided. Resolve them here or in the screen specs."]};
-function renderDoc(){
-  const D=document.getElementById("doc"), k=ui.sel.kind;
-  let title, html, ph, crumb="";
-  if(k!=="state"){ title=DOCMETA[k][0]; html=S.docs[k]; ph=DOCMETA[k][1]; crumb=`Ticket`; }
-  else { const m=curMode(), s=curState(); title=s.name; html=s.doc; crumb=`${esc(m.name)} ${m.figma?`· <a href="${esc(m.figma)}" target="_blank" rel="noopener">mode in Figma ↗</a>`:""}`;
-    ph="Spec this screen.\n\n1. Trigger: how do I get here?\n2. Shows: what is visible\n3. Behavior: what happens on interaction\n   1. Reference elements by number: #1, #2 …\n4. Edge cases\n5. Copy\n\nReference global rules by ID, e.g. R1.\nTab / Shift+Tab indents lists · start a line with 1. or - for a list · # for a heading"; }
-  D.innerHTML=`<div class="doc-head"><div class="crumb">${crumb}</div>
-    ${k==="state"?`<input class="doc-title" id="doc-title" value="${esc(title)}" aria-label="Screen name">`:`<div class="doc-title">${esc(title)}</div>`}</div>
+/* ================= one continuous spec document, synced with the phone ================= */
+const PH_STATE="Trigger · Shows · Behavior (#n for elements, R1 for rules) · Edge cases · Copy";
+let lastEd=null, docSig="", progScroll=0;
+const structSig=()=>JSON.stringify(S.modes.map(m=>[m.id,m.name,m.states.map(s=>s.id)]));
+function renderDoc(force){
+  const sig=structSig(); if(!force&&sig===docSig&&$("#edscroll")) { syncNames(); return; }
+  const keep=$("#edscroll")?.scrollTop||0; docSig=sig;
+  const D=document.getElementById("doc");
+  const blk=(key,title,html,ph)=>`<section class="dsec" data-sec="${key}"><h2 class="sec-h">${title}</h2><div class="ed" contenteditable="true" data-key="${key}" data-ph="${esc(ph)}" spellcheck="true">${html||""}</div></section>`;
+  let h=`<div class="doc-head"><div class="crumb">BR-7147 · one document for the whole ticket</div><div class="doc-title">Spec</div></div>
     <div class="tools"><button data-cmd="h2" title="Heading">H</button><button data-cmd="ol" title="Numbered list">1.</button><button data-cmd="ul" title="Bullet list">•</button><button data-cmd="indent" title="Indent (Tab)">→</button><button data-cmd="outdent" title="Outdent (Shift+Tab)">←</button><button data-cmd="bold" title="Bold"><b>B</b></button>
-      <button data-cmd="ask" title="Comment or question for Claude (Option+C)">💬 Ask Claude</button><button data-cmd="accept" class="acc" id="acc" title="Make Claude’s blue text your own">Accept blue text</button><span class="sp"></span>${k==="state"?`<span class="meta" id="covmeta"></span>`:""}</div>
-    <div class="ed" id="ed" contenteditable="true" data-ph="${esc(ph)}" spellcheck="true">${html||""}</div>`;
-  updateCovMeta(); updateAcc();
+      <button data-cmd="ask" title="Comment or question for Claude (Option+C)">💬 Ask Claude</button><button data-cmd="accept" class="acc" id="acc" title="Make Claude’s blue text your own">Accept blue text</button><span class="sp"></span><span class="meta" id="covmeta"></span></div>
+    <div class="edscroll" id="edscroll">`;
+  h+=blk("brief","Brief",S.docs.brief,"Problem, goal, success criteria, scope");
+  h+=blk("rules","Global rules",S.docs.rules,"Behavior that holds everywhere. One rule per line with an ID: R1, R2 …");
+  for(const m of S.modes){
+    h+=`<div class="mode-h" data-mode="${m.id}"><span class="stat ${m.status}">${STAT[m.status]}</span>${esc(m.name)}${m.figma?` <a href="${esc(m.figma)}" target="_blank" rel="noopener">Figma ↗</a>`:""}</div>`;
+    for(const st of m.states){ const v=covOf(st);
+      h+=`<section class="dsec" data-sec="state:${st.id}"><h3 class="sec-h"><input class="sec-name" data-state="${st.id}" value="${esc(st.name)}" aria-label="Screen name"><span class="sec-cov" data-state="${st.id}">${v.n?`${v.c}/${v.n}`:""}</span></h3><div class="ed" contenteditable="true" data-state="${st.id}" data-ph="${PH_STATE}" spellcheck="true">${st.doc||""}</div></section>`; }
+  }
+  h+=blk("questions","Open questions",S.docs.questions,"Anything undecided");
+  h+=`<div style="height:40vh"></div></div>`;
+  D.innerHTML=h; $("#edscroll").scrollTop=keep;
+  updateCovMeta(); updateAcc(); markActive();
 }
-function updateCovMeta(){ const c=$("#covmeta"); if(!c) return; const v=covOf(curState()); c.textContent=`${v.c} of ${v.n} elements specced`; }
+function syncNames(){ document.querySelectorAll(".sec-name").forEach(i=>{ const f=find(i.dataset.state); if(f&&document.activeElement!==i&&i.value!==f.s.name) i.value=f.s.name; }); markActive(); }
+function markActive(){ document.querySelectorAll(".dsec").forEach(x=>x.classList.toggle("cur",x.dataset.sec===(ui.sel.kind==="state"?"state:"+ui.sel.state:ui.sel.kind))); }
+function scrollToSel(){ const key=ui.sel.kind==="state"?"state:"+ui.sel.state:ui.sel.kind; const sec=document.querySelector(`.dsec[data-sec="${CSS.escape(key)}"]`), sc=$("#edscroll"); if(!sec||!sc) return;
+  progScroll=Date.now(); sc.scrollTo({top:sec.offsetTop-sc.offsetTop-8,behavior:"smooth"}); markActive(); }
+function onDocScroll(){ if(Date.now()-progScroll<700) return; const sc=$("#edscroll"); if(!sc) return;
+  const ae=document.activeElement&&document.activeElement.closest&&document.activeElement.closest(".dsec"); if(ae){ const r=ae.getBoundingClientRect(), sr=sc.getBoundingClientRect(); if(r.bottom>sr.top+40&&r.top<sr.bottom-40) return; } const top=sc.getBoundingClientRect().top+90;
+  let cur=null; for(const sec of sc.querySelectorAll(".dsec")){ if(sec.getBoundingClientRect().top<=top) cur=sec; else break; } if(!cur) return;
+  const key=cur.dataset.sec;
+  if(key.startsWith("state:")){ const id=key.slice(6); if(ui.sel.kind!=="state"||ui.sel.state!==id){ const f=find(id); if(!f) return; ui.sel={kind:"state",mode:f.m.id,state:id}; ui.live={}; renderStage(); renderLeft(); renderHeader(); markActive(); } }
+  else if(ui.sel.kind!==key){ ui.sel={...ui.sel,kind:key}; renderLeft(); markActive(); } }
+function updateCovMeta(){ const c=$("#covmeta"); if(!c) return; const refs=allRefs(); const all=new Set(); for(const {s} of flat()) countFor(s).forEach(id=>all.add(elNum(id))); const n=[...all].filter(x=>refs.has(x)).length; c.textContent=`${n} of ${all.size} elements specced`; }
 const docEl=document.getElementById("doc");
-function edSave(){
-  const ed=$("#ed"); if(!ed) return;
+function edSave(ed){
+  ed=ed||lastEd; if(!ed) return;
   if(ed.innerHTML==="<br>"||ed.innerHTML==="<p><br></p>") ed.innerHTML="";
-  const k=ui.sel.kind; if(k==="state"){ curState().doc=ed.innerHTML; refreshCoverage(); updateCovMeta(); } else S.docs[k]=ed.innerHTML;
-  updateAcc();
-  if(k==="state"&&curState().doc!==ed.innerHTML){ setSync("⚠ not saved: reload the page"); syncEl.style.color="#e03131"; return; }
-  save();
+  let target;
+  if(ed.dataset.state){ const f=find(ed.dataset.state); if(!f) return; f.s.doc=ed.innerHTML; target=()=>f.s.doc; }
+  else { S.docs[ed.dataset.key]=ed.innerHTML; target=()=>S.docs[ed.dataset.key]; }
+  if(target()!==ed.innerHTML){ setSync("⚠ not saved: reload the page"); syncEl.style.color="#e03131"; return; }
+  refreshCoverage(); updateCovMeta(); updateAcc(); save();
 }
 function caretToEnd(node){ const r=document.createRange(); r.selectNodeContents(node); r.collapse(false); const s=getSelection(); s.removeAllRanges(); s.addRange(r); }
 function inAsk(){ const s=getSelection(); const n=s.anchorNode; if(!n) return null; const e=n.nodeType===3?n.parentElement:n; return e&&e.closest?e.closest("mark.ask"):null; }
+function curEd(){ const s=getSelection(); const n=s.anchorNode; const e=n&&(n.nodeType===3?n.parentElement:n); const ed=e&&e.closest?e.closest(".ed"):null; if(ed) return ed;
+  return lastEd || document.querySelector(`.ed[data-state="${CSS.escape(ui.sel.state||"")}"]`); }
 function insertAsk(){
-  const ed=$("#ed"); if(!ed) return; const s=getSelection();
+  const ed=curEd(); if(!ed) return; const s=getSelection();
   if(!s.anchorNode||!ed.contains(s.anchorNode)){ ed.focus(); caretToEnd(ed); }
   const open=inAsk(); if(open){ exitAsk(open); return; }
   const r=getSelection().getRangeAt(0); r.collapse(false);
-  const m=document.createElement("mark"); m.className="ask"; m.textContent="\u200b"; r.insertNode(m);
-  const r2=document.createRange(); r2.setStart(m.firstChild,1); r2.collapse(true); s.removeAllRanges(); s.addRange(r2);
+  const m=document.createElement("mark"); m.className="ask"; m.textContent="​"; r.insertNode(m);
+  const r2=document.createRange(); r2.setStart(m.firstChild,1); r2.collapse(true); s.removeAllRanges(); s.addRange(r2); lastEd=ed;
 }
-function exitAsk(m){ const t=document.createTextNode("\u00a0"); m.after(t); const r=document.createRange(); r.setStart(t,1); r.collapse(true); const s=getSelection(); s.removeAllRanges(); s.addRange(r); edSave(); }
-function updateAcc(){ const b=$("#acc"); if(b) b.style.display=$("#ed span.ai")?"":"none"; }
-function depth(node){ let d=0; while(node&&node.id!=="ed"){ if(node.tagName==="LI") d++; node=node.parentNode; } return d; }
+function exitAsk(m){ const ed=m.closest(".ed"); const t=document.createTextNode(" "); m.after(t); const r=document.createRange(); r.setStart(t,1); r.collapse(true); const s=getSelection(); s.removeAllRanges(); s.addRange(r); edSave(ed); }
+function updateAcc(){ const b=$("#acc"); if(b) b.style.display=$("#edscroll span.ai")?"":"none"; }
+function depth(node){ let d=0; while(node&&!(node.classList&&node.classList.contains("ed"))){ if(node.tagName==="LI") d++; node=node.parentNode; } return d; }
 function exec(cmd){
-  const ed=$("#ed"); ed.focus();
+  const ed=curEd(); if(!ed) return; if(document.activeElement!==ed) ed.focus();
   if(cmd==="h2") document.execCommand("formatBlock",false,"h2");
   if(cmd==="ol") document.execCommand("insertOrderedList");
   if(cmd==="ul") document.execCommand("insertUnorderedList");
@@ -745,22 +783,25 @@ function exec(cmd){
   if(cmd==="indent"){ const s=getSelection(); if(depth(s.anchorNode)<4) document.execCommand("indent"); }
   if(cmd==="outdent") document.execCommand("outdent");
   if(cmd==="ask"){ insertAsk(); return; }
-  if(cmd==="accept"){ ed.querySelectorAll("span.ai").forEach(sp=>sp.replaceWith(...sp.childNodes)); }
-  edSave();
+  if(cmd==="accept"){ document.querySelectorAll("#edscroll .ed").forEach(x=>{ if(x.querySelector("span.ai")){ x.querySelectorAll("span.ai").forEach(sp=>sp.replaceWith(...sp.childNodes)); edSave(x); } }); return; }
+  edSave(ed);
 }
 docEl.addEventListener("click",e=>{ const b=e.target.closest("[data-cmd]"); if(b){ e.preventDefault(); exec(b.dataset.cmd); } });
 docEl.addEventListener("mousedown",e=>{ if(e.target.closest("[data-cmd]")) e.preventDefault(); });
+docEl.addEventListener("focusin",e=>{ const ed=e.target.closest(".ed"); if(ed){ lastEd=ed; progScroll=Date.now();
+  if(ed.dataset.state&&ui.sel.state!==ed.dataset.state){ const f=find(ed.dataset.state); if(f){ ui.sel={kind:"state",mode:f.m.id,state:f.s.id}; ui.live={}; renderStage(); renderLeft(); renderHeader(); markActive(); } } } });
+docEl.addEventListener("scroll",e=>{ if(e.target.id==="edscroll") requestAnimationFrame(onDocScroll); },true);
 docEl.addEventListener("input",e=>{
-  if(e.target.id==="doc-title"){ curState().name=e.target.value; save(); renderLeft(); return; }
-  if(e.target.id==="ed") edSave();
+  if(e.target.classList.contains("sec-name")){ const f=find(e.target.dataset.state); if(f){ f.s.name=e.target.value; save(); renderLeft(); } return; }
+  const ed=e.target.closest(".ed"); if(ed) edSave(ed);
 });
 docEl.addEventListener("keydown",e=>{
-  if(e.target.id!=="ed") return;
+  const ed=e.target.closest&&e.target.closest(".ed"); if(!ed) return;
   if(e.key==="Enter"||e.key==="Escape"){ const m=inAsk(); if(m){ e.preventDefault(); e.stopPropagation(); exitAsk(m); return; } }
   if(e.key==="Tab"){ e.preventDefault(); const s=getSelection();
     if(depth(s.anchorNode)===0){ if(!e.shiftKey) document.execCommand("insertOrderedList"); }
-    else exec(e.shiftKey?"outdent":"indent"); edSave(); return; }
-  if(e.key===" "){ // markdown shortcuts at the start of a block: "1." "-" "*" "#" "##"
+    else exec(e.shiftKey?"outdent":"indent"); edSave(ed); return; }
+  if(e.key===" "){
     const s=getSelection(); if(!s.isCollapsed) return; const n=s.anchorNode; if(n.nodeType!==3) return;
     const before=n.textContent.slice(0,s.anchorOffset); const block=n.parentElement.closest("p,div,h1,h2,h3,li");
     if(block&&block.tagName==="LI") return;
@@ -768,11 +809,11 @@ docEl.addEventListener("keydown",e=>{
     if(map[before]&&(!n.previousSibling)){ e.preventDefault(); n.textContent=n.textContent.slice(s.anchorOffset);
       const r=document.createRange(); r.setStart(n,0); r.collapse(true); s.removeAllRanges(); s.addRange(r);
       const c=map[before]; if(c==="ol") document.execCommand("insertOrderedList"); else if(c==="ul") document.execCommand("insertUnorderedList"); else document.execCommand("formatBlock",false,c);
-      edSave(); }
+      edSave(ed); }
   }
 });
-docEl.addEventListener("paste",e=>{ if(e.target.closest("#ed")){ e.preventDefault(); const t=(e.clipboardData||window.clipboardData).getData("text/plain").trim();
-  if(/^https:\/\/(www\.)?figma\.com\/\S+$/.test(t)){ const nid=(t.match(/node-id=([\d-]+)/)||[])[1]; document.execCommand("insertHTML",false,`<a class="fig" href="${esc(t)}" target="_blank" rel="noopener" contenteditable="false">Figma${nid?" "+nid:""} ↗</a>&nbsp;`); edSave(); return; }
+docEl.addEventListener("paste",e=>{ const ed=e.target.closest&&e.target.closest(".ed"); if(ed){ e.preventDefault(); const t=(e.clipboardData||window.clipboardData).getData("text/plain").trim();
+  if(/^https:\/\/(www\.)?figma\.com\/\S+$/.test(t)){ const nid=(t.match(/node-id=([\d-]+)/)||[])[1]; document.execCommand("insertHTML",false,`<a class="fig" href="${esc(t)}" target="_blank" rel="noopener" contenteditable="false">Figma${nid?" "+nid:""} ↗</a>&nbsp;`); edSave(ed); return; }
   document.execCommand("insertText",false,t); } });
 docEl.addEventListener("click",e=>{ const a=e.target.closest("a.fig"); if(a){ e.preventDefault(); window.open(a.href,"_blank","noopener"); } });
 document.addEventListener("keydown",e=>{ if(e.altKey&&e.code==="KeyC"){ e.preventDefault(); insertAsk(); } });
@@ -829,10 +870,10 @@ qrBtn.addEventListener("click",e=>{ e.stopPropagation(); const open=qrPop.hidden
     try{ new QRCode(document.getElementById("qr"),{text:url,width:180,height:180,colorDark:"#3a3a3a",colorLight:"#ffffff",correctLevel:QRCode.CorrectLevel.M}); qrDone=true; }catch(err){ document.getElementById("qr").textContent="QR could not load. Use Copy link."; } } });
 document.addEventListener("click",e=>{ if(!qrPop.hidden&&!e.target.closest("#split")){ qrPop.hidden=true; qrBtn.setAttribute("aria-expanded","false"); } });
 document.getElementById("qr-copy").addEventListener("click",async e=>{ try{ await navigator.clipboard.writeText(document.getElementById("b-proto").href); e.target.textContent="Copied"; }catch(err){ e.target.textContent="Copy blocked: select the link above"; } });
-function render(){ renderLeft(); renderStage(); renderDoc(); renderHeader(); renderLeft(); }
+function render(force){ renderLeft(); renderStage(); renderDoc(force); renderHeader(); renderLeft(); }
 applyRoute();
 render();
-document.addEventListener("focusout",e=>{ if(pendingRemote&&(e.target.id==="ed"||e.target.id==="doc-title")){ setTimeout(()=>{ if(pendingRemote&&!tmr&&!saving){ S=structuredClone(pendingRemote); pendingRemote=null; render(); setSync("updated by Claude"); } },900); } });
+document.addEventListener("focusout",e=>{ if(pendingRemote&&e.target.closest&&e.target.closest(".ed,.sec-name")){ setTimeout(()=>{ if(pendingRemote&&!tmr&&!saving&&!(document.activeElement&&document.activeElement.closest&&document.activeElement.closest(".ed,.sec-name"))){ S=structuredClone(pendingRemote); pendingRemote=null; render(true); setSync("updated by Claude"); } },900); } });
 document.fonts?.ready?.then(()=>{ fit(); placeBadges(); renderLeft(); updateCovMeta(); });
 /* static build: no database, defaults only */
 </script>
