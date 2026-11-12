@@ -598,7 +598,11 @@ const ATT_NAME={doc:"Rationale Zahlen.pdf",image:"Photo",drawing:"Drawing",loadi
 function sysSheet(kind,el){ const d=SYS[kind]; if(!d) return ""; const L=d.left||0, wPct=d.w/402*100;
   const spots=d.spots.map(([id,label,x,y,w,h],i)=>`<button class="sys-spot" ${el(id,label)} data-spot="${i}" aria-label="${esc(label)}" style="left:${x/d.w*100}%;top:${y/d.h*100}%;width:${w/d.w*100}%;height:${h/d.h*100}%"></button>`).join("");
   return `<div class="up-scrim" data-dim="sys" style="background:rgba(0,0,0,.25)"></div><div class="sys-sheet" style="left:${L/402*100}%;width:${wPct}%;bottom:${d.bottom||0}px;aspect-ratio:${d.w}/${d.h};${d.radius?`border-radius:${d.radius}px;`:""}"><img src="assets/${d.img}.png" alt="" draggable="false">${spots}</div>`; }
-function placeUpMenu(){ const W=document.getElementById("pwrap"); if(!W) return; const um=W.querySelector(".up-menu"), cm=W.querySelector(".cmp"), ph=W.querySelector(".phone"); if(um&&cm&&ph){ const s=ui.scale||1; um.style.bottom=((ph.getBoundingClientRect().bottom-cm.getBoundingClientRect().top)/s+8)+"px"; } }
+/* attachment menu opens to the right of the + button, vertically centred on it; shifted up/down only as far as needed to stay on screen */
+function placeUpMenu(){ const W=document.getElementById("pwrap"); if(!W) return; const um=W.querySelector(".up-menu"), pl=W.querySelector(".c-plus"), ph=W.querySelector(".phone"); if(!um||!pl||!ph) return;
+  const s=ui.scale||1, P=ph.getBoundingClientRect(), B=pl.getBoundingClientRect(); const h=um.offsetHeight, phH=P.height/s;
+  let top=(B.top+B.height/2-P.top)/s-h/2; top=Math.max(8,Math.min(top,phH-h-8));
+  um.style.bottom="auto"; um.style.top=top+"px"; um.style.left=((B.right-P.left)/s+8)+"px"; um.style.maxWidth=`calc(100% - ${((B.right-P.left)/s+8+12)}px)`; }
 function renderStage(){
   const W=document.getElementById("pwrap"); const st=curState(); if(!st){ W.innerHTML=""; return; }
   W.innerHTML=`<svg class="lines" id="lines"></svg>${phoneHTML(st,ui.live,true)}`;
