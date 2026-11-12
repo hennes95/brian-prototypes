@@ -932,7 +932,9 @@ function syncNames(){ document.querySelectorAll(".sec-name").forEach(i=>{ const 
 function markActive(){ const key=ui.sel.kind==="state"?"state:"+ui.sel.state:ui.sel.kind; let grp=null; document.querySelectorAll(".dsec").forEach(x=>{ const on=x.dataset.sec===key; x.classList.toggle("cur",on); if(on) grp=x.dataset.grp; }); if(ui.sel.kind==="state") grp="solution"; document.querySelectorAll("#jump button").forEach(b=>b.classList.toggle("on",b.dataset.jump===grp)); }
 function scrollToSel(){ const key=ui.sel.kind==="state"?"state:"+ui.sel.state:ui.sel.kind; const sec=document.querySelector(`.dsec[data-sec="${CSS.escape(key)}"]`), sc=$("#edscroll"); if(!sec||!sc) return;
   progScroll=Date.now(); const room=sc.clientHeight-112, rel=sec.offsetTop-sc.offsetTop; const top=sec.offsetHeight<=room? rel-(sc.clientHeight-sec.offsetHeight)/2 : rel-56; sc.scrollTo({top:Math.max(0,top),behavior:"smooth"}); markActive(); }
-function onDocScroll(){ if(Date.now()-progScroll<700) return; const sc=$("#edscroll"); if(!sc) return;
+/* doc -> prototype sync only for scrolling the user does in the doc; scrolls caused by the prototype (it jumps the doc to the current state) must never reset the prototype's model */
+let userDocScroll=0; ["wheel","touchmove","keydown","pointerdown"].forEach(ev=>document.addEventListener(ev,e=>{ if(e.target.closest&&e.target.closest("#edscroll")) userDocScroll=Date.now(); },{passive:true,capture:true}));
+function onDocScroll(){ if(Date.now()-progScroll<700) return; if(Date.now()-userDocScroll>1200) return; if(document.body.classList.contains("attn-proto")) return; const sc=$("#edscroll"); if(!sc) return;
   const ae=document.activeElement&&document.activeElement.closest&&document.activeElement.closest(".dsec"); if(ae){ const r=ae.getBoundingClientRect(), sr=sc.getBoundingClientRect(); if(r.bottom>sr.top+40&&r.top<sr.bottom-40) return; } const sr0=sc.getBoundingClientRect(); const top=sr0.top+sc.clientHeight/2;
   let cur=null; for(const sec of sc.querySelectorAll(".dsec")){ if(sec.getBoundingClientRect().top<=top) cur=sec; else break; } if(!cur) return;
   const key=cur.dataset.sec;
