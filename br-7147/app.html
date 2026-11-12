@@ -620,7 +620,7 @@ function growInput(){
   t.style.height="auto"; const h=Math.min(t.scrollHeight,LH*MAX+PAD); t.style.height=h+"px";
   const over=t.scrollHeight>LH*MAX+PAD+1; t.style.overflowY=over?"auto":"hidden";
   $("#pwrap .cmp")?.classList.toggle("over",over); if(over&&document.activeElement!==t) t.scrollTop=t.scrollHeight;
-  const bar=$("#pwrap .cmp .bar"); if(bar&&over){ const vis=t.clientHeight/t.scrollHeight, h=Math.max(16,t.clientHeight*vis); bar.style.height=h+"px"; const posBar=()=>{ bar.style.transform=`translateY(${(t.scrollTop/(t.scrollHeight-t.clientHeight||1))*(t.clientHeight-h)}px)`; }; posBar(); t.onscroll=posBar; }
+  const bar=$("#pwrap .cmp .bar"); if(bar&&over){ const vis=t.clientHeight/t.scrollHeight, h=Math.max(16,t.clientHeight*vis); bar.style.height=h+"px"; /* track = the text area itself (not the composer), so position maps to the text */ const sc=ui.scale||1; bar.style.top=((t.getBoundingClientRect().top-t.closest(".cmp").getBoundingClientRect().top)/sc)+"px"; const posBar=()=>{ bar.style.transform=`translateY(${(t.scrollTop/(t.scrollHeight-t.clientHeight||1))*(t.clientHeight-h)}px)`; }; posBar(); t.onscroll=posBar; }
 }
 function fit(){
   const st=document.getElementById("stage"), w=document.getElementById("pwrap");
