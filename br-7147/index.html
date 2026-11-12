@@ -69,7 +69,9 @@ body.proto .kbd{display:none}
 html:has(body.native),body.native,body.native .app,body.native .main,body.native .stage{background:#fff!important;color-scheme:light}
 html:has(body.native.ctx-dark),body.native.ctx-dark,body.native.ctx-dark .app,body.native.ctx-dark .main,body.native.ctx-dark .stage{background:#2f2f2f!important}
 body.native .pwrap{left:0;top:0;transform:none!important}
-body.native .phone{width:100vw;height:var(--vvh,100dvh);border-radius:0;box-shadow:none;padding-top:env(safe-area-inset-top)}
+/* keyboard-safe: pin the app to the visible viewport, never let the page itself scroll (iOS shifts it when the keyboard opens) */
+html:has(body.native),body.native{overflow:hidden;height:100%;overscroll-behavior:none}
+body.native .phone{position:fixed;left:0;top:var(--vvtop,0px);width:100vw;height:var(--vvh,100dvh);border-radius:0;box-shadow:none;padding-top:env(safe-area-inset-top)}
 /* tab bar height as in Figma (72px incl. home indicator): no extra safe-area padding below it */
 body.native .p-tabs{padding-top:10px;padding-bottom:26px;height:92px}
 body.native .cmp.notab:not(.focused){padding-bottom:calc(12px + env(safe-area-inset-bottom))}
@@ -590,13 +592,15 @@ function growInput(){
 function fit(){
   const st=document.getElementById("stage"), w=document.getElementById("pwrap");
   const nat=document.body.classList.contains("proto")&&innerWidth<=600; document.body.classList.toggle("native",nat); document.body.classList.toggle("ctx-dark",ui.context==="dialog");
-  if(nat){ document.documentElement.style.setProperty("--vvh",(window.visualViewport?visualViewport.height:innerHeight)+"px"); w.style.transform="none"; ui.scale=1; return; }
+  if(nat){ const vv=window.visualViewport; document.documentElement.style.setProperty("--vvh",(vv?vv.height:innerHeight)+"px"); document.documentElement.style.setProperty("--vvtop",(vv?vv.offsetTop:0)+"px"); w.style.transform="none"; ui.scale=1; return; }
   const pv=document.body.classList.contains("proto"), small=pv&&innerWidth<=600;
   const sc=small? Math.min(st.clientWidth/402, st.clientHeight/874) : pv? Math.min((st.clientHeight-40)/894,(st.clientWidth-40)/422,1.4) : Math.max(.3,Math.min((st.clientHeight-130)/894,(st.clientWidth-130)/422,1));
   w.style.transform=`translate(-50%,-50%) scale(${sc})`; ui.scale=sc;
 }
 window.addEventListener("resize",()=>{ fit(); placeAiCtl(); });
-if(window.visualViewport) visualViewport.addEventListener("resize",()=>{ if(document.body.classList.contains("native")) fit(); });
+if(window.visualViewport){ const vvFit=()=>{ if(document.body.classList.contains("native")) fit(); }; visualViewport.addEventListener("resize",vvFit); visualViewport.addEventListener("scroll",vvFit); }
+/* after the keyboard closes iOS can leave the page scrolled: reset it */
+document.addEventListener("focusout",()=>{ if(!document.body.classList.contains("native")) return; setTimeout(()=>{ window.scrollTo(0,0); fit(); },120); });
 
 /* numbered badges outside the phone, with leader lines */
 function placeBadges(){
@@ -819,8 +823,10 @@ function renderDoc(force){
 function markModes(){ document.querySelectorAll("[data-mdot]").forEach(d=>{ const m=mode(d.dataset.mdot); if(!m) return; const n=m.states.length, f=m.states.filter(x=>textOf(x.doc).trim()).length; d.className="mdot "+(f===0?"none":f===n?"all":"some"); d.title=`${f} of ${n} screens specced`; }); }
 function markEmpty(){ markModes(); document.querySelectorAll("#edscroll .dsec").forEach(sec=>{ const ed=sec.querySelector(".ed"); sec.classList.toggle("empty",!textOf(ed.innerHTML).trim()); }); }
 function placeAiCtl(){ const sc=$("#edscroll"); if(!sc) return; sc.querySelectorAll(".aictl").forEach(x=>x.remove()); const so=sc.getBoundingClientRect();
-  sc.querySelectorAll(".ed span.ai").forEach((sp,i)=>{ const rs=sp.getClientRects(); const r=rs[rs.length-1]; if(!r) return; const c=document.createElement("div"); c.className="aictl"; c.style.top=(r.top-so.top+sc.scrollTop-1)+"px"; c.style.left=Math.min(r.right-so.left+16, sc.clientWidth-110)+"px";
-    c.innerHTML=`<button class="ok" title="Accept: make it your text">✓ Accept</button><button class="no" title="Decline: remove it">✕</button>`; c._sp=sp; sc.appendChild(c); }); }
+  sc.querySelectorAll(".ed span.ai").forEach((sp,i)=>{ const rs=sp.getClientRects(); const r=rs[0]; if(!r) return; const edEl=sp.closest(".ed")||sp, col=edEl.getBoundingClientRect(), colRight=col.right-parseFloat(getComputedStyle(edEl).paddingRight||0); const c=document.createElement("div"); c.className="aictl"; const roomRight=colRight-so.left+16+60<=sc.clientWidth;
+    if(roomRight){ c.style.top=(r.top-so.top+sc.scrollTop-2)+"px"; c.style.left=(colRight-so.left+16)+"px"; }
+    else { const rl=rs[rs.length-1]; c.style.top=(rl.top-so.top+sc.scrollTop-1)+"px"; c.style.left=Math.min(rl.right-so.left+16, sc.clientWidth-64)+"px"; } /* narrow pane: no margin, fall back to after the last line */
+    c.innerHTML=`<button class="ok" title="Accept: make it your text" aria-label="Accept">✓</button><button class="no" title="Decline: remove it">✕</button>`; c._sp=sp; sc.appendChild(c); }); }
 function syncNames(){ document.querySelectorAll(".sec-name").forEach(i=>{ const f=find(i.dataset.state); if(f&&document.activeElement!==i&&i.value!==f.s.name) i.value=f.s.name; }); markActive(); }
 function markActive(){ const key=ui.sel.kind==="state"?"state:"+ui.sel.state:ui.sel.kind; let grp=null; document.querySelectorAll(".dsec").forEach(x=>{ const on=x.dataset.sec===key; x.classList.toggle("cur",on); if(on) grp=x.dataset.grp; }); if(ui.sel.kind==="state") grp="solution"; document.querySelectorAll("#jump button").forEach(b=>b.classList.toggle("on",b.dataset.jump===grp)); }
 function scrollToSel(){ const key=ui.sel.kind==="state"?"state:"+ui.sel.state:ui.sel.kind; const sec=document.querySelector(`.dsec[data-sec="${CSS.escape(key)}"]`), sc=$("#edscroll"); if(!sec||!sc) return;
