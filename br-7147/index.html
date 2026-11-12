@@ -572,11 +572,12 @@ function syncSel(){ const want=deriveKind(ui.live); const pick=k=>{ const inMode
   let hit=want==="typing-filled"?(pick("typing-3")||pick("typing-7")):pick(want);
   if(hit&&hit.s.id!==ui.sel.state){ ui.sel={kind:"state",mode:hit.m.id,state:hit.s.id}; renderHeader(); markActive(); if(document.body.classList.contains("attn-proto")) scrollToSel(); placeBadges(); renderMinimap(); } }
 function rerenderKeepCaret(keep){ const t=$("#pwrap textarea"); const had=keep||document.activeElement===t; const pos=t?t.selectionStart:0; renderStage(); if(had||ui.live.focused&&!ui.live.menu&&!ui.live.picker){ const n=$("#pwrap textarea"); if(n&&had){ ui.refocusing=true; n.focus(); ui.refocusing=false; n.setSelectionRange(pos,pos); } } }
+function placeUpMenu(){ const W=document.getElementById("pwrap"); if(!W) return; const um=W.querySelector(".up-menu"), cm=W.querySelector(".cmp"), ph=W.querySelector(".phone"); if(um&&cm&&ph){ const s=ui.scale||1; um.style.bottom=((ph.getBoundingClientRect().bottom-cm.getBoundingClientRect().top)/s+8)+"px"; } }
 function renderStage(){
   const W=document.getElementById("pwrap"); const st=curState(); if(!st){ W.innerHTML=""; return; }
   W.innerHTML=`<svg class="lines" id="lines"></svg>${phoneHTML(st,ui.live,true)}`;
   /* attachment menu sits 8px above the composer, wherever the composer is (fake keyboard in the frame, real keyboard on the phone) */
-  { const um=W.querySelector(".up-menu"), cm=W.querySelector(".cmp"), ph=W.querySelector(".phone"); if(um&&cm&&ph){ const s=ui.scale||1; um.style.bottom=((ph.getBoundingClientRect().bottom-cm.getBoundingClientRect().top)/s+8)+"px"; } }
+  placeUpMenu();
   growInput(); fit(); placeBadges(); renderMinimap();
   const ch=$("#pwrap .p-chat"), ph=$("#pwrap .phone");
   if(ch){ ch.scrollTop=ch.scrollHeight;
@@ -594,7 +595,7 @@ function growInput(){
 function fit(){
   const st=document.getElementById("stage"), w=document.getElementById("pwrap");
   const nat=document.body.classList.contains("proto")&&innerWidth<=600; document.body.classList.toggle("native",nat); document.body.classList.toggle("ctx-dark",ui.context==="dialog");
-  if(nat){ const vv=window.visualViewport; document.documentElement.style.setProperty("--vvh",(vv?vv.height:innerHeight)+"px"); document.documentElement.style.setProperty("--vvtop",(vv?vv.offsetTop:0)+"px"); w.style.transform="none"; ui.scale=1; return; }
+  if(nat){ requestAnimationFrame(placeUpMenu); const vv=window.visualViewport; document.documentElement.style.setProperty("--vvh",(vv?vv.height:innerHeight)+"px"); document.documentElement.style.setProperty("--vvtop",(vv?vv.offsetTop:0)+"px"); w.style.transform="none"; ui.scale=1; return; }
   const pv=document.body.classList.contains("proto"), small=pv&&innerWidth<=600;
   const sc=small? Math.min(st.clientWidth/402, st.clientHeight/874) : pv? Math.min((st.clientHeight-40)/894,(st.clientWidth-40)/422,1.4) : Math.max(.3,Math.min((st.clientHeight-130)/894,(st.clientWidth-130)/422,1));
   w.style.transform=`translate(-50%,-50%) scale(${sc})`; ui.scale=sc;
@@ -655,6 +656,7 @@ stageEl.addEventListener("mouseleave",()=>{ document.getElementById("pwrap").cla
 /* clicks: badge = jump to / create the element's screen · element = navigate like the app */
 const REPLIES=["Nice. Now try a line with a negative slope: what changes?","Good thinking. What happens to the line if b gets bigger?","Exactly. Can you draw it and send me a photo?"];
 /* tapping + (or removing an attachment) must not take focus from the text field, so the keyboard stays open */
+document.getElementById("pwrap").addEventListener("touchend",e=>{ const b=e.target.closest('[data-el="plus"],[data-rm]'); if(b&&document.activeElement===$("#pwrap textarea")){ e.preventDefault(); b.click(); } },{passive:false});
 document.getElementById("pwrap").addEventListener("mousedown",e=>{ if(e.target.closest('[data-el="plus"],[data-rm]')&&document.activeElement===$("#pwrap textarea")) e.preventDefault(); });
 document.getElementById("pwrap").addEventListener("click",e=>{
   const b=e.target.closest(".badge");
