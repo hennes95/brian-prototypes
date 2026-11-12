@@ -12,15 +12,15 @@
 <style>
 /* Layout: collapsible IA sidebar · phone stage with numbered elements · spec doc filling half the screen */
 :root{
-  --bg:#f3f3f1; --panel:#ffffff; --ink:#1d1d1b; --muted:#76766f; --line:#e2e1dc;
+  --bg:#f3f3f1; --panel:#ffffff; --ink:#1d1d1b; --muted:#76766f; --muted2:#a9a8a1; --line:#e2e1dc;
   --accent:#3b5bdb; --accent-soft:#e8edff; --ok:#2f9e44; --warn:#e67700; --open:#9a9a92;
   --ui:"IBM Plex Sans",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,monospace;
   /* Brian tokens, read from Figma (Student-App, frame 12532:149018) */
   --b-ink:#3a3a3a; --b-muted:#858585; --b-bg:#ffffff; --b-font:"Nunito Sans",system-ui,sans-serif;
   color-scheme:light;
 }
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#18181a;--panel:#222225;--ink:#ececea;--muted:#9b9b96;--line:#333337;--accent:#8aa0ff;--accent-soft:#2a3150;color-scheme:dark}}
-:root[data-theme="dark"]{--bg:#18181a;--panel:#222225;--ink:#ececea;--muted:#9b9b96;--line:#333337;--accent:#8aa0ff;--accent-soft:#2a3150;color-scheme:dark}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#18181a;--panel:#222225;--ink:#ececea;--muted:#9b9b96;--muted2:#76767a;--line:#333337;--accent:#8aa0ff;--accent-soft:#2a3150;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#18181a;--panel:#222225;--ink:#ececea;--muted:#9b9b96;--muted2:#76767a;--line:#333337;--accent:#8aa0ff;--accent-soft:#2a3150;color-scheme:dark}
 *{box-sizing:border-box}
 html,body{height:100%;margin:0}
 body{background:var(--bg);color:var(--ink);font:13px/1.45 var(--ui);overflow:hidden}
@@ -63,8 +63,9 @@ body.proto .app{grid-template-rows:1fr}
 body.proto .stage{background:#111}
 body.proto .kbd{display:none}
 @media (max-width:600px){ body.proto .phone{border-radius:0;box-shadow:none} body.proto .stage{background:#fff} }
-.main{--docw:50%;display:grid;grid-template-columns:240px minmax(0,1fr) var(--docw);min-height:0;transition:grid-template-columns .18s}
-.main.nosb{grid-template-columns:0 minmax(0,1fr) var(--docw)}
+.main{--docw:50%;display:grid;grid-template-columns:minmax(0,1fr) var(--docw);min-height:0;transition:grid-template-columns .18s}
+.main.nosb{grid-template-columns:minmax(0,1fr) var(--docw)}
+#left,#tog-sb{display:none!important}
 .main.dragging{transition:none;user-select:none;cursor:col-resize}
 .doc{position:relative}
 .resizer{position:absolute;left:-4px;top:0;bottom:0;width:8px;cursor:col-resize;z-index:20}
@@ -139,11 +140,33 @@ aside{background:var(--panel);border-right:1px solid var(--line);overflow:auto;m
 .edscroll{flex:1;overflow:auto;padding:56px 40px 0}
 .edscroll>.dsec:first-child .sec-h{margin-top:0}
 /* ~20 words per line, centered */
-.edscroll,.doc-head,.tools{padding-left:max(40px,calc((100% - 92ch)/2))!important;padding-right:max(40px,calc((100% - 92ch)/2))!important}
+.edscroll,.doc-head,.tools,.jump{padding-left:max(40px,calc((100% - 92ch)/2))!important;padding-right:max(40px,calc((100% - 92ch)/2))!important}
 .ed{padding:6px 0 18px;font:15px/1.6 var(--ui);outline:none;min-height:28px}
-.dsec{color:var(--muted);transition:color .15s}
-.dsec.cur{color:var(--ink)}
+.dsec{color:var(--ink);transition:color .15s}
+body.attn-proto .dsec:not(.cur){color:var(--muted)}
 .dsec .sec-name{color:inherit}
+.dsec.empty .sec-name{color:var(--muted2)}
+.dsec.empty .ed:empty::before{content:"Not specced yet";color:var(--muted2);font-style:italic}
+.dsec.empty.cur .ed:empty::before{content:attr(data-ph);font-style:normal}
+.jump{display:flex;gap:2px;padding:6px 40px 0;border-bottom:1px solid var(--line)}
+.jump button{border:0;background:none;padding:8px 12px;border-bottom:2px solid transparent;color:var(--muted);font:500 13px var(--ui);cursor:pointer;margin-bottom:-1px}
+.jump button.on{color:var(--ink);border-bottom-color:var(--ink)}
+.grp-h{margin:44px 0 0;font:600 22px var(--ui);color:var(--ink)}
+.edscroll>.grp-h:first-child{margin-top:0}
+.mode-name{font:inherit;text-transform:inherit;letter-spacing:inherit;color:inherit;border:0;background:none;padding:0;outline:none;min-width:40px;field-sizing:content}
+.mdot{width:14px;height:14px;border-radius:50%;border:1.5px solid var(--muted2);flex:none;box-sizing:border-box}
+.mdot.some{border-color:var(--accent);background:conic-gradient(var(--accent) 0 50%,transparent 0)}
+.mdot.all{border-color:var(--accent);background:var(--accent)}
+.mode-h .mx{margin-left:auto;border:0;background:none;color:var(--muted);cursor:pointer;font-size:12px;visibility:hidden}
+.mode-h:hover .mx{visibility:visible}
+.addscr{border:0;background:none;color:var(--muted);font:500 12px var(--ui);padding:6px 0 0;cursor:pointer}
+.addscr:hover{color:var(--accent)}
+.addmode{margin:20px 0 0;width:100%;border:1px dashed var(--line);background:none;border-radius:8px;padding:8px;color:var(--muted);cursor:pointer}
+.edscroll{position:relative}
+.aictl{position:absolute;display:flex;border:1px solid var(--line);border-radius:7px;overflow:hidden;background:var(--panel);z-index:3;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.aictl button{border:0;background:none;padding:3px 8px;font:500 11px var(--ui);cursor:pointer;color:var(--muted)}
+.aictl button+button{border-left:1px solid var(--line)}
+.aictl .ok:hover{color:var(--ok)} .aictl .no:hover{color:#e03131}
 .sec-h{margin:18px 0 2px;font:600 15px var(--ui);display:flex;align-items:center;gap:8px}
 h2.sec-h{font-size:18px}
 .sec-name{font:600 15px var(--ui);border:0;background:none;color:var(--ink);padding:0;flex:1;outline:none;min-width:0}
@@ -228,6 +251,8 @@ pre.md{white-space:pre-wrap;background:var(--bg);border-radius:8px;padding:12px;
 .p-head{transition:height .2s,margin .2s,opacity .2s}
 .phone.topover .p-head{box-shadow:0 .75px 0 var(--b-ink)}
 .phone.headhidden .p-head{height:0;margin:0;opacity:0;overflow:hidden}
+.sent-atts{display:flex;gap:14px;flex-wrap:wrap;margin-top:10px}
+.sent-atts .att{width:98px;height:58px}
 .c-att{display:flex;gap:16px;overflow-x:auto;overflow-y:visible;padding:10px 10px 10px 2px;scrollbar-width:none;margin-right:-10px}
 .c-att::-webkit-scrollbar{display:none}
 .att{flex:none;width:122px;height:72px;position:relative}
@@ -335,6 +360,7 @@ const DEFAULT = {
   docs:{
     brief:`<h2>Problem</h2>${p("Students and teachers find the chat hard to use.")}<ul><li>Typing is hard: the + and send icons eat horizontal space, and the field wraps after 5 lines (ChatGPT/Claude: 7–8).</li><li>Writing on a phone is cumbersome, so teachers ask for voice input (STT).</li><li>After sending, the field stays open and takes space away from Brian's answer.</li></ul><h2>Goal</h2>${p("Bring chat input up to current benchmark standards: as much horizontal space for text as possible, 7 lines before scrolling, and a layout with room for STT (and maybe full S2S) later.")}<h2>Success criteria</h2><p><br></p><h2>In scope</h2><ul><li>All chats in the Student app (AI Tutor, AI Dialogues, chatbots)</li><li>Layout of the field and growth behavior</li><li>Upload (+): Gallery, Camera, Document, Drawing</li></ul><h2>Out of scope</h2><ul><li>STT and full S2S: reserve space only</li><li>Tablet / desktop breakpoints</li><li>Learning Diary input → BR-7144</li></ul>`,
     rules:`<p><b>R1</b> Up to 7 lines, then the field scrolls. (from ticket)</p>`,
+    edges:"",
     questions:`<ul><li>What is the resting state after sending: single line, or hidden?</li><li>Does the Learning Diary chat keep its input open? (→ BR-7144)</li><li>Focus mode: in scope for this ticket, or backlog?</li></ul>`
   },
   modes:[
@@ -472,18 +498,18 @@ const ATT={
  _doc:`<svg viewBox="0 0 122 72"><path d="M2 2h108l10 10v60H2z" transform="translate(2 2)" fill="#3a3a3a"/><path d="M2 2h108l10 10v60H2z" fill="#f7f7f7" stroke="#3a3a3a" stroke-width=".75"/><path d="M110 2v10h10" fill="#fff" stroke="#3a3a3a" stroke-width=".75"/><g stroke="#9a9a9a" stroke-width="1"><path d="M12 16h40M12 21h48M12 26h34M66 34h40M66 39h44M66 44h30M12 50h44M12 55h38"/></g><path d="M14 30c10-12 26-6 18 8s-20 16-6 22" fill="none" stroke="#8a8a8a" stroke-width="2.4"/><path d="M76 12c14 0 20 18 6 22 16 4 12 26-4 24" fill="none" stroke="#8a8a8a" stroke-width="2.4"/></svg>`
 };
 const el=(id,label)=>`data-el="${id}" data-label="${esc(label)}"`;
+function seed(kind){ const p=preset(kind); return {_m:1,text:p.text||"",focused:!!p.focused,menu:!!p.sheet,picker:false||!!p.picker,atts:Array.isArray(p.attach)?[...p.attach]:[],waiting:!!p.typing,thread:[],note:p.note,reserved:!!p.reserved}; }
+function ensureModel(){ if(!ui.live||!ui.live._m){ const st=curState(); ui.live=seed(st?st.kind:"idle"); restoreThread(); } return ui.live; }
 function phoneHTML(st,live={},interactive=true){
-  const q=preset(st.kind);
-  if(live.text!==undefined) q.text=live.text;
-  if(live.focused!==undefined) q.focused=live.focused;
-  if(live.atts!==undefined) q.attach=live.atts.length?live.atts:false;
+  const M=interactive?ensureModel():seed(st.kind);
+  const q={text:M.text,focused:M.focused,sheet:M.menu,picker:M.picker,attach:M.atts.length?M.atts:false,typing:M.waiting,note:M.note,reserved:M.reserved};
   const dark=ui.context==="dialog", v=ui.variant;
   const tab=!dark&&!q.focused;
   const hasText=(q.text||"").trim().length>0||q.attach;
   const ink=dark?"#2f2f2f":"#fff";
-  const extra=(live.sent||[]).map(t=>`<div class="m-s"><div>${esc(t)}</div><div class="wl"></div></div>`).join("");
-  const typing=q.typing||live.waiting;
-  const reply=live.reply?`<div class="m-t"><p>${esc(live.reply)}</p><div class="act"><button ${el("speaker2","Read answer aloud")} aria-label="Read aloud">${I.speaker}</button></div></div>`:"";
+  const extra=(M.thread||[]).map(x=>x.who==="s"?`<div class="m-s"><div>${esc(x.text)}${x.atts&&x.atts.length?`<div class="sent-atts">${x.atts.map(t=>`<span class="att a-${t}"><span class="acard">${ATT[t]}</span></span>`).join("")}</div>`:""}</div><div class="wl"></div></div>`:`<div class="m-t"><p>${esc(x.text)}</p><div class="act"><button ${el("speaker2","Read answer aloud")} aria-label="Read aloud">${I.speaker}</button></div></div>`).join("");
+  const typing=q.typing;
+  const reply="";
   return `<div class="phone ${dark?"dark":""} ${q.reserved?"reserved":""} ${q.picker?"headhidden":""}">
     <div class="p-status"><span>9:41</span><svg width="66" height="12" viewBox="0 0 66 12" fill="currentColor"><rect x="0" y="7" width="3" height="4" rx=".7"/><rect x="4.5" y="5" width="3" height="6" rx=".7"/><rect x="9" y="3" width="3" height="8" rx=".7"/><rect x="13.5" y="0" width="3" height="11" rx=".7"/><path d="M28 3.2a9 9 0 0 1 12 0l-1.2 1.3a7.2 7.2 0 0 0-9.6 0zM30.4 5.8a5.4 5.4 0 0 1 7.2 0L36.4 7a3.6 3.6 0 0 0-4.8 0zM34 10.6l-1.4-1.5a2 2 0 0 1 2.8 0z"/><rect x="44" y=".5" width="20" height="11" rx="2.7" fill="none" stroke="currentColor"/><rect x="46" y="2.5" width="16" height="7" rx="1.3"/></svg></div>
     <div class="p-head">${dark?`<button ${el("close","Close dialog")} aria-label="Close">${I.close}</button>`:`<button ${el("menu","Open chat history")} aria-label="Menu">${I.menu}</button>`}<span class="t">${dark?"Creating Linear Equations":"AI-Tutor"}</span>${dark?`<span style="width:24px"></span>`:`<button ${el("newchat","New chat")} aria-label="New chat">${I.newchat}</button>`}</div>
@@ -519,6 +545,14 @@ function phoneHTML(st,live={},interactive=true){
 // default behaviour when an element has no explicit link yet
 const DEFAULT_TARGET={plus:"upload-sheet","opt-gallery":"upload-picker","opt-camera":"upload-picker","opt-doc":"upload-picker","opt-draw":"upload-picker","pick-add":"upload-attached","pick-cancel":"upload-sheet",send:"sending",field:"typing-empty","att-remove":"typing-empty"};
 
+function saveThread(){ if(!document.body.classList.contains("proto")) return; try{ localStorage.setItem("proto-br7147",JSON.stringify({thread:ui.live.thread||[]})); }catch(e){} }
+function restoreThread(){ if(!document.body.classList.contains("proto")) return; try{ const d=JSON.parse(localStorage.getItem("proto-br7147")||"null"); if(d&&Array.isArray(d.thread)) ui.live.thread=d.thread; }catch(e){} }
+function deriveKind(M){ if(M.picker) return "upload-picker"; if(M.menu) return "upload-sheet"; if(M.waiting) return "sending"; if(M.atts.length) return "upload-attached";
+  if(M.focused){ if(!M.text.trim()) return "typing-empty"; const t=$("#pwrap textarea"); if(t&&t.scrollHeight>22.4*7+18) return "typing-overflow"; return "typing-filled"; } return "idle"; }
+function syncSel(){ const want=deriveKind(ui.live); const pick=k=>{ const inMode=curMode().states.find(s=>s.kind===k); return inMode?{m:curMode(),s:inMode}:flat().find(x=>x.s.kind===k); };
+  let hit=want==="typing-filled"?(pick("typing-3")||pick("typing-7")):pick(want);
+  if(hit&&hit.s.id!==ui.sel.state){ ui.sel={kind:"state",mode:hit.m.id,state:hit.s.id}; renderHeader(); markActive(); if(document.body.classList.contains("attn-proto")) scrollToSel(); placeBadges(); renderMinimap(); } }
+function rerenderKeepCaret(){ const t=$("#pwrap textarea"); const had=document.activeElement===t; const pos=t?t.selectionStart:0; renderStage(); if(had||ui.live.focused&&!ui.live.menu&&!ui.live.picker){ const n=$("#pwrap textarea"); if(n&&had){ n.focus(); n.setSelectionRange(pos,pos); } } }
 function renderStage(){
   const W=document.getElementById("pwrap"); const st=curState(); if(!st){ W.innerHTML=""; return; }
   W.innerHTML=`<svg class="lines" id="lines"></svg>${phoneHTML(st,ui.live,true)}`;
@@ -542,7 +576,7 @@ function fit(){
   const sc=small? Math.min(st.clientWidth/402, st.clientHeight/874) : pv? Math.min((st.clientHeight-40)/894,(st.clientWidth-40)/422,1.4) : Math.max(.3,Math.min((st.clientHeight-130)/894,(st.clientWidth-130)/422,1));
   w.style.transform=`translate(-50%,-50%) scale(${sc})`; ui.scale=sc;
 }
-window.addEventListener("resize",()=>{ fit(); });
+window.addEventListener("resize",()=>{ fit(); placeAiCtl(); });
 
 /* numbered badges outside the phone, with leader lines */
 function placeBadges(){
@@ -593,19 +627,28 @@ stageEl.addEventListener("mouseover",e=>{
 stageEl.addEventListener("mouseleave",()=>{ document.getElementById("pwrap").classList.remove("hide-b"); tip.style.display="none"; });
 
 /* clicks: badge = jump to / create the element's screen · element = navigate like the app */
+const REPLIES=["Nice. Now try a line with a negative slope: what changes?","Good thinking. What happens to the line if b gets bigger?","Exactly. Can you draw it and send me a photo?"];
 document.getElementById("pwrap").addEventListener("click",e=>{
   const b=e.target.closest(".badge");
   if(b){ badgeClick(b.dataset.el,b.dataset.label); return; }
-  if(e.target.dataset.dim){ goKind(e.target.dataset.dim==='1'?'idle':e.target.dataset.dim); return; }
+  const M=ensureModel(); const ta=$("#pwrap textarea"); if(ta) M.text=ta.value;
+  if(e.target.dataset.dim){ if(M.picker){ M.picker=false; M.menu=true; } else { M.menu=false; } rerenderKeepCaret(); syncSel(); return; }
   const rmb=e.target.closest("[data-rm]");
-  if(rmb){ const cur=ui.live.atts??(preset(curState().kind).attach||[]); const atts=cur.filter((_,i)=>i!==+rmb.dataset.rm); ui.live={...ui.live,atts,focused:true,text:$("#pwrap textarea").value}; renderStage(); return; }
-  const t=e.target.closest("[data-el]"); if(!t||t.tagName==="TEXTAREA") return;
+  if(rmb){ M.atts.splice(+rmb.dataset.rm,1); M.focused=true; rerenderKeepCaret(); syncSel(); return; }
+  const t=e.target.closest("[data-el]");
+  if(!t){ if(e.target.closest(".p-chat")&&M.focused&&!M.menu&&!M.picker){ M.focused=false; rerenderKeepCaret(); syncSel(); } return; }
+  if(t.tagName==="TEXTAREA") return;
   const id=t.dataset.el, st=curState(), link=st.links?.[id];
-  if(link&&find(link)){ go(link); return; }
-  if(id==="send"){ const txt=$("#pwrap textarea").value.trim()||"📎 Attachment";
-    ui.live={sent:[...(ui.live.sent||[]),txt],text:"",focused:false,waiting:true}; renderStage();
-    setTimeout(()=>{ ui.live={...ui.live,waiting:false,reply:"Nice. Now try a line with a negative slope: what changes?"}; renderStage(); },1400); return; }
-  if(DEFAULT_TARGET[id]) goKind(DEFAULT_TARGET[id]);
+  if(link&&find(link)&&!/^(plus|send|opt-|pick-|att-rm-)/.test(id)){ go(link); return; }
+  if(id==="plus"){ M.menu=true; M.focused=true; }
+  else if(id.startsWith("opt-")){ M.menu=false; M.picker=true; M.pickType={"opt-gallery":"image","opt-camera":"image","opt-doc":"doc","opt-draw":"drawing"}[id]; }
+  else if(id==="pick-cancel"){ M.picker=false; M.menu=true; }
+  else if(id==="pick-add"){ M.picker=false; M.atts.push(M.pickType||"image"); M.focused=true; }
+  else if(id==="send"){ const txt=M.text.trim(); if(!txt&&!M.atts.length) return; M.thread.push({who:"s",text:txt,atts:[...M.atts]}); M.text=""; M.atts=[]; M.focused=false; M.waiting=true; saveThread();
+    rerenderKeepCaret(); syncSel(); setTimeout(()=>{ M.waiting=false; M.thread.push({who:"t",text:REPLIES[(M.thread.length/2|0)%REPLIES.length]}); saveThread(); renderStage(); syncSel(); },1400); return; }
+  else if(id==="newchat"){ M.thread=[]; M.text=""; M.atts=[]; M.focused=false; saveThread(); }
+  else return;
+  rerenderKeepCaret(); syncSel();
 });
 function badgeClick(id,label){
   const m=curMode(), st=curState(); st.links=st.links||{};
@@ -618,23 +661,23 @@ function badgeClick(id,label){
   setTimeout(()=>{ const i=document.querySelector(`.sec-name[data-state="${ns.id}"]`); i?.focus(); i?.select(); },60);
 }
 document.getElementById("pwrap").addEventListener("focusin",e=>{
-  if(e.target.tagName!=="TEXTAREA"||ui.live.focused||preset(curState().kind).focused) return;
-  ui.live={...ui.live,focused:true,text:e.target.value}; renderStage(); const t=$("#pwrap textarea"); t.focus(); t.setSelectionRange(t.value.length,t.value.length);
+  if(e.target.tagName!=="TEXTAREA") return; const M=ensureModel(); if(M.focused&&!M.menu) return;
+  M.focused=true; M.menu=false; M.text=e.target.value; renderStage(); const t=$("#pwrap textarea"); t.focus(); t.setSelectionRange(t.value.length,t.value.length); syncSel();
 });
 document.getElementById("pwrap").addEventListener("input",e=>{
-  if(e.target.tagName!=="TEXTAREA") return;
-  const before=(ui.live.text??preset(curState().kind).text).trim().length>0;
-  ui.live={...ui.live,text:e.target.value,focused:true};
-  if(before!==(e.target.value.trim().length>0)){ const pos=e.target.selectionStart; renderStage(); const t=$("#pwrap textarea"); t.focus(); t.setSelectionRange(pos,pos); }
+  if(e.target.tagName!=="TEXTAREA") return; const M=ensureModel();
+  const before=M.text.trim().length>0; M.text=e.target.value; M.focused=true;
+  if(before!==(M.text.trim().length>0)){ const pos=e.target.selectionStart; renderStage(); const t=$("#pwrap textarea"); t.focus(); t.setSelectionRange(pos,pos); }
   else growInput();
+  const k=ui.sel.state; syncSel(); if(ui.sel.state!==k){ /* keep caret after state switch */ const t=$("#pwrap textarea"); if(t&&document.activeElement!==t){ t.focus(); t.setSelectionRange(t.value.length,t.value.length); } }
 });
-function go(stateId){ const x=find(stateId); if(!x) return; ui.sel={kind:"state",mode:x.m.id,state:x.s.id}; ui.live={}; render(); scrollToSel(); }
+function go(stateId){ const x=find(stateId); if(!x) return; const keep=ui.live&&ui.live.thread; ui.sel={kind:"state",mode:x.m.id,state:x.s.id}; ui.live=seed(x.s.kind); if(keep) ui.live.thread=keep; render(); scrollToSel(); }
 function goKind(kind){ const x=flat().find(y=>y.s.kind===kind); if(x) go(x.s.id); }
 
 /* ================= stable element numbers (same number on every screen) ================= */
 const EL_ORDER=["menu","close","newchat","speaker","speaker2","field","plus","mic","send","att-rm-0","att-rm-1","att-rm-2","att-rm-3","opt-gallery","opt-camera","opt-doc","opt-draw","pick-cancel","pick-add","tab-map","tab-chat","tab-stats"];
 function elNum(id){ S.elnums=S.elnums||{}; if(!S.elnums[id]){ let i=EL_ORDER.indexOf(id); const used=new Set(Object.values(S.elnums)); let n=i>=0?i+1:Math.max(EL_ORDER.length,...used)+1; while(used.has(n)&&S.elnums[id]!==n) n++; S.elnums[id]=n; } return S.elnums[id]; }
-const allRefs=()=>{ let t=textOf(S.docs.brief)+" "+textOf(S.docs.rules)+" "+textOf(S.docs.questions); for(const {s} of flat()) t+=" "+textOf(s.doc); return new Set((t.match(/#\d+/g)||[]).map(x=>+x.slice(1))); };
+const allRefs=()=>{ let t=textOf(S.docs.brief)+" "+textOf(S.docs.rules)+" "+textOf(S.docs.edges||"")+" "+textOf(S.docs.questions); for(const {s} of flat()) t+=" "+textOf(s.doc); return new Set((t.match(/#\d+/g)||[]).map(x=>+x.slice(1))); };
 /* ================= coverage for every screen ================= */
 const covCache={};
 function countFor(st){
@@ -727,30 +770,39 @@ document.getElementById("tog-sb").addEventListener("click",()=>{ ui.sb=!ui.sb; u
 /* ================= one continuous spec document, synced with the phone ================= */
 const PH_STATE="Trigger · Shows · Behavior (#n for elements, R1 for rules) · Edge cases · Copy";
 let lastEd=null, docSig="", progScroll=0;
-const structSig=()=>JSON.stringify(S.modes.map(m=>[m.id,m.name,m.states.map(s=>s.id)]));
+const structSig=()=>JSON.stringify(S.modes.map(m=>[m.id,m.states.map(s=>s.id)]));
 function renderDoc(force){
   const sig=structSig(); if(!force&&sig===docSig&&$("#edscroll")) { syncNames(); return; }
   const keep=$("#edscroll")?.scrollTop||0; docSig=sig;
   const D=document.getElementById("doc");
-  const blk=(key,title,html,ph)=>`<section class="dsec" data-sec="${key}"><h2 class="sec-h">${title}</h2><div class="ed" contenteditable="true" data-key="${key}" data-ph="${esc(ph)}" spellcheck="true">${html||""}</div></section>`;
-  let h=`<div class="doc-head"><div class="crumb">BR-7147 · one document for the whole ticket</div><div class="doc-title">Spec</div></div>
+  const blk=(key,title,html,ph,grp,tag="h3")=>`<section class="dsec" data-sec="${key}" data-grp="${grp}"><${tag} class="sec-h">${title}</${tag}><div class="ed" contenteditable="true" data-key="${key}" data-ph="${esc(ph)}" spellcheck="true">${html||""}</div></section>`;
+  let h=`<div class="doc-head"><div class="crumb">BR-7147</div><div class="doc-title">Redesign Input Field</div></div>
+    <nav class="jump" id="jump"><button data-jump="brief">Brief</button><button data-jump="solution">Solution</button><button data-jump="edges">Edge cases & touchpoints</button><button data-jump="questions">Open questions</button></nav>
     <div class="tools"><button data-cmd="h2" title="Heading">H</button><button data-cmd="ol" title="Numbered list">1.</button><button data-cmd="ul" title="Bullet list">•</button><button data-cmd="indent" title="Indent (Tab)">→</button><button data-cmd="outdent" title="Outdent (Shift+Tab)">←</button><button data-cmd="bold" title="Bold"><b>B</b></button>
-      <button data-cmd="ask" title="Comment or question for Claude (Option+C)">💬 Ask Claude</button><button data-cmd="accept" class="acc" id="acc" title="Make Claude’s blue text your own">Accept blue text</button><span class="sp"></span><span class="meta" id="covmeta"></span></div>
+      <button data-cmd="ask" title="Comment or question for Claude (Option+C)">💬 Ask Claude</button><button data-cmd="accept" class="acc" id="acc" title="Make all of Claude’s blue text your own">Accept all blue</button><span class="sp"></span><span class="meta" id="covmeta"></span></div>
     <div class="edscroll" id="edscroll">`;
-  h+=blk("brief","Brief",S.docs.brief,"Problem, goal, success criteria, scope");
-  h+=blk("rules","Global rules",S.docs.rules,"Behavior that holds everywhere. One rule per line with an ID: R1, R2 …");
+  h+=`<h2 class="grp-h" data-grp-h="brief">Brief</h2>`+blk("brief","Problem, goal & scope",S.docs.brief,"Problem · Goal · Success criteria · In scope · Out of scope","brief");
+  h+=`<h2 class="grp-h" data-grp-h="solution">Solution</h2>`+blk("rules","Global rules",S.docs.rules,"Behavior that holds on every screen. One rule per line with an ID: R1, R2 …","solution");
   for(const m of S.modes){
-    h+=`<div class="mode-h" data-mode="${m.id}"><span class="stat ${m.status}">${STAT[m.status]}</span>${esc(m.name)}${m.figma?` <a href="${esc(m.figma)}" target="_blank" rel="noopener">Figma ↗</a>`:""}</div>`;
+    h+=`<div class="mode-h" data-mode="${m.id}" data-grp="solution">${(()=>{ const n=m.states.length, f=m.states.filter(x=>textOf(x.doc).trim()).length; const cls=f===0?"none":f===n?"all":"some"; return `<span class="mdot ${cls}" data-mdot="${m.id}" title="${f} of ${n} screens specced"></span>`; })()}<input class="mode-name" data-mname="${m.id}" value="${esc(m.name)}" aria-label="Mode name">${m.figma?` <a href="${esc(m.figma)}" target="_blank" rel="noopener">Figma ↗</a>`:""}<button class="mx" data-delm="${m.id}" title="Delete mode">Delete mode</button></div>`;
     for(const st of m.states){ const v=covOf(st);
-      h+=`<section class="dsec" data-sec="state:${st.id}"><h3 class="sec-h"><input class="sec-name" data-state="${st.id}" value="${esc(st.name)}" aria-label="Screen name"><span class="sec-cov" data-state="${st.id}">${v.n?`${v.c}/${v.n}`:""}</span></h3><div class="ed" contenteditable="true" data-state="${st.id}" data-ph="${PH_STATE}" spellcheck="true">${st.doc||""}</div></section>`; }
+      h+=`<section class="dsec" data-sec="state:${st.id}" data-grp="solution"><h3 class="sec-h"><input class="sec-name" data-state="${st.id}" value="${esc(st.name)}" aria-label="Screen name"><span class="sec-cov" data-state="${st.id}">${v.n?`${v.c}/${v.n}`:""}</span></h3><div class="ed" contenteditable="true" data-state="${st.id}" data-ph="${PH_STATE}" spellcheck="true">${st.doc||""}</div></section>`; }
+    h+=`<button class="addscr" data-adds="${m.id}">+ screen</button>`;
   }
-  h+=blk("questions","Open questions",S.docs.questions,"Anything undecided");
+  h+=`<button class="addmode" data-addm="1">+ mode</button>`;
+  h+=`<h2 class="grp-h" data-grp-h="edges">Edge cases & touchpoints</h2>`+blk("edges","Across screens",S.docs.edges,"Effects on existing data · Edge cases across screens · Touchpoints & side effects (emails, notifications, tracking). Write “none” if checked.","edges");
+  h+=`<h2 class="grp-h" data-grp-h="questions">Open questions</h2>`+blk("questions","Undecided",S.docs.questions,"What is unclear? Which decisions are still open?","questions");
   h+=`<div style="height:40vh"></div></div>`;
   D.innerHTML=`<div class="resizer" id="resizer" title="Drag to resize"></div>`+h; $("#edscroll").scrollTop=keep;
-  updateCovMeta(); updateAcc(); markActive();
+  updateCovMeta(); updateAcc(); markActive(); markEmpty(); placeAiCtl();
 }
+function markModes(){ document.querySelectorAll("[data-mdot]").forEach(d=>{ const m=mode(d.dataset.mdot); if(!m) return; const n=m.states.length, f=m.states.filter(x=>textOf(x.doc).trim()).length; d.className="mdot "+(f===0?"none":f===n?"all":"some"); d.title=`${f} of ${n} screens specced`; }); }
+function markEmpty(){ markModes(); document.querySelectorAll("#edscroll .dsec").forEach(sec=>{ const ed=sec.querySelector(".ed"); sec.classList.toggle("empty",!textOf(ed.innerHTML).trim()); }); }
+function placeAiCtl(){ const sc=$("#edscroll"); if(!sc) return; sc.querySelectorAll(".aictl").forEach(x=>x.remove()); const so=sc.getBoundingClientRect();
+  sc.querySelectorAll(".ed span.ai").forEach((sp,i)=>{ const rs=sp.getClientRects(); const r=rs[rs.length-1]; if(!r) return; const c=document.createElement("div"); c.className="aictl"; c.style.top=(r.top-so.top+sc.scrollTop-1)+"px"; c.style.left=Math.min(r.right-so.left+16, sc.clientWidth-110)+"px";
+    c.innerHTML=`<button class="ok" title="Accept: make it your text">✓ Accept</button><button class="no" title="Decline: remove it">✕</button>`; c._sp=sp; sc.appendChild(c); }); }
 function syncNames(){ document.querySelectorAll(".sec-name").forEach(i=>{ const f=find(i.dataset.state); if(f&&document.activeElement!==i&&i.value!==f.s.name) i.value=f.s.name; }); markActive(); }
-function markActive(){ document.querySelectorAll(".dsec").forEach(x=>x.classList.toggle("cur",x.dataset.sec===(ui.sel.kind==="state"?"state:"+ui.sel.state:ui.sel.kind))); }
+function markActive(){ const key=ui.sel.kind==="state"?"state:"+ui.sel.state:ui.sel.kind; let grp=null; document.querySelectorAll(".dsec").forEach(x=>{ const on=x.dataset.sec===key; x.classList.toggle("cur",on); if(on) grp=x.dataset.grp; }); if(ui.sel.kind==="state") grp="solution"; document.querySelectorAll("#jump button").forEach(b=>b.classList.toggle("on",b.dataset.jump===grp)); }
 function scrollToSel(){ const key=ui.sel.kind==="state"?"state:"+ui.sel.state:ui.sel.kind; const sec=document.querySelector(`.dsec[data-sec="${CSS.escape(key)}"]`), sc=$("#edscroll"); if(!sec||!sc) return;
   progScroll=Date.now(); const room=sc.clientHeight-112, rel=sec.offsetTop-sc.offsetTop; const top=sec.offsetHeight<=room? rel-(sc.clientHeight-sec.offsetHeight)/2 : rel-56; sc.scrollTo({top:Math.max(0,top),behavior:"smooth"}); markActive(); }
 function onDocScroll(){ if(Date.now()-progScroll<700) return; const sc=$("#edscroll"); if(!sc) return;
@@ -769,7 +821,7 @@ function edSave(ed){
   if(ed.dataset.state){ const f=find(ed.dataset.state); if(!f) return; f.s.doc=val; target=()=>f.s.doc; }
   else { S.docs[ed.dataset.key]=val; target=()=>S.docs[ed.dataset.key]; }
   if(target()!==val){ setSync("⚠ not saved: reload the page"); syncEl.style.color="#e03131"; return; }
-  refreshCoverage(); updateCovMeta(); updateAcc(); save();
+  refreshCoverage(); updateCovMeta(); updateAcc(); markEmpty(); clearTimeout(ui._aiT); ui._aiT=setTimeout(placeAiCtl,250); save();
 }
 function caretToEnd(node){ const r=document.createRange(); r.selectNodeContents(node); r.collapse(false); const s=getSelection(); s.removeAllRanges(); s.addRange(r); }
 function inAsk(){ const s=getSelection(); const n=s.anchorNode; if(!n) return null; const e=n.nodeType===3?n.parentElement:n; return e&&e.closest?e.closest("mark.ask"):null; }
@@ -796,10 +848,20 @@ function exec(cmd){
   if(cmd==="outdent") document.execCommand("outdent");
   if(cmd==="ask"){ insertAsk(); return; }
   cleanSpans(ed);
-  if(cmd==="accept"){ document.querySelectorAll("#edscroll .ed").forEach(x=>{ if(x.querySelector("span.ai")){ x.querySelectorAll("span.ai").forEach(sp=>sp.replaceWith(...sp.childNodes)); edSave(x); } }); return; }
+  if(cmd==="accept"){ document.querySelectorAll("#edscroll .ed").forEach(x=>{ if(x.querySelector("span.ai")){ x.querySelectorAll("span.ai").forEach(sp=>sp.replaceWith(...sp.childNodes)); edSave(x); } }); placeAiCtl(); return; }
   edSave(ed);
 }
-docEl.addEventListener("click",e=>{ const b=e.target.closest("[data-cmd]"); if(b){ e.preventDefault(); exec(b.dataset.cmd); } });
+docEl.addEventListener("click",e=>{ const b=e.target.closest("[data-cmd]"); if(b){ e.preventDefault(); exec(b.dataset.cmd); return; }
+  const j=e.target.closest("[data-jump]"); if(j){ const hd=document.querySelector(`[data-grp-h="${j.dataset.jump}"]`), sc=$("#edscroll"); if(hd&&sc){ progScroll=Date.now(); sc.scrollTo({top:Math.max(0,hd.offsetTop-sc.offsetTop-56),behavior:"smooth"}); const first=document.querySelector(`.dsec[data-grp="${j.dataset.jump}"]`); if(first&&j.dataset.jump!=="solution"){ ui.sel={...ui.sel,kind:first.dataset.sec}; } markActive(); document.querySelectorAll("#jump button").forEach(x=>x.classList.toggle("on",x===j)); } return; }
+  const st=e.target.closest("[data-mstat]"); if(st){ const m=mode(st.dataset.mstat); m.status={open:"rework",rework:"done",done:"open"}[m.status]; save(); st.className="stat "+m.status; st.textContent=STAT[m.status]; st.title="Status: "+m.status+" · click to change"; return; }
+  const ad=e.target.closest("[data-adds]"); if(ad){ const m=mode(ad.dataset.adds); const ns={id:uid("s-"),name:"New screen",kind:"custom",doc:"",links:{}}; m.states.push(ns); save(); go(ns.id); setTimeout(()=>{ const i=document.querySelector(`.sec-name[data-state="${ns.id}"]`); i?.focus(); i?.select(); },80); return; }
+  if(e.target.closest("[data-addm]")){ const m={id:uid("m-"),name:"New mode",status:"open",figma:"",states:[{id:uid("s-"),name:"Default",kind:"custom",doc:"",links:{}}]}; S.modes.push(m); save(); go(m.states[0].id); setTimeout(()=>{ const i=document.querySelector(`.mode-name[data-mname="${m.id}"]`); i?.focus(); i?.select(); },80); return; }
+  const dm=e.target.closest("[data-delm]"); if(dm){ const m=mode(dm.dataset.delm); if(!m) return; if(m.states.some(x=>textOf(x.doc).trim())){ dm.textContent="Has specs: delete its screens first"; return; } if(!dm.dataset.arm){ dm.dataset.arm=1; dm.textContent="Click again to delete"; return; } S.modes=S.modes.filter(x=>x!==m); save(); const f=flat()[0]; if(f) go(f.s.id); else render(true); return; }
+  const ctl=e.target.closest(".aictl button"); if(ctl){ const sp=ctl.parentElement._sp, ed=sp&&sp.closest(".ed"); if(!ed) return;
+    if(ctl.classList.contains("ok")) sp.replaceWith(...sp.childNodes);
+    else { const li=sp.closest("li"); sp.remove(); if(li&&!textOf(li.innerHTML).trim()) li.remove(); }
+    edSave(ed); placeAiCtl(); return; }
+});
 docEl.addEventListener("mousedown",e=>{ if(e.target.closest("[data-cmd]")) e.preventDefault(); });
 function cleanSpans(ed){ const sl=getSelection(); const an=sl.anchorNode, ao=sl.anchorOffset; let hit=false;
   ed.querySelectorAll('span[style]:not(.ai),font').forEach(sp=>{ hit=true; sp.replaceWith(...sp.childNodes); });
@@ -809,6 +871,7 @@ docEl.addEventListener("focusin",e=>{ const ed=e.target.closest(".ed"); if(ed){ 
   if(ed.dataset.state&&ui.sel.state!==ed.dataset.state){ const f=find(ed.dataset.state); if(f){ ui.sel={kind:"state",mode:f.m.id,state:f.s.id}; ui.live={}; renderStage(); renderLeft(); renderHeader(); markActive(); } } } });
 docEl.addEventListener("scroll",e=>{ if(e.target.id==="edscroll") requestAnimationFrame(onDocScroll); },true);
 docEl.addEventListener("input",e=>{
+  if(e.target.classList.contains("mode-name")){ const m=mode(e.target.dataset.mname); if(m&&e.target.value.trim()){ m.name=e.target.value; save(); } return; }
   if(e.target.classList.contains("sec-name")){ const f=find(e.target.dataset.state); if(f&&e.target.value!==""){ f.s.name=e.target.value; save(); renderLeft(); } return; }
   const ed=e.target.closest(".ed"); if(ed) edSave(ed);
 });
@@ -840,10 +903,14 @@ docEl.addEventListener("paste",e=>{ const ed=e.target.closest&&e.target.closest(
 docEl.addEventListener("click",e=>{ const a=e.target.closest("a.fig"); if(a){ e.preventDefault(); window.open(a.href,"_blank","noopener"); } });
 document.addEventListener("keydown",e=>{ if(e.altKey&&e.code==="KeyC"){ e.preventDefault(); insertAsk(); } });
 
+/* attention: clicks in the prototype switch the doc to highlight mode; reading/typing in the doc switches back */
+document.getElementById("stage").addEventListener("pointerdown",()=>document.body.classList.add("attn-proto"),true);
+docEl.addEventListener("pointerdown",()=>document.body.classList.remove("attn-proto"),true);
+docEl.addEventListener("wheel",()=>document.body.classList.remove("attn-proto"),{passive:true,capture:true});
+docEl.addEventListener("focusin",()=>document.body.classList.remove("attn-proto"));
 /* resize the spec pane */
 let userSb=true; try{ const w=+localStorage.getItem("wb-docw"); if(w>=33&&w<=67) document.getElementById("main").style.setProperty("--docw",w+"%"); }catch(e){}
 function applyDocW(pct){ const main=document.getElementById("main"); pct=Math.max(33.3,Math.min(66.7,pct)); main.style.setProperty("--docw",pct.toFixed(1)+"%");
-  const wide=pct>=62; if(wide&&ui.sb){ ui.sb=false; ui.autoSb=true; main.classList.add("nosb"); } else if(!wide&&ui.autoSb){ ui.sb=true; ui.autoSb=false; main.classList.remove("nosb"); }
   try{ localStorage.setItem("wb-docw",pct.toFixed(1)); }catch(e){} }
 docEl.addEventListener("pointerdown",e=>{ if(e.target.id!=="resizer") return; e.preventDefault(); const main=document.getElementById("main"); main.classList.add("dragging"); e.target.setPointerCapture(e.pointerId);
   const mv=ev=>{ applyDocW((innerWidth-ev.clientX)/innerWidth*100); fit(); };
@@ -871,8 +938,8 @@ docEl.addEventListener("focusout",e=>{ const inp=e.target.closest&&e.target.clos
 const sv=document.getElementById("sel-var"), sc=document.getElementById("sel-ctx");
 sv.innerHTML=VARIANTS.map(v=>`<option value="${v.id}">${v.name}</option>`).join("");
 sc.innerHTML=CONTEXTS.map(v=>`<option value="${v.id}">${v.name}</option>`).join("");
-sv.addEventListener("change",()=>{ ui.variant=sv.value; ui.live={}; renderStage(); renderHeader(); renderLeft(); updateCovMeta(); });
-sc.addEventListener("change",()=>{ ui.context=sc.value; ui.live={}; renderStage(); renderLeft(); updateCovMeta(); });
+sv.addEventListener("change",()=>{ ui.variant=sv.value; renderStage(); renderHeader(); renderLeft(); updateCovMeta(); });
+sc.addEventListener("change",()=>{ ui.context=sc.value; renderStage(); renderLeft(); updateCovMeta(); });
 function renderHeader(){ const v=VARIANTS.find(x=>x.id===ui.variant); const m=curMode(); document.getElementById("b-figma").href=(ui.sel.kind==="state"&&m.figma)?m.figma:v.figma; }
 
 /* ================= ticket draft (HTML → markdown) ================= */
@@ -895,9 +962,9 @@ function md(html){
   return walk(d,0).replace(/\n{3,}/g,"\n\n").trim();
 }
 function ticketMd(){
-  let o=`# Brief\n${md(S.docs.brief)}\n\n# Global rules\n${md(S.docs.rules)}\n\n# Specs per screen\n`;
+  let o=`# Problem, goal & scope\n${md(S.docs.brief)}\n\n# Proposed solution\n## Global rules\n${md(S.docs.rules)}\n`;
   for(const m of S.modes){ o+=`\n## ${m.name}${m.figma?` ([Figma](${m.figma}))`:""}\n`; for(const s of m.states) o+=`\n### ${s.name}\n${md(s.doc)||"_no spec yet_"}\n`; }
-  o+=`\n# Open questions\n${md(S.docs.questions)}\n`; return o;
+  o+=`\n# Edge cases & touchpoints\n${md(S.docs.edges||"")||"_none yet_"}\n\n# Open questions\n${md(S.docs.questions)}\n`; return o;
 }
 const modal=document.getElementById("modal"), card=document.getElementById("mcard");
 document.getElementById("b-ticket").addEventListener("click",()=>{
