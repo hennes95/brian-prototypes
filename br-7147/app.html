@@ -259,6 +259,20 @@ pre.md{white-space:pre-wrap;background:var(--bg);border-radius:8px;padding:12px;
 .phone.dark .cmp.focused .c-right{color:#2f2f2f}
 .v-pill.focused{border-radius:20px;padding:6px 8px 6px}
 .cmp.focused .bar{right:4px;top:6px}
+/* full-screen input (focus mode): expand icon appears once the field scrolls (7+ lines) */
+.cmp .c-exp{display:none;position:absolute;top:2px;right:-6px;width:32px;height:32px;border:0;background:none;padding:0;place-items:center;color:var(--b-ink);z-index:2}
+.cmp.focused.over .c-exp,.cmp.fs .c-exp{display:grid}
+.cmp.focused.over textarea{padding-right:30px}
+.cmp.fs{position:absolute;inset:0;z-index:8;background:var(--b-bg);padding:56px 20px 12px;gap:8px;animation:fsIn .22s ease-out}
+.cmp.fs .c-exp{top:12px;right:14px;width:40px;height:40px}
+.cmp.fs .c-body{flex:1;min-height:0;justify-content:flex-start}
+.cmp.fs textarea{flex:1;height:auto!important;overflow-y:auto!important;padding-right:4px}
+.cmp.fs .bar{display:none!important}
+.cmp.fs::after,.cmp.fs::before{display:none}
+body.native .cmp.fs{padding-top:calc(56px + env(safe-area-inset-top))}
+body.native .cmp.fs .c-exp{top:calc(12px + env(safe-area-inset-top))}
+@keyframes fsIn{from{opacity:.4;transform:translateY(24px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.cmp.fs{animation:none}}
 .p-chat{overflow-y:auto;scrollbar-width:none}
 .p-chat::-webkit-scrollbar{display:none}
 .p-chat>:first-child{margin-top:auto}
@@ -470,6 +484,8 @@ const textOf=html=>{ const d=document.createElement("div"); d.innerHTML=html||""
 const I={
  plus:c=>`<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 4.33V19.67M4.33 12H19.67" stroke="${c}" stroke-width="1.33" stroke-linecap="round"/></svg>`,
  mic:`<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.33" stroke-linecap="round" stroke-linejoin="round"><path d="M16.33 6.67a4.33 4.33 0 0 0-8.66 0v4a4.33 4.33 0 0 0 8.66 0z"/><path d="M20.33 10.67A8.33 8.33 0 0 1 3.67 10.67M12 19v2.67"/></svg>`,
+ expand:`<svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.33" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3h5v5M17 3l-5.5 5.5M8 17H3v-5M3 17l5.5-5.5"/></svg>`,
+ collapse:`<svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.33" stroke-linecap="round" stroke-linejoin="round"><path d="M16.5 8.5h-5v-5M11.5 8.5 17 3M3.5 11.5h5v5M8.5 11.5 3 17"/></svg>`,
  send:`<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M21.0894 10.5014L5.80142 2.56271C5.19742 2.25071 4.47208 2.32938 3.94809 2.76004C3.42542 3.19204 3.21209 3.89204 3.40409 4.54138L5.31742 11H11.8481C12.4001 11 12.8481 11.448 12.8481 12C12.8481 12.552 12.4001 13 11.8481 13H5.31742L3.40409 19.4587C3.21075 20.1094 3.42542 20.808 3.94809 21.24C4.25742 21.4947 4.63875 21.6267 5.02275 21.6267C5.28808 21.6267 5.55475 21.564 5.80142 21.436L21.0894 13.4974C21.6508 13.2054 22.0001 12.632 22.0001 11.9987C22.0001 11.3654 21.6508 10.7934 21.0894 10.5014Z" fill="currentColor"/></svg>`,
  menu:`<svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.33" stroke-linecap="round"><path d="M18.33 12.33H1.67M9 17H1.67M18.33 7.67H1.67M18.33 3H1.67"/></svg>`,
  newchat:`<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.33" stroke-linecap="round"><circle cx="12" cy="12" r="9.67"/><path d="M7.67 12h8.66M12 7.67v8.66"/></svg>`,
@@ -496,6 +512,7 @@ function preset(kind){
   if(kind==="typing-3"){ q.focused=true; q.text="I think the line goes up by 2 every step because m is the number in front of x, and it starts at 3 so b = 3."; }
   if(kind==="typing-7"){ q.focused=true; q.text=LONG.slice(0,262); }
   if(kind==="typing-overflow"){ q.focused=true; q.text=LONG; }
+  if(kind==="focus-mode"){ q.focused=true; q.text=LONG; q.fs=true; }
   if(kind==="upload-sheet"){ q.sheet=true; q.focused=true; }
   if(kind==="upload-picker"){ q.picker=true; }
   if(kind==="upload-attached"){ q.attach=["image","drawing","doc","loading"]; q.focused=true; q.text="Here is my solution from the worksheet."; }
@@ -530,11 +547,11 @@ const ATT={
  _doc:`<svg viewBox="0 0 122 72"><path d="M2 2h108l10 10v60H2z" transform="translate(2 2)" fill="#3a3a3a"/><path d="M2 2h108l10 10v60H2z" fill="#f7f7f7" stroke="#3a3a3a" stroke-width=".75"/><path d="M110 2v10h10" fill="#fff" stroke="#3a3a3a" stroke-width=".75"/><g stroke="#9a9a9a" stroke-width=".75"><path d="M12 16h40M12 21h48M12 26h34M66 34h40M66 39h44M66 44h30M12 50h44M12 55h38"/></g><path d="M14 30c10-12 26-6 18 8s-20 16-6 22" fill="none" stroke="#8a8a8a" stroke-width="2.4"/><path d="M76 12c14 0 20 18 6 22 16 4 12 26-4 24" fill="none" stroke="#8a8a8a" stroke-width="2.4"/></svg>`
 };
 const el=(id,label)=>`data-el="${id}" data-label="${esc(label)}"`;
-function seed(kind){ const p=preset(kind); return {_m:1,text:p.text||"",focused:!!p.focused,menu:!!p.sheet,picker:false||!!p.picker,atts:Array.isArray(p.attach)?[...p.attach]:[],waiting:!!p.typing,thread:[],note:p.note,reserved:!!p.reserved}; }
+function seed(kind){ const p=preset(kind); return {_m:1,text:p.text||"",focused:!!p.focused,menu:!!p.sheet,picker:false||!!p.picker,atts:Array.isArray(p.attach)?[...p.attach]:[],waiting:!!p.typing,thread:[],note:p.note,reserved:!!p.reserved,fs:!!p.fs}; }
 function ensureModel(){ if(!ui.live||!ui.live._m){ const st=curState(); ui.live=seed(st?st.kind:"idle"); restoreThread(); } return ui.live; }
 function phoneHTML(st,live={},interactive=true){
   const M=interactive?ensureModel():seed(st.kind);
-  const q={text:M.text,focused:M.focused,sheet:M.menu,picker:M.picker,pickKind:M.pickKind,attach:M.atts.length?M.atts:false,typing:M.waiting,note:M.note,reserved:M.reserved};
+  const q={text:M.text,focused:M.focused,fs:M.focused&&!!M.fs,sheet:M.menu,picker:M.picker,pickKind:M.pickKind,attach:M.atts.length?M.atts:false,typing:M.waiting,note:M.note,reserved:M.reserved};
   const dark=ui.context==="dialog", v=ui.variant;
   const tab=!dark&&!q.focused;
   const hasText=(q.text||"").trim().length>0||q.attach;
@@ -560,7 +577,7 @@ function phoneHTML(st,live={},interactive=true){
       const body=`<div class="c-body">${q.attach?`<div class="c-att">${q.attach.map((t,i)=>`<span class="att a-${t}"><span class="acard" data-open="${i}" role="button" aria-label="${ATT_NAME[t]||t}">${ATT[t]}</span>${t==="doc"?`<span class="aname">${ATT_NAME.doc}</span>`:""}<button class="rm" data-rm="${i}" ${el("att-rm-"+i,"Remove attachment "+(i+1))} aria-label="Remove attachment">×</button></span>`).join("")}</div>`:""}<textarea rows="1" placeholder="Or ask anything..." aria-label="Message" ${el("field","Text field")} ${interactive?"":"tabindex=-1"}>${esc(q.text)}</textarea></div>`;
       /* spec (Typing): on focus, + and mic move below the text, the field spans the message width and gets a border */
       return q.focused
-        ? `<div class="cmp focused v-${v}">${body}<div class="c-ctrl">${plus}${right}</div><span class="bar"></span></div>`
+        ? `<div class="cmp focused v-${v} ${q.fs?"fs":""}"><button class="c-exp" ${el("expand",q.fs?"Collapse (exit full screen)":"Expand to full screen")} aria-label="${q.fs?"Collapse":"Expand"}">${q.fs?I.collapse:I.expand}</button>${body}<div class="c-ctrl">${plus}${right}</div><span class="bar"></span></div>`
         : `<div class="cmp v-${v} ${tab?"":"notab"}">${plus}${body}${right}<span class="bar"></span></div>`; })()}
     ${tab?`<div class="p-tabs"><button ${el("tab-map","Tab: Map")} aria-label="Map">${I.tabMap}</button><button class="sel" ${el("tab-chat","Tab: AI Tutor")} aria-label="AI Tutor">${I.tabChat}</button><button ${el("tab-stats","Tab: Statistics")} aria-label="Statistics">${I.tabStats}</button></div>`:""}
     ${q.focused?`<div class="kbd"><div>${"<i></i>".repeat(10)}</div><div>${"<i></i>".repeat(9)}</div><div>${"<i></i>".repeat(7)}</div><div><i></i><i></i><i class="w"></i><i></i></div></div>`:`<div class="home"></div>`}
@@ -579,7 +596,7 @@ const DEFAULT_TARGET={plus:"upload-sheet","opt-gallery":"upload-picker","opt-cam
 
 function saveThread(){ if(!document.body.classList.contains("proto")) return; try{ localStorage.setItem("proto-br7147",JSON.stringify({thread:ui.live.thread||[]})); }catch(e){} }
 function restoreThread(){ if(!document.body.classList.contains("proto")) return; try{ const d=JSON.parse(localStorage.getItem("proto-br7147")||"null"); if(d&&Array.isArray(d.thread)) ui.live.thread=d.thread; }catch(e){} }
-function deriveKind(M){ if(M.picker) return "upload-picker"; if(M.menu) return "upload-sheet"; if(M.waiting) return "sending"; if(M.atts.length) return "upload-attached";
+function deriveKind(M){ if(M.picker) return "upload-picker"; if(M.fs&&M.focused) return "focus-mode"; if(M.menu) return "upload-sheet"; if(M.waiting) return "sending"; if(M.atts.length) return "upload-attached";
   if(M.focused){ if(!M.text.trim()) return "typing-empty"; const t=$("#pwrap textarea"); if(t&&t.scrollHeight>22.4*7+18) return "typing-overflow"; return "typing-filled"; } return "idle"; }
 function syncSel(){ const want=deriveKind(ui.live); const pick=k=>{ const inMode=curMode().states.find(s=>s.kind===k); return inMode?{m:curMode(),s:inMode}:flat().find(x=>x.s.kind===k); };
   let hit=want==="typing-filled"?(pick("typing-3")||pick("typing-7")):pick(want);
@@ -618,11 +635,12 @@ function renderStage(){
 }
 function growInput(){
   const t=$("#pwrap textarea"); if(!t) return;
+  if(t.closest(".cmp.fs")){ t.style.height=""; t.style.overflowY="auto"; return; }
   const LH=22.4,PAD=17.6,MAX=7;                    // R1: 7 lines, then scroll
   t.style.height="auto"; const h=Math.min(t.scrollHeight,LH*MAX+PAD); t.style.height=h+"px";
   const over=t.scrollHeight>LH*MAX+PAD+1; t.style.overflowY=over?"auto":"hidden";
   $("#pwrap .cmp")?.classList.toggle("over",over); if(over&&document.activeElement!==t) t.scrollTop=t.scrollHeight;
-  const bar=$("#pwrap .cmp .bar"); if(bar&&over){ const vis=t.clientHeight/t.scrollHeight, h=Math.max(16,t.clientHeight*vis); bar.style.height=h+"px"; /* track = the text area itself (not the composer), so position maps to the text */ const sc=ui.scale||1; bar.style.top=((t.getBoundingClientRect().top-t.closest(".cmp").getBoundingClientRect().top)/sc)+"px"; const posBar=()=>{ bar.style.transform=`translateY(${(t.scrollTop/(t.scrollHeight-t.clientHeight||1))*(t.clientHeight-h)}px)`; }; posBar(); t.onscroll=posBar; }
+  const bar=$("#pwrap .cmp .bar"); if(bar&&over){ const vis=t.clientHeight/t.scrollHeight, h=Math.max(16,t.clientHeight*vis); bar.style.height=h+"px"; /* track = the text area itself (not the composer), so position maps to the text */ const sc=ui.scale||1; bar.style.top=((t.getBoundingClientRect().top-t.closest(".cmp").getBoundingClientRect().top)/sc+34)+"px"; bar.style.height=Math.max(16,(t.clientHeight-34)*vis)+"px"; const posBar=()=>{ bar.style.transform=`translateY(${(t.scrollTop/(t.scrollHeight-t.clientHeight||1))*(t.clientHeight-h)}px)`; }; posBar(); t.onscroll=posBar; }
 }
 function fit(){
   const st=document.getElementById("stage"), w=document.getElementById("pwrap");
@@ -690,9 +708,9 @@ const REPLIES=["Nice. Now try a line with a negative slope: what changes?","Good
 /* tapping + (or removing an attachment) must not take focus from the text field, so the keyboard stays open */
 function inCmp(e){ const c=$("#pwrap .cmp"), p=e.changedTouches?e.changedTouches[0]:(ui.lastTap||e); if(!c||!p) return false; const r=c.getBoundingClientRect(); return p.clientY>=r.top-8&&p.clientY<=r.bottom+8; }
 document.getElementById("pwrap").addEventListener("touchend",e=>{ const ta=$("#pwrap textarea"); if(document.activeElement!==ta) return;
-  const b=e.target.closest('[data-el="plus"],[data-rm]'); if(b){ e.preventDefault(); b.click(); return; }
+  const b=e.target.closest('[data-el="plus"],[data-el="expand"],[data-rm]'); if(b){ e.preventDefault(); b.click(); return; }
   if(e.target.dataset.dim&&inCmp(e)){ e.preventDefault(); const t=e.changedTouches[0]; ui.lastTap={clientX:t.clientX,clientY:t.clientY}; e.target.click(); ui.lastTap=null; } },{passive:false});
-document.getElementById("pwrap").addEventListener("mousedown",e=>{ if(document.activeElement!==$("#pwrap textarea")) return; if(e.target.closest('[data-el="plus"],[data-rm]')||(e.target.dataset.dim&&inCmp(e))) e.preventDefault(); });
+document.getElementById("pwrap").addEventListener("mousedown",e=>{ if(document.activeElement!==$("#pwrap textarea")) return; if(e.target.closest('[data-el="plus"],[data-el="expand"],[data-rm]')||(e.target.dataset.dim&&inCmp(e))) e.preventDefault(); });
 document.getElementById("pwrap").addEventListener("click",e=>{
   const b=e.target.closest(".badge");
   if(b){ badgeClick(b.dataset.el,b.dataset.label); return; }
@@ -709,13 +727,14 @@ document.getElementById("pwrap").addEventListener("click",e=>{
   const id=t.dataset.el, st=curState(), link=st.links?.[id];
   if(link&&find(link)&&!/^(plus|send|opt-|pick-|att-rm-)/.test(id)){ go(link); return; }
   if(id==="plus"){ M.menu=true; M.focused=true; rerenderKeepCaret(true); syncSel(); return; }
+  if(id==="expand"){ M.fs=!M.fs; M.focused=true; M.menu=false; rerenderKeepCaret(true); if(!M.fs){ const n=$("#pwrap textarea"); if(n) n.scrollTop=n.scrollHeight; } syncSel(); return; }
   else if(id.startsWith("opt-")){ ta&&ta.blur(); M.menu=false; M.picker=true; M.pickKind={"opt-gallery":"gallery","opt-camera":"camera","opt-doc":"doc","opt-draw":"draw"}[id]; M.pickType={"opt-gallery":"image","opt-camera":"image","opt-doc":"doc","opt-draw":"drawing"}[id]; }
   else if(id==="pick-cancel"){ M.picker=false; M.menu=true; M.focused=true; rerenderKeepCaret(true); syncSel(); return; }
   else if(id==="pick-next"){ M.pickKind="docsel"; }
   else if(id==="pick-back"){ M.pickKind="doc"; }
   else if(id==="view-close"){ M.picker=false; M.focused=true; rerenderKeepCaret(true); syncSel(); return; }
   else if(id==="pick-add"){ M.picker=false; M.atts.push(M.pickType||"image"); M.focused=true; rerenderKeepCaret(true); syncSel(); return; }
-  else if(id==="send"){ const txt=M.text.trim(); if(!txt&&!M.atts.length) return; M.thread.push({who:"s",text:txt,atts:[...M.atts]}); M.text=""; M.atts=[]; M.focused=false; M.waiting=true; saveThread();
+  else if(id==="send"){ const txt=M.text.trim(); if(!txt&&!M.atts.length) return; M.thread.push({who:"s",text:txt,atts:[...M.atts]}); M.text=""; M.atts=[]; M.focused=false; M.fs=false; M.waiting=true; saveThread();
     rerenderKeepCaret(); syncSel(); setTimeout(()=>{ M.waiting=false; M.thread.push({who:"t",text:REPLIES[(M.thread.length/2|0)%REPLIES.length]}); saveThread(); renderStage(); syncSel(); },1400); return; }
   else if(id==="newchat"){ M.thread=[]; M.text=""; M.atts=[]; M.focused=false; saveThread(); }
   else return;
@@ -746,7 +765,7 @@ function go(stateId){ const x=find(stateId); if(!x) return; const keep=ui.live&&
 function goKind(kind){ const x=flat().find(y=>y.s.kind===kind); if(x) go(x.s.id); }
 
 /* ================= stable element numbers (same number on every screen) ================= */
-const EL_ORDER=["menu","close","newchat","speaker","speaker2","field","plus","mic","send","att-rm-0","att-rm-1","att-rm-2","att-rm-3","opt-gallery","opt-camera","opt-doc","opt-draw","pick-cancel","pick-add","pick-next","pick-back","view-close","tab-map","tab-chat","tab-stats"];
+const EL_ORDER=["menu","close","newchat","speaker","speaker2","field","plus","mic","send","att-rm-0","att-rm-1","att-rm-2","att-rm-3","opt-gallery","opt-camera","opt-doc","opt-draw","pick-cancel","pick-add","pick-next","pick-back","view-close","expand","tab-map","tab-chat","tab-stats"];
 function elNum(id){ S.elnums=S.elnums||{}; if(!S.elnums[id]){ let i=EL_ORDER.indexOf(id); const used=new Set(Object.values(S.elnums)); let n=i>=0?i+1:Math.max(EL_ORDER.length,...used)+1; while(used.has(n)&&S.elnums[id]!==n) n++; S.elnums[id]=n; } return S.elnums[id]; }
 const allRefs=()=>{ let t=textOf(S.docs.brief)+" "+textOf(S.docs.rules)+" "+textOf(S.docs.edges||"")+" "+textOf(S.docs.questions); for(const {s} of flat()) t+=" "+textOf(s.doc); return new Set((t.match(/#\d+/g)||[]).map(x=>+x.slice(1))); };
 /* ================= coverage for every screen ================= */
