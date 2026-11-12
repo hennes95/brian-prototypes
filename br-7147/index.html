@@ -571,10 +571,12 @@ function deriveKind(M){ if(M.picker) return "upload-picker"; if(M.menu) return "
 function syncSel(){ const want=deriveKind(ui.live); const pick=k=>{ const inMode=curMode().states.find(s=>s.kind===k); return inMode?{m:curMode(),s:inMode}:flat().find(x=>x.s.kind===k); };
   let hit=want==="typing-filled"?(pick("typing-3")||pick("typing-7")):pick(want);
   if(hit&&hit.s.id!==ui.sel.state){ ui.sel={kind:"state",mode:hit.m.id,state:hit.s.id}; renderHeader(); markActive(); if(document.body.classList.contains("attn-proto")) scrollToSel(); placeBadges(); renderMinimap(); } }
-function rerenderKeepCaret(){ const t=$("#pwrap textarea"); const had=document.activeElement===t; const pos=t?t.selectionStart:0; renderStage(); if(had||ui.live.focused&&!ui.live.menu&&!ui.live.picker){ const n=$("#pwrap textarea"); if(n&&had){ n.focus(); n.setSelectionRange(pos,pos); } } }
+function rerenderKeepCaret(keep){ const t=$("#pwrap textarea"); const had=keep||document.activeElement===t; const pos=t?t.selectionStart:0; renderStage(); if(had||ui.live.focused&&!ui.live.menu&&!ui.live.picker){ const n=$("#pwrap textarea"); if(n&&had){ ui.refocusing=true; n.focus(); ui.refocusing=false; n.setSelectionRange(pos,pos); } } }
 function renderStage(){
   const W=document.getElementById("pwrap"); const st=curState(); if(!st){ W.innerHTML=""; return; }
   W.innerHTML=`<svg class="lines" id="lines"></svg>${phoneHTML(st,ui.live,true)}`;
+  /* attachment menu sits 8px above the composer, wherever the composer is (fake keyboard in the frame, real keyboard on the phone) */
+  { const um=W.querySelector(".up-menu"), cm=W.querySelector(".cmp"), ph=W.querySelector(".phone"); if(um&&cm&&ph){ const s=ui.scale||1; um.style.bottom=((ph.getBoundingClientRect().bottom-cm.getBoundingClientRect().top)/s+8)+"px"; } }
   growInput(); fit(); placeBadges(); renderMinimap();
   const ch=$("#pwrap .p-chat"), ph=$("#pwrap .phone");
   if(ch){ ch.scrollTop=ch.scrollHeight;
@@ -652,19 +654,21 @@ stageEl.addEventListener("mouseleave",()=>{ document.getElementById("pwrap").cla
 
 /* clicks: badge = jump to / create the element's screen · element = navigate like the app */
 const REPLIES=["Nice. Now try a line with a negative slope: what changes?","Good thinking. What happens to the line if b gets bigger?","Exactly. Can you draw it and send me a photo?"];
+/* tapping + (or removing an attachment) must not take focus from the text field, so the keyboard stays open */
+document.getElementById("pwrap").addEventListener("mousedown",e=>{ if(e.target.closest('[data-el="plus"],[data-rm]')&&document.activeElement===$("#pwrap textarea")) e.preventDefault(); });
 document.getElementById("pwrap").addEventListener("click",e=>{
   const b=e.target.closest(".badge");
   if(b){ badgeClick(b.dataset.el,b.dataset.label); return; }
   const M=ensureModel(); const ta=$("#pwrap textarea"); if(ta) M.text=ta.value;
   if(e.target.dataset.dim){ if(M.picker){ M.picker=false; M.menu=true; } else { M.menu=false; } rerenderKeepCaret(); syncSel(); return; }
   const rmb=e.target.closest("[data-rm]");
-  if(rmb){ M.atts.splice(+rmb.dataset.rm,1); M.focused=true; rerenderKeepCaret(); syncSel(); return; }
+  if(rmb){ M.atts.splice(+rmb.dataset.rm,1); M.focused=true; rerenderKeepCaret(true); syncSel(); return; }
   const t=e.target.closest("[data-el]");
   if(!t){ if(e.target.closest(".p-chat")&&M.focused&&!M.menu&&!M.picker){ M.focused=false; rerenderKeepCaret(); syncSel(); } return; }
   if(t.tagName==="TEXTAREA") return;
   const id=t.dataset.el, st=curState(), link=st.links?.[id];
   if(link&&find(link)&&!/^(plus|send|opt-|pick-|att-rm-)/.test(id)){ go(link); return; }
-  if(id==="plus"){ M.menu=true; M.focused=true; }
+  if(id==="plus"){ M.menu=true; M.focused=true; rerenderKeepCaret(true); syncSel(); return; }
   else if(id.startsWith("opt-")){ M.menu=false; M.picker=true; M.pickType={"opt-gallery":"image","opt-camera":"image","opt-doc":"doc","opt-draw":"drawing"}[id]; }
   else if(id==="pick-cancel"){ M.picker=false; M.menu=true; }
   else if(id==="pick-add"){ M.picker=false; M.atts.push(M.pickType||"image"); M.focused=true; }
@@ -685,7 +689,7 @@ function badgeClick(id,label){
   setTimeout(()=>{ const i=document.querySelector(`.sec-name[data-state="${ns.id}"]`); i?.focus(); i?.select(); },60);
 }
 document.getElementById("pwrap").addEventListener("focusin",e=>{
-  if(e.target.tagName!=="TEXTAREA") return; const M=ensureModel(); if(M.focused&&!M.menu) return;
+  if(e.target.tagName!=="TEXTAREA"||ui.refocusing) return; const M=ensureModel(); if(M.focused&&!M.menu) return;
   M.focused=true; M.menu=false; M.text=e.target.value; renderStage(); const t=$("#pwrap textarea"); t.focus(); t.setSelectionRange(t.value.length,t.value.length); syncSel();
 });
 document.getElementById("pwrap").addEventListener("input",e=>{
