@@ -5,8 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>BR-7147 · Redesign Input Field (prototype)</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#ffffff">
+<meta name="color-scheme" content="light">
 <style>.cbtn{display:none!important}</style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -65,9 +66,13 @@ body.proto .app{grid-template-rows:1fr}
 body.proto .stage{background:#111}
 body.proto .kbd{display:none}
 /* native: on a phone the prototype IS the app: full width, real status bar, safe areas */
-body.native .stage{background:var(--b-bg,#fff)}
+html:has(body.native),body.native,body.native .app,body.native .main,body.native .stage{background:#fff!important;color-scheme:light}
+html:has(body.native.ctx-dark),body.native.ctx-dark,body.native.ctx-dark .app,body.native.ctx-dark .main,body.native.ctx-dark .stage{background:#2f2f2f!important}
 body.native .pwrap{left:0;top:0;transform:none!important}
-body.native .phone{width:100vw;height:var(--vvh,100dvh);border-radius:0;box-shadow:none;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}
+body.native .phone{width:100vw;height:var(--vvh,100dvh);border-radius:0;box-shadow:none;padding-top:env(safe-area-inset-top)}
+/* tab bar height as in Figma (72px incl. home indicator): no extra safe-area padding below it */
+body.native .p-tabs{padding-bottom:16px;height:72px}
+body.native .cmp.notab:not(.focused){padding-bottom:calc(12px + env(safe-area-inset-bottom))}
 body.native .p-status,body.native .home{display:none}
 body.native .minimap,body.native .cbtn{display:none!important}
 .main{--docw:50%;display:grid;grid-template-columns:minmax(0,1fr) var(--docw);min-height:0;transition:grid-template-columns .18s}
@@ -582,7 +587,7 @@ function growInput(){
 }
 function fit(){
   const st=document.getElementById("stage"), w=document.getElementById("pwrap");
-  const nat=document.body.classList.contains("proto")&&innerWidth<=600; document.body.classList.toggle("native",nat);
+  const nat=document.body.classList.contains("proto")&&innerWidth<=600; document.body.classList.toggle("native",nat); document.body.classList.toggle("ctx-dark",ui.context==="dialog");
   if(nat){ document.documentElement.style.setProperty("--vvh",(window.visualViewport?visualViewport.height:innerHeight)+"px"); w.style.transform="none"; ui.scale=1; return; }
   const pv=document.body.classList.contains("proto"), small=pv&&innerWidth<=600;
   const sc=small? Math.min(st.clientWidth/402, st.clientHeight/874) : pv? Math.min((st.clientHeight-40)/894,(st.clientWidth-40)/422,1.4) : Math.max(.3,Math.min((st.clientHeight-130)/894,(st.clientWidth-130)/422,1));
