@@ -313,6 +313,10 @@ body:not(.proto) .oos{outline:1px dashed #e0b400;outline-offset:3px;border-radiu
 .up-menu button:last-child{border-bottom:0}
 .up-menu .ic{width:40px;height:40px;display:grid;place-items:center;flex:none}
 .up-scrim{position:absolute;inset:0;z-index:8}
+.sys-sheet{position:absolute;z-index:9;overflow:hidden;max-height:calc(100% - 40px)}
+.sys-sheet img{display:block;width:100%;height:100%;object-fit:cover;object-position:top;pointer-events:none;user-select:none}
+.sys-spot{position:absolute;border:0;background:none;padding:0;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.att .acard{cursor:pointer}
 .picker{position:absolute;left:0;right:0;bottom:0;height:52%;background:#1c1c1e;color:#fff;border-radius:14px 14px 0 0;z-index:9;display:flex;flex-direction:column;font:500 14px system-ui,sans-serif}
 .picker .ph{display:flex;justify-content:space-between;align-items:center;padding:12px 16px}
 .picker .ph b{font-weight:600}
@@ -457,7 +461,7 @@ const textOf=html=>{ const d=document.createElement("div"); d.innerHTML=html||""
 const I={
  plus:c=>`<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 4.33V19.67M4.33 12H19.67" stroke="${c}" stroke-width="1.33" stroke-linecap="round"/></svg>`,
  mic:`<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.33" stroke-linecap="round" stroke-linejoin="round"><path d="M16.33 6.67a4.33 4.33 0 0 0-8.66 0v4a4.33 4.33 0 0 0 8.66 0z"/><path d="M20.33 10.67A8.33 8.33 0 0 1 3.67 10.67M12 19v2.67"/></svg>`,
- send:`<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19.5V4.5M5.5 11 12 4.5 18.5 11"/></svg>`,
+ send:`<svg width="22" height="22" viewBox="0 0 16 16" fill="none"><path d="M14.6163 6.90503L4.1125 0.911277C3.89104 0.78722 3.63705 0.73353 3.38433 0.757346C3.13161 0.781162 2.89213 0.881357 2.69774 1.0446C2.50335 1.20785 2.36327 1.42641 2.29613 1.67121C2.22899 1.91601 2.23797 2.17545 2.32188 2.41503L4.20813 8.00003L2.32188 13.585C2.25556 13.7734 2.23537 13.975 2.26298 14.1728C2.29059 14.3707 2.36521 14.559 2.48058 14.722C2.59596 14.8851 2.74873 15.0181 2.92609 15.11C3.10346 15.2018 3.30026 15.2499 3.5 15.25C3.7148 15.2496 3.9259 15.1941 4.11313 15.0888L4.11875 15.085L14.6188 9.08065C14.8113 8.97167 14.9714 8.81355 15.0829 8.62244C15.1943 8.43133 15.253 8.21406 15.253 7.99284C15.253 7.77161 15.1943 7.55435 15.0829 7.36324C14.9714 7.17212 14.8113 7.014 14.6188 6.90503H14.6163ZM3.94938 13.4538L5.53813 8.75003H9C9.19891 8.75003 9.38968 8.67101 9.53033 8.53036C9.67098 8.3897 9.75 8.19894 9.75 8.00003C9.75 7.80111 9.67098 7.61035 9.53033 7.4697C9.38968 7.32904 9.19891 7.25003 9 7.25003H5.53813L3.94875 2.54503L13.4963 7.99315L3.94938 13.4538Z" fill="currentColor"/></svg>`,
  menu:`<svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.33" stroke-linecap="round"><path d="M18.33 12.33H1.67M9 17H1.67M18.33 7.67H1.67M18.33 3H1.67"/></svg>`,
  newchat:`<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.33" stroke-linecap="round"><circle cx="12" cy="12" r="9.67"/><path d="M7.67 12h8.66M12 7.67v8.66"/></svg>`,
  close:`<svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.33" stroke-linecap="round"><path d="M4 4l12 12M16 4L4 16"/></svg>`,
@@ -521,7 +525,7 @@ function seed(kind){ const p=preset(kind); return {_m:1,text:p.text||"",focused:
 function ensureModel(){ if(!ui.live||!ui.live._m){ const st=curState(); ui.live=seed(st?st.kind:"idle"); restoreThread(); } return ui.live; }
 function phoneHTML(st,live={},interactive=true){
   const M=interactive?ensureModel():seed(st.kind);
-  const q={text:M.text,focused:M.focused,sheet:M.menu,picker:M.picker,attach:M.atts.length?M.atts:false,typing:M.waiting,note:M.note,reserved:M.reserved};
+  const q={text:M.text,focused:M.focused,sheet:M.menu,picker:M.picker,pickKind:M.pickKind,attach:M.atts.length?M.atts:false,typing:M.waiting,note:M.note,reserved:M.reserved};
   const dark=ui.context==="dialog", v=ui.variant;
   const tab=!dark&&!q.focused;
   const hasText=(q.text||"").trim().length>0||q.attach;
@@ -544,7 +548,7 @@ function phoneHTML(st,live={},interactive=true){
     </div>
     ${(()=>{ const plus=`<button class="c-plus" ${el("plus","Add attachment (+)")} aria-label="Add attachment">${I.plus(v==="pill"&&!dark?"#fff":ink)}</button>`;
       const right=hasText?`<button class="c-right send" ${el("send","Send")} aria-label="Send">${I.send}</button>`:`<button class="c-right" ${el("mic","Voice input (reserved)")} aria-label="Voice input">${I.mic}<span class="resv"></span></button>`;
-      const body=`<div class="c-body">${q.attach?`<div class="c-att">${q.attach.map((t,i)=>`<span class="att a-${t}"><span class="acard">${ATT[t]}</span><button class="rm" data-rm="${i}" ${el("att-rm-"+i,"Remove attachment "+(i+1))} aria-label="Remove attachment">×</button></span>`).join("")}</div>`:""}<textarea rows="1" placeholder="Or ask anything..." aria-label="Message" ${el("field","Text field")} ${interactive?"":"tabindex=-1"}>${esc(q.text)}</textarea></div>`;
+      const body=`<div class="c-body">${q.attach?`<div class="c-att">${q.attach.map((t,i)=>`<span class="att a-${t}"><span class="acard" data-open="${i}">${ATT[t]}</span><button class="rm" data-rm="${i}" ${el("att-rm-"+i,"Remove attachment "+(i+1))} aria-label="Remove attachment">×</button></span>`).join("")}</div>`:""}<textarea rows="1" placeholder="Or ask anything..." aria-label="Message" ${el("field","Text field")} ${interactive?"":"tabindex=-1"}>${esc(q.text)}</textarea></div>`;
       /* spec (Typing): on focus, + and mic move below the text, the field spans the message width and gets a border */
       return q.focused
         ? `<div class="cmp focused v-${v}">${body}<div class="c-ctrl">${plus}${right}</div><span class="bar"></span></div>`
@@ -553,11 +557,11 @@ function phoneHTML(st,live={},interactive=true){
     ${q.focused?`<div class="kbd"><div>${"<i></i>".repeat(10)}</div><div>${"<i></i>".repeat(9)}</div><div>${"<i></i>".repeat(7)}</div><div><i></i><i></i><i class="w"></i><i></i></div></div>`:`<div class="home"></div>`}
     ${q.note?`<div class="ph-note"><b>${esc(q.note[0])}</b>${esc(q.note[1])}</div>`:""}
     ${q.sheet?`<div class="up-scrim" data-dim="typing-empty"></div><div class="up-menu" role="menu">
-      <button ${el("opt-gallery","Upload: Gallery")}><span class="ic">${I.fImage}</span>Gallery</button>
       <button ${el("opt-camera","Upload: Camera")}><span class="ic">${I.fCamera}</span>Camera</button>
+      <button ${el("opt-gallery","Upload: Gallery")}><span class="ic">${I.fImage}</span>Gallery</button>
       <button ${el("opt-doc","Upload: Document")}><span class="ic">${I.fDoc}</span>Document</button>
       <button ${el("opt-draw","Upload: Drawing")}><span class="ic">${I.fDraw}</span>Drawing</button></div>`:""}
-    ${q.picker?`<div class="up-scrim" data-dim="upload-sheet" style="background:rgba(0,0,0,.25)"></div><div class="picker"><div class="grab"></div><div class="ph"><button ${el("pick-cancel","Picker: Cancel")}>Cancel</button><b>Photos</b><button ${el("pick-add","Picker: Add")}>Add</button></div><div class="grid">${Array.from({length:12},(_,i)=>`<i class="${i===1?"sel":""}"></i>`).join("")}</div></div>`:""}
+    ${q.picker?sysSheet(q.pickKind||"gallery",el):""}
     ${interactive?(S.pins||[]).filter(p=>p.state===st.id&&(!p.variant||p.variant===ui.variant)).map((p,i)=>`<button class="cpin" data-pin="${p.id}" style="left:${p.x}px;top:${p.y}px" title="${esc(p.text)}" aria-label="Comment ${i+1}">${i+1}</button>`).join(""):""}
   </div>`;
 }
@@ -572,6 +576,19 @@ function syncSel(){ const want=deriveKind(ui.live); const pick=k=>{ const inMode
   let hit=want==="typing-filled"?(pick("typing-3")||pick("typing-7")):pick(want);
   if(hit&&hit.s.id!==ui.sel.state){ ui.sel={kind:"state",mode:hit.m.id,state:hit.s.id}; renderHeader(); markActive(); if(document.body.classList.contains("attn-proto")) scrollToSel(); placeBadges(); renderMinimap(); } }
 function rerenderKeepCaret(keep){ const t=$("#pwrap textarea"); const had=keep||document.activeElement===t; const pos=t?t.selectionStart:0; renderStage(); if(had||ui.live.focused&&!ui.live.menu&&!ui.live.picker){ const n=$("#pwrap textarea"); if(n&&had){ ui.refocusing=true; n.focus(); ui.refocusing=false; n.setSelectionRange(pos,pos); } } }
+/* System / existing screens per upload type, taken from Figma "Uploading Documents" (12596:173966). Images are screenshots (system UI, existing canvas and document viewer are out of scope); hotspots in image px. */
+const SYS={
+  camera:{img:"cam",w:383,h:502,left:13,bottom:6,radius:24,spots:[["pick-cancel","Camera: Back",22,430,52,52],["pick-add","Camera: Shutter",158,420,64,64]]},
+  gallery:{img:"gallery",w:402,h:520,spots:[["pick-cancel","Gallery: Back",34,448,52,52],["pick-add","Gallery: Select photo",160,282,96,40],["pick-add","Gallery: Select photo",0,0,402,140]]},
+  draw:{img:"canvas",w:402,h:562,spots:[["pick-cancel","Canvas: Close",0,34,56,52],["pick-add","Canvas: Save",280,34,122,52]]},
+  doc:{img:"docs",w:401,h:789,spots:[["pick-cancel","Files: Close",288,8,48,44],["pick-next","Files: Pick a file",0,112,401,600]]},
+  docsel:{img:"docsel",w:402,h:784,spots:[["pick-back","Document: Close",350,0,52,44],["pick-back","Document: Cancel",10,694,186,46],["pick-add","Document: Attach",206,694,186,46]]},
+  edit:{img:"edit",w:402,h:546,spots:[["view-close","Canvas: Close",0,40,56,52],["view-close","Canvas: Save",280,40,122,52]]},
+  view:{img:"docview",w:402,h:803,spots:[["view-close","Document viewer: Close",350,16,52,44]]}
+};
+function sysSheet(kind,el){ const d=SYS[kind]; if(!d) return ""; const L=d.left||0, wPct=d.w/402*100;
+  const spots=d.spots.map(([id,label,x,y,w,h],i)=>`<button class="sys-spot" ${el(id,label)} data-spot="${i}" aria-label="${esc(label)}" style="left:${x/d.w*100}%;top:${y/d.h*100}%;width:${w/d.w*100}%;height:${h/d.h*100}%"></button>`).join("");
+  return `<div class="up-scrim" data-dim="sys" style="background:rgba(0,0,0,.25)"></div><div class="sys-sheet" style="left:${L/402*100}%;width:${wPct}%;bottom:${d.bottom||0}px;aspect-ratio:${d.w}/${d.h};${d.radius?`border-radius:${d.radius}px;`:""}"><img src="assets/${d.img}.png" alt="" draggable="false">${spots}</div>`; }
 function placeUpMenu(){ const W=document.getElementById("pwrap"); if(!W) return; const um=W.querySelector(".up-menu"), cm=W.querySelector(".cmp"), ph=W.querySelector(".phone"); if(um&&cm&&ph){ const s=ui.scale||1; um.style.bottom=((ph.getBoundingClientRect().bottom-cm.getBoundingClientRect().top)/s+8)+"px"; } }
 function renderStage(){
   const W=document.getElementById("pwrap"); const st=curState(); if(!st){ W.innerHTML=""; return; }
@@ -656,13 +673,19 @@ stageEl.addEventListener("mouseleave",()=>{ document.getElementById("pwrap").cla
 /* clicks: badge = jump to / create the element's screen · element = navigate like the app */
 const REPLIES=["Nice. Now try a line with a negative slope: what changes?","Good thinking. What happens to the line if b gets bigger?","Exactly. Can you draw it and send me a photo?"];
 /* tapping + (or removing an attachment) must not take focus from the text field, so the keyboard stays open */
-document.getElementById("pwrap").addEventListener("touchend",e=>{ const b=e.target.closest('[data-el="plus"],[data-rm]'); if(b&&document.activeElement===$("#pwrap textarea")){ e.preventDefault(); b.click(); } },{passive:false});
-document.getElementById("pwrap").addEventListener("mousedown",e=>{ if(e.target.closest('[data-el="plus"],[data-rm]')&&document.activeElement===$("#pwrap textarea")) e.preventDefault(); });
+function inCmp(e){ const c=$("#pwrap .cmp"), p=e.changedTouches?e.changedTouches[0]:(ui.lastTap||e); if(!c||!p) return false; const r=c.getBoundingClientRect(); return p.clientY>=r.top-8&&p.clientY<=r.bottom+8; }
+document.getElementById("pwrap").addEventListener("touchend",e=>{ const ta=$("#pwrap textarea"); if(document.activeElement!==ta) return;
+  const b=e.target.closest('[data-el="plus"],[data-rm]'); if(b){ e.preventDefault(); b.click(); return; }
+  if(e.target.dataset.dim&&inCmp(e)){ e.preventDefault(); const t=e.changedTouches[0]; ui.lastTap={clientX:t.clientX,clientY:t.clientY}; e.target.click(); ui.lastTap=null; } },{passive:false});
+document.getElementById("pwrap").addEventListener("mousedown",e=>{ if(document.activeElement!==$("#pwrap textarea")) return; if(e.target.closest('[data-el="plus"],[data-rm]')||(e.target.dataset.dim&&inCmp(e))) e.preventDefault(); });
 document.getElementById("pwrap").addEventListener("click",e=>{
   const b=e.target.closest(".badge");
   if(b){ badgeClick(b.dataset.el,b.dataset.label); return; }
   const M=ensureModel(); const ta=$("#pwrap textarea"); if(ta) M.text=ta.value;
-  if(e.target.dataset.dim){ if(M.picker){ M.picker=false; M.menu=true; } else { M.menu=false; } rerenderKeepCaret(); syncSel(); return; }
+  if(e.target.dataset.dim){ if(M.picker){ const back=M.pickKind==="edit"||M.pickKind==="view"; M.picker=false; M.menu=!back; if(back) M.focused=true; rerenderKeepCaret(back); }
+    else { const keep=inCmp(e); M.menu=false; if(!keep){ M.focused=false; ta&&ta.blur(); } rerenderKeepCaret(keep); } syncSel(); return; }
+  const op=e.target.closest("[data-open]");
+  if(op){ const t=M.atts[+op.dataset.open]; if(t==="loading") return; ta&&ta.blur(); M.picker=true; M.pickKind=t==="doc"?"view":"edit"; rerenderKeepCaret(); syncSel(); return; }
   const rmb=e.target.closest("[data-rm]");
   if(rmb){ M.atts.splice(+rmb.dataset.rm,1); M.focused=true; rerenderKeepCaret(true); syncSel(); return; }
   const t=e.target.closest("[data-el]");
@@ -671,9 +694,12 @@ document.getElementById("pwrap").addEventListener("click",e=>{
   const id=t.dataset.el, st=curState(), link=st.links?.[id];
   if(link&&find(link)&&!/^(plus|send|opt-|pick-|att-rm-)/.test(id)){ go(link); return; }
   if(id==="plus"){ M.menu=true; M.focused=true; rerenderKeepCaret(true); syncSel(); return; }
-  else if(id.startsWith("opt-")){ M.menu=false; M.picker=true; M.pickType={"opt-gallery":"image","opt-camera":"image","opt-doc":"doc","opt-draw":"drawing"}[id]; }
-  else if(id==="pick-cancel"){ M.picker=false; M.menu=true; }
-  else if(id==="pick-add"){ M.picker=false; M.atts.push(M.pickType||"image"); M.focused=true; }
+  else if(id.startsWith("opt-")){ ta&&ta.blur(); M.menu=false; M.picker=true; M.pickKind={"opt-gallery":"gallery","opt-camera":"camera","opt-doc":"doc","opt-draw":"draw"}[id]; M.pickType={"opt-gallery":"image","opt-camera":"image","opt-doc":"doc","opt-draw":"drawing"}[id]; }
+  else if(id==="pick-cancel"){ M.picker=false; M.menu=true; M.focused=true; rerenderKeepCaret(true); syncSel(); return; }
+  else if(id==="pick-next"){ M.pickKind="docsel"; }
+  else if(id==="pick-back"){ M.pickKind="doc"; }
+  else if(id==="view-close"){ M.picker=false; M.focused=true; rerenderKeepCaret(true); syncSel(); return; }
+  else if(id==="pick-add"){ M.picker=false; M.atts.push(M.pickType||"image"); M.focused=true; rerenderKeepCaret(true); syncSel(); return; }
   else if(id==="send"){ const txt=M.text.trim(); if(!txt&&!M.atts.length) return; M.thread.push({who:"s",text:txt,atts:[...M.atts]}); M.text=""; M.atts=[]; M.focused=false; M.waiting=true; saveThread();
     rerenderKeepCaret(); syncSel(); setTimeout(()=>{ M.waiting=false; M.thread.push({who:"t",text:REPLIES[(M.thread.length/2|0)%REPLIES.length]}); saveThread(); renderStage(); syncSel(); },1400); return; }
   else if(id==="newchat"){ M.thread=[]; M.text=""; M.atts=[]; M.focused=false; saveThread(); }
@@ -705,7 +731,7 @@ function go(stateId){ const x=find(stateId); if(!x) return; const keep=ui.live&&
 function goKind(kind){ const x=flat().find(y=>y.s.kind===kind); if(x) go(x.s.id); }
 
 /* ================= stable element numbers (same number on every screen) ================= */
-const EL_ORDER=["menu","close","newchat","speaker","speaker2","field","plus","mic","send","att-rm-0","att-rm-1","att-rm-2","att-rm-3","opt-gallery","opt-camera","opt-doc","opt-draw","pick-cancel","pick-add","tab-map","tab-chat","tab-stats"];
+const EL_ORDER=["menu","close","newchat","speaker","speaker2","field","plus","mic","send","att-rm-0","att-rm-1","att-rm-2","att-rm-3","opt-gallery","opt-camera","opt-doc","opt-draw","pick-cancel","pick-add","pick-next","pick-back","view-close","tab-map","tab-chat","tab-stats"];
 function elNum(id){ S.elnums=S.elnums||{}; if(!S.elnums[id]){ let i=EL_ORDER.indexOf(id); const used=new Set(Object.values(S.elnums)); let n=i>=0?i+1:Math.max(EL_ORDER.length,...used)+1; while(used.has(n)&&S.elnums[id]!==n) n++; S.elnums[id]=n; } return S.elnums[id]; }
 const allRefs=()=>{ let t=textOf(S.docs.brief)+" "+textOf(S.docs.rules)+" "+textOf(S.docs.edges||"")+" "+textOf(S.docs.questions); for(const {s} of flat()) t+=" "+textOf(s.doc); return new Set((t.match(/#\d+/g)||[]).map(x=>+x.slice(1))); };
 /* ================= coverage for every screen ================= */
