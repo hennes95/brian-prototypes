@@ -248,7 +248,7 @@ pre.md{white-space:pre-wrap;background:var(--bg);border-radius:8px;padding:12px;
 .cmp.focused{flex-direction:column;align-items:stretch;gap:2px}
 .c-ctrl{display:flex;justify-content:space-between;align-items:center}
 .phone :focus,.phone :focus-visible{outline:none}
-.v-open.focused{margin:-6px 0 0;padding:6px 20px 8px;background:none;border:0;border-radius:0;position:relative;isolation:isolate;gap:4px}
+.v-open.focused{margin:-6px 0 0;padding:6px 20px 13px;background:none;border:0;border-radius:0;position:relative;isolation:isolate;gap:4px}
 /* Figma "Chat Input Field / Variant2": full-bleed white shape whose top edge rises 5.6px across the width (~0.8°), 0.75 stroke */
 .v-open.focused::before,.v-open.inline::before{content:"";position:absolute;inset:0;background:var(--b-bg);clip-path:polygon(0 5.6px,100% 0,100% 100%,0 100%);z-index:-1}
 .v-open.inline{position:relative;isolation:isolate;margin-top:-6px;padding-top:14px}
@@ -267,7 +267,7 @@ pre.md{white-space:pre-wrap;background:var(--bg);border-radius:8px;padding:12px;
 .cmp.focused.hasexp .c-exp,.cmp.fs .c-exp{display:grid}
 .cmp.focused.hasexp textarea,.cmp.fs textarea{padding-right:36px}
 /* expanded: the field grows up to 59px below the top (status bar stays, chat peeks above the angled line), top bar hidden */
-.cmp.fs{position:absolute;left:0;right:0;top:59px;bottom:0;z-index:8;margin:0;padding:32px 20px 12px;gap:8px;animation:fsIn .22s ease-out}
+.cmp.fs{position:absolute;left:0;right:0;top:59px;bottom:0;z-index:8;margin:0;padding:32px 20px 13px;gap:8px;animation:fsIn .22s ease-out}
 .cmp.fs .c-exp{top:14px;right:21px}
 .cmp.fs .c-body{flex:1;min-height:0;justify-content:flex-start}
 .cmp.fs textarea{flex:1;height:auto!important;overflow-y:auto!important}
@@ -316,9 +316,10 @@ body:not(.proto) .oos{outline:1px dashed #e0b400;outline-offset:3px;border-radiu
 .cmp.inline .uline i::after{content:"";position:absolute;inset:0;background:var(--b-ink)}
 .cmp.focused-inline .c-right:not(.send){background:none;color:var(--b-ink)}
 .cmp.focused-inline textarea{height:40px!important;overflow:hidden!important}
+.v-open.focused-inline{padding-bottom:15.5px}
 /* stacked field (text no longer fits one line): solid 0.75 line under the text */
 .v-open.focused .c-body{position:relative}
-.v-open.focused:not(.fs) .c-body::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;background:var(--b-ink);transform:scaleY(.75);transform-origin:0 100%}
+.v-open.focused .c-body::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;background:var(--b-ink);transform:scaleY(.75);transform-origin:0 100%}
 .v-open.notab{background:none}
 .v-pill{margin:0 16px 10px;padding:4px;background:var(--b-ink);color:#fff;border-radius:24px}
 .v-pill .c-plus{background:none}
