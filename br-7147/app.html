@@ -238,7 +238,7 @@ pre.md{white-space:pre-wrap;background:var(--bg);border-radius:8px;padding:12px;
 .cmp textarea{width:100%;border:0;background:none;resize:none;font:500 16px/22.4px var(--b-font);color:inherit;padding:8.8px 4px;outline:none;overflow-y:hidden;display:block}
 .cmp textarea{scrollbar-width:none}
 .cmp textarea::-webkit-scrollbar{display:none}
-.cmp textarea::placeholder{color:var(--b-muted);font-size:14px}
+.cmp textarea::placeholder{color:var(--b-muted);font-size:16px}
 .cmp .c-right{width:40px;height:40px;border:0;background:none;display:grid;place-items:center;flex:none;padding:0;border-radius:32px;position:relative;color:var(--b-ink)}
 .cmp .c-right.send{background:var(--b-ink);color:#fff}
 .cmp .resv{position:absolute;inset:2px;border:1.5px dashed #c69a00;border-radius:50%;display:none}
@@ -592,7 +592,7 @@ function phoneHTML(st,live={},interactive=true){
     </div>
     ${(()=>{ const plus=`<button class="c-plus" ${el("plus","Add attachment (+)")} aria-label="Add attachment">${I.plus(v==="pill"&&!dark?"#fff":ink)}</button>`;
       const right=hasText?`<button class="c-right send" ${el("send","Send")} aria-label="Send">${I.send}</button>`:`<button class="c-right" ${el("mic","Voice input (reserved)")} aria-label="Voice input">${I.mic}<span class="resv"></span></button>`;
-      const body=`<div class="c-body">${q.attach?`<div class="c-att">${q.attach.map((t,i)=>`<span class="att a-${t}"><span class="acard" data-open="${i}" role="button" aria-label="${ATT_NAME[t]||t}">${ATT[t]}</span>${t==="doc"?`<span class="aname">${ATT_NAME.doc}</span>`:""}<button class="rm" data-rm="${i}" ${el("att-rm-"+i,"Remove attachment "+(i+1))} aria-label="Remove attachment">×</button></span>`).join("")}</div>`:""}<textarea rows="1" placeholder="Or ask anything..." aria-label="Message" ${el("field","Text field")} ${interactive?"":"tabindex=-1"}>${esc(q.text)}</textarea></div>`;
+      const body=`<div class="c-body">${q.attach?`<div class="c-att">${q.attach.map((t,i)=>`<span class="att a-${t}"><span class="acard" data-open="${i}" role="button" aria-label="${ATT_NAME[t]||t}">${ATT[t]}</span>${t==="doc"?`<span class="aname">${ATT_NAME.doc}</span>`:""}<button class="rm" data-rm="${i}" ${el("att-rm-"+i,"Remove attachment "+(i+1))} aria-label="Remove attachment">×</button></span>`).join("")}</div>`:""}<textarea rows="1" placeholder="Ask anything" aria-label="Message" ${el("field","Text field")} ${interactive?"":"tabindex=-1"}>${esc(q.text)}</textarea></div>`;
       /* spec (Typing): on focus, + and mic move below the text, the field spans the message width and gets a border */
       /* Figma 12596:173965: while the text fits on one line, the field stays in one row between + and mic/send; it underlines what is typed (solid) on a dashed line. Only when it no longer fits do + and send move below. */
       const uline=`<span class="uline" aria-hidden="true"><i style="width:${Math.min(Math.ceil(textW(q.text||""))+4,inlineFieldW()+8)}px"></i></span>`;
