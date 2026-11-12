@@ -270,12 +270,12 @@ pre.md{white-space:pre-wrap;background:var(--bg);border-radius:8px;padding:12px;
 .oos::after{content:attr(data-oos);position:absolute;left:0;top:calc(100% + 4px);white-space:nowrap;font:500 10px var(--mono);color:#a07a00;background:#fff8db;border:1px solid #f0d36b;border-radius:4px;padding:1px 5px;opacity:0;transition:opacity .15s;pointer-events:none;z-index:5}
 .oos:hover::after{opacity:1}
 body:not(.proto) .oos{outline:1px dashed #e0b400;outline-offset:3px;border-radius:6px}
-.c-att{display:flex;gap:16px;overflow-x:auto;overflow-y:visible;padding:10px 10px 10px 2px;scrollbar-width:none;margin-right:-10px}
+.c-att{display:flex;gap:16px;overflow-x:auto;overflow-y:visible;padding:10px 10px 10px 10px;margin-left:-10px;scrollbar-width:none;margin-right:-10px}
 .c-att::-webkit-scrollbar{display:none}
 .att{flex:none;width:122px;height:72px;position:relative}
 /* attachment previews per Figma "Components" 12495:98454, scaled from 320×188 */
-.att .acard{position:absolute;inset:0;background:#fff;border:.75px solid #3a3a3a;box-shadow:2px 2px 0 #3a3a3a}
-.a-image .acard,.a-loading .acard{transform:rotate(-1deg);padding:2px 2px 7px}
+.att .acard{position:absolute;inset:0;background:#fff;border:.75px solid #3a3a3a}
+.a-image .acard,.a-loading .acard{padding:4px}
 .att .pic{display:block}
 .a-image .pic{width:100%;height:100%;background:linear-gradient(180deg,#f3f6f9 0 16%,transparent 16%),repeating-linear-gradient(90deg,#6f7d8a 0 2px,#b9c4ce 2px 6px,#8a98a5 6px 9px,#dfe6ec 9px 11px)}
 .a-loading .acard{background:#3a3a3a;border-color:#fff}
@@ -285,9 +285,9 @@ body:not(.proto) .oos{outline:1px dashed #e0b400;outline-offset:3px;border-radiu
 @keyframes sp{to{transform:rotate(360deg)}}
 @media (prefers-reduced-motion:reduce){.spin::after{animation:none}}
 .a-drawing .acard svg{display:block;width:100%;height:100%}
-.a-doc .acard{background:none;border:0;box-shadow:none;transform:rotate(-1deg)}
+.a-doc .acard{background:none;border:0}
 .a-doc .acard svg{display:block;width:100%;height:100%;overflow:visible}
-.att .rm{position:absolute;top:-8px;right:-8px;width:20px;height:20px;border-radius:50%;background:#3a3a3a;color:#fff;border:1.5px solid #fff;font:600 12px/16px var(--b-font);padding:0;z-index:2}
+.att .rm{position:absolute;top:-8px;left:-8px;width:20px;height:20px;border-radius:50%;background:#3a3a3a;color:#fff;border:1.5px solid #fff;font:600 12px/16px var(--b-font);padding:0;z-index:2}
 .v-open{padding:8px 20px 12px;background:linear-gradient(to right,var(--b-ink) 50%,transparent 0) left bottom/8px .75px repeat-x}
 .v-open.notab{background:none}
 .v-pill{margin:0 16px 10px;padding:4px;background:var(--b-ink);color:#fff;border-radius:24px}
@@ -461,7 +461,7 @@ const textOf=html=>{ const d=document.createElement("div"); d.innerHTML=html||""
 const I={
  plus:c=>`<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 4.33V19.67M4.33 12H19.67" stroke="${c}" stroke-width="1.33" stroke-linecap="round"/></svg>`,
  mic:`<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.33" stroke-linecap="round" stroke-linejoin="round"><path d="M16.33 6.67a4.33 4.33 0 0 0-8.66 0v4a4.33 4.33 0 0 0 8.66 0z"/><path d="M20.33 10.67A8.33 8.33 0 0 1 3.67 10.67M12 19v2.67"/></svg>`,
- send:`<svg width="22" height="22" viewBox="0 0 16 16" fill="none"><path d="M14.6163 6.90503L4.1125 0.911277C3.89104 0.78722 3.63705 0.73353 3.38433 0.757346C3.13161 0.781162 2.89213 0.881357 2.69774 1.0446C2.50335 1.20785 2.36327 1.42641 2.29613 1.67121C2.22899 1.91601 2.23797 2.17545 2.32188 2.41503L4.20813 8.00003L2.32188 13.585C2.25556 13.7734 2.23537 13.975 2.26298 14.1728C2.29059 14.3707 2.36521 14.559 2.48058 14.722C2.59596 14.8851 2.74873 15.0181 2.92609 15.11C3.10346 15.2018 3.30026 15.2499 3.5 15.25C3.7148 15.2496 3.9259 15.1941 4.11313 15.0888L4.11875 15.085L14.6188 9.08065C14.8113 8.97167 14.9714 8.81355 15.0829 8.62244C15.1943 8.43133 15.253 8.21406 15.253 7.99284C15.253 7.77161 15.1943 7.55435 15.0829 7.36324C14.9714 7.17212 14.8113 7.014 14.6188 6.90503H14.6163ZM3.94938 13.4538L5.53813 8.75003H9C9.19891 8.75003 9.38968 8.67101 9.53033 8.53036C9.67098 8.3897 9.75 8.19894 9.75 8.00003C9.75 7.80111 9.67098 7.61035 9.53033 7.4697C9.38968 7.32904 9.19891 7.25003 9 7.25003H5.53813L3.94875 2.54503L13.4963 7.99315L3.94938 13.4538Z" fill="currentColor"/></svg>`,
+ send:`<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M21.0894 10.5014L5.80142 2.56271C5.19742 2.25071 4.47208 2.32938 3.94809 2.76004C3.42542 3.19204 3.21209 3.89204 3.40409 4.54138L5.31742 11H11.8481C12.4001 11 12.8481 11.448 12.8481 12C12.8481 12.552 12.4001 13 11.8481 13H5.31742L3.40409 19.4587C3.21075 20.1094 3.42542 20.808 3.94809 21.24C4.25742 21.4947 4.63875 21.6267 5.02275 21.6267C5.28808 21.6267 5.55475 21.564 5.80142 21.436L21.0894 13.4974C21.6508 13.2054 22.0001 12.632 22.0001 11.9987C22.0001 11.3654 21.6508 10.7934 21.0894 10.5014Z" fill="currentColor"/></svg>`,
  menu:`<svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.33" stroke-linecap="round"><path d="M18.33 12.33H1.67M9 17H1.67M18.33 7.67H1.67M18.33 3H1.67"/></svg>`,
  newchat:`<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.33" stroke-linecap="round"><circle cx="12" cy="12" r="9.67"/><path d="M7.67 12h8.66M12 7.67v8.66"/></svg>`,
  close:`<svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.33" stroke-linecap="round"><path d="M4 4l12 12M16 4L4 16"/></svg>`,
