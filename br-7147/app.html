@@ -263,8 +263,9 @@ pre.md{white-space:pre-wrap;background:var(--bg);border-radius:8px;padding:12px;
 /* full-screen input (focus mode), per Figma "Focus Mode (optional)" 12610:178200 */
 /* entry: Nucleo/Expand in a 40px slot top right of the text; text column keeps 36px free on the right (326 of 362) */
 .cmp .c-exp{display:none;position:absolute;top:6px;right:16px;width:40px;height:40px;border:0;background:none;padding:0;place-items:center;color:var(--b-ink);z-index:2}
-.cmp.focused.over .c-exp,.cmp.fs .c-exp{display:grid}
-.cmp.focused.over textarea,.cmp.fs textarea{padding-right:36px}
+/* shown as soon as the field switches to the stacked layout (text wraps to a 2nd line): the layout jumps there anyway, so no extra re-wrap later */
+.cmp.focused.hasexp .c-exp,.cmp.fs .c-exp{display:grid}
+.cmp.focused.hasexp textarea,.cmp.fs textarea{padding-right:36px}
 /* expanded: the field grows up to 59px below the top (status bar stays, chat peeks above the angled line), top bar hidden */
 .cmp.fs{position:absolute;left:0;right:0;top:59px;bottom:0;z-index:8;margin:0;padding:32px 20px 12px;gap:8px;animation:fsIn .22s ease-out}
 .cmp.fs .c-exp{top:14px;right:21px}
@@ -601,7 +602,7 @@ function phoneHTML(st,live={},interactive=true){
       const uline=`<span class="uline" aria-hidden="true"><i style="width:${Math.min(Math.ceil(textW(q.text||""))+4,inlineFieldW()+8)}px"></i></span>`;
       if(q.focused&&q.inline) return `<div class="cmp inline focused-inline v-${v}">${plus}${body.replace(/<\/div>$/,uline+"</div>")}${right}<span class="bar"></span></div>`;
       return q.focused
-        ? `<div class="cmp focused v-${v} ${q.fs?"fs":""}"><button class="c-exp" ${el("expand",q.fs?"Collapse (exit full screen)":"Expand to full screen")} aria-label="${q.fs?"Collapse":"Expand"}">${q.fs?I.collapse:I.expand}</button>${body}<div class="c-ctrl">${plus}${right}</div><span class="bar"></span></div>`
+        ? `<div class="cmp focused v-${v} ${q.fs?"fs":""} ${(q.text||"").trim()?"hasexp":""}"><button class="c-exp" ${el("expand",q.fs?"Collapse (exit full screen)":"Expand to full screen")} aria-label="${q.fs?"Collapse":"Expand"}">${q.fs?I.collapse:I.expand}</button>${body}<div class="c-ctrl">${plus}${right}</div><span class="bar"></span></div>`
         : `<div class="cmp inline v-${v} ${tab?"":"notab"}">${plus}${body.replace(/<\/div>$/,uline+"</div>")}${right}<span class="bar"></span></div>`; })()}
     ${tab?`<div class="p-tabs"><button ${el("tab-map","Tab: Map")} aria-label="Map">${I.tabMap}</button><button class="sel" ${el("tab-chat","Tab: AI Tutor")} aria-label="AI Tutor">${I.tabChat}</button><button ${el("tab-stats","Tab: Statistics")} aria-label="Statistics">${I.tabStats}</button></div>`:""}
     ${q.focused?`<div class="kbd"><div>${"<i></i>".repeat(10)}</div><div>${"<i></i>".repeat(9)}</div><div>${"<i></i>".repeat(7)}</div><div><i></i><i></i><i class="w"></i><i></i></div></div>`:`<div class="home"></div>`}
@@ -667,10 +668,8 @@ function growInput(){
   if(t.closest(".cmp.fs")){ t.style.height=""; t.style.overflowY="auto"; return; }
   const LH=22.4,PAD=17.6,MAX=7;                    // R1: 7 lines, then scroll
   /* decide "over" with the expand icon's space already reserved; otherwise adding the icon re-wraps the text and it flickers at the 7-line threshold */
-  const cmp=$("#pwrap .cmp"); const focusedCmp=cmp&&cmp.classList.contains("focused");
-  if(focusedCmp) cmp.classList.add("over");
+  const cmp=$("#pwrap .cmp");
   t.style.height="auto"; const over=t.scrollHeight>LH*MAX+PAD+1;
-  if(!over&&cmp){ cmp.classList.remove("over"); t.style.height="auto"; }
   const h=Math.min(t.scrollHeight,LH*MAX+PAD); t.style.height=h+"px"; t.style.overflowY=over?"auto":"hidden";
   cmp?.classList.toggle("over",over); if(over&&document.activeElement!==t) t.scrollTop=t.scrollHeight;
   const bar=$("#pwrap .cmp .bar"); if(bar&&over){ const vis=t.clientHeight/t.scrollHeight, h=Math.max(16,t.clientHeight*vis); bar.style.height=h+"px"; /* track = the text area itself (not the composer), so position maps to the text */ const sc=ui.scale||1; const OFF=46; /* track starts below the expand icon */ const hh=Math.max(16,(t.clientHeight-OFF)*vis); bar.style.top=((t.getBoundingClientRect().top-t.closest(".cmp").getBoundingClientRect().top)/sc+OFF)+"px"; bar.style.height=hh+"px"; const posBar=()=>{ bar.style.transform=`translateY(${(t.scrollTop/(t.scrollHeight-t.clientHeight||1))*(t.clientHeight-OFF-hh)}px)`; }; posBar(); t.onscroll=posBar; }
