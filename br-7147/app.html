@@ -279,7 +279,10 @@ body.native .cmp.fs{top:calc(env(safe-area-inset-top) + 5px)}
 .p-chat::-webkit-scrollbar{display:none}
 .p-chat>:first-child{margin-top:auto}
 .p-head{transition:height .2s,margin .2s,opacity .2s}
-.phone.topover .p-head{box-shadow:0 .75px 0 var(--b-ink)}
+/* line under the top bar as soon as chat text scrolls underneath it (0.75px, at the edge of the chat area) */
+.p-head{position:relative}
+.p-head::after{content:"";position:absolute;left:-24px;right:-24px;bottom:-8px;height:1px;background:var(--b-ink);transform:scaleY(.75);transform-origin:0 100%;opacity:0;transition:opacity .15s;z-index:3;pointer-events:none}
+.phone.topover .p-head::after{opacity:1}
 .phone.headhidden .p-head{height:0;margin:0;opacity:0;overflow:hidden}
 .oos{position:relative;margin-top:10px;display:inline-block}
 .oos-chip{display:inline-block;font:500 13px var(--b-font);color:#858585;border:1px dashed #b5b5b5;border-radius:6px;padding:6px 10px;background:repeating-linear-gradient(135deg,transparent 0 6px,rgba(0,0,0,.035) 6px 12px)}
@@ -651,8 +654,11 @@ function renderStage(){
   growInput(); fit(); placeBadges(); renderMinimap();
   const ch=$("#pwrap .p-chat"), ph=$("#pwrap .phone");
   if(ch){ ch.scrollTop=ch.scrollHeight;
-    ch.addEventListener("scroll",()=>{ const up=ch.scrollTop<ch.scrollHeight-ch.clientHeight-12; ph.classList.toggle("headhidden",up&&!!$("#pwrap .cmp.focused")); ph.classList.toggle("topover",ch.scrollTop>0); });
-    ph.classList.toggle("topover",ch.scrollTop>0); }
+    /* topover: chat text sits under the top bar, either scrolled or clipped at the top (bottom-aligned chat) */
+    const over=()=>{ const f=ch.firstElementChild; return ch.scrollTop>0||(!!f&&f.getBoundingClientRect().top<ch.getBoundingClientRect().top-1); };
+    const updOver=()=>ph.classList.toggle("topover",over());
+    ch.addEventListener("scroll",()=>{ const up=ch.scrollTop<ch.scrollHeight-ch.clientHeight-12; ph.classList.toggle("headhidden",up&&!!$("#pwrap .cmp.focused")); updOver(); });
+    updOver(); requestAnimationFrame(updOver); setTimeout(updOver,300); }
 }
 function growInput(){
   const t=$("#pwrap textarea"); if(!t) return;
