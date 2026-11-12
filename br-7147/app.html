@@ -637,9 +637,13 @@ function growInput(){
   const t=$("#pwrap textarea"); if(!t) return;
   if(t.closest(".cmp.fs")){ t.style.height=""; t.style.overflowY="auto"; return; }
   const LH=22.4,PAD=17.6,MAX=7;                    // R1: 7 lines, then scroll
-  t.style.height="auto"; const h=Math.min(t.scrollHeight,LH*MAX+PAD); t.style.height=h+"px";
-  const over=t.scrollHeight>LH*MAX+PAD+1; t.style.overflowY=over?"auto":"hidden";
-  $("#pwrap .cmp")?.classList.toggle("over",over); if(over&&document.activeElement!==t) t.scrollTop=t.scrollHeight;
+  /* decide "over" with the expand icon's space already reserved; otherwise adding the icon re-wraps the text and it flickers at the 7-line threshold */
+  const cmp=$("#pwrap .cmp"); const focusedCmp=cmp&&cmp.classList.contains("focused");
+  if(focusedCmp) cmp.classList.add("over");
+  t.style.height="auto"; const over=t.scrollHeight>LH*MAX+PAD+1;
+  if(!over&&cmp){ cmp.classList.remove("over"); t.style.height="auto"; }
+  const h=Math.min(t.scrollHeight,LH*MAX+PAD); t.style.height=h+"px"; t.style.overflowY=over?"auto":"hidden";
+  cmp?.classList.toggle("over",over); if(over&&document.activeElement!==t) t.scrollTop=t.scrollHeight;
   const bar=$("#pwrap .cmp .bar"); if(bar&&over){ const vis=t.clientHeight/t.scrollHeight, h=Math.max(16,t.clientHeight*vis); bar.style.height=h+"px"; /* track = the text area itself (not the composer), so position maps to the text */ const sc=ui.scale||1; bar.style.top=((t.getBoundingClientRect().top-t.closest(".cmp").getBoundingClientRect().top)/sc+34)+"px"; bar.style.height=Math.max(16,(t.clientHeight-34)*vis)+"px"; const posBar=()=>{ bar.style.transform=`translateY(${(t.scrollTop/(t.scrollHeight-t.clientHeight||1))*(t.clientHeight-h)}px)`; }; posBar(); t.onscroll=posBar; }
 }
 function fit(){
