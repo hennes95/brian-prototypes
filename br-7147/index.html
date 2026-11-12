@@ -317,6 +317,8 @@ body:not(.proto) .oos{outline:1px dashed #e0b400;outline-offset:3px;border-radiu
 .sys-sheet img{display:block;width:100%;height:100%;object-fit:cover;object-position:top;pointer-events:none;user-select:none}
 .sys-spot{position:absolute;border:0;background:none;padding:0;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .att .acard{cursor:pointer}
+.att.a-doc{margin-bottom:20px}
+.att .aname{position:absolute;left:0;right:0;top:calc(100% + 4px);font:500 12px/16px var(--b-font);color:var(--b-muted,#7a7a7a);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .picker{position:absolute;left:0;right:0;bottom:0;height:52%;background:#1c1c1e;color:#fff;border-radius:14px 14px 0 0;z-index:9;display:flex;flex-direction:column;font:500 14px system-ui,sans-serif}
 .picker .ph{display:flex;justify-content:space-between;align-items:center;padding:12px 16px}
 .picker .ph b{font-weight:600}
@@ -548,7 +550,7 @@ function phoneHTML(st,live={},interactive=true){
     </div>
     ${(()=>{ const plus=`<button class="c-plus" ${el("plus","Add attachment (+)")} aria-label="Add attachment">${I.plus(v==="pill"&&!dark?"#fff":ink)}</button>`;
       const right=hasText?`<button class="c-right send" ${el("send","Send")} aria-label="Send">${I.send}</button>`:`<button class="c-right" ${el("mic","Voice input (reserved)")} aria-label="Voice input">${I.mic}<span class="resv"></span></button>`;
-      const body=`<div class="c-body">${q.attach?`<div class="c-att">${q.attach.map((t,i)=>`<span class="att a-${t}"><span class="acard" data-open="${i}">${ATT[t]}</span><button class="rm" data-rm="${i}" ${el("att-rm-"+i,"Remove attachment "+(i+1))} aria-label="Remove attachment">×</button></span>`).join("")}</div>`:""}<textarea rows="1" placeholder="Or ask anything..." aria-label="Message" ${el("field","Text field")} ${interactive?"":"tabindex=-1"}>${esc(q.text)}</textarea></div>`;
+      const body=`<div class="c-body">${q.attach?`<div class="c-att">${q.attach.map((t,i)=>`<span class="att a-${t}"><span class="acard" data-open="${i}" role="button" aria-label="${ATT_NAME[t]||t}">${ATT[t]}</span>${t==="doc"?`<span class="aname">${ATT_NAME.doc}</span>`:""}<button class="rm" data-rm="${i}" ${el("att-rm-"+i,"Remove attachment "+(i+1))} aria-label="Remove attachment">×</button></span>`).join("")}</div>`:""}<textarea rows="1" placeholder="Or ask anything..." aria-label="Message" ${el("field","Text field")} ${interactive?"":"tabindex=-1"}>${esc(q.text)}</textarea></div>`;
       /* spec (Typing): on focus, + and mic move below the text, the field spans the message width and gets a border */
       return q.focused
         ? `<div class="cmp focused v-${v}">${body}<div class="c-ctrl">${plus}${right}</div><span class="bar"></span></div>`
@@ -586,6 +588,8 @@ const SYS={
   edit:{img:"edit",w:402,h:546,spots:[["view-close","Canvas: Close",0,40,56,52],["view-close","Canvas: Save",280,40,122,52]]},
   view:{img:"docview",w:402,h:803,spots:[["view-close","Document viewer: Close",350,16,52,44]]}
 };
+/* names: shown only for documents (thumbnails are unreadable at this size); always used as accessibility label */
+const ATT_NAME={doc:"Rationale Zahlen.pdf",image:"Photo",drawing:"Drawing",loading:"Uploading"};
 function sysSheet(kind,el){ const d=SYS[kind]; if(!d) return ""; const L=d.left||0, wPct=d.w/402*100;
   const spots=d.spots.map(([id,label,x,y,w,h],i)=>`<button class="sys-spot" ${el(id,label)} data-spot="${i}" aria-label="${esc(label)}" style="left:${x/d.w*100}%;top:${y/d.h*100}%;width:${w/d.w*100}%;height:${h/d.h*100}%"></button>`).join("");
   return `<div class="up-scrim" data-dim="sys" style="background:rgba(0,0,0,.25)"></div><div class="sys-sheet" style="left:${L/402*100}%;width:${wPct}%;bottom:${d.bottom||0}px;aspect-ratio:${d.w}/${d.h};${d.radius?`border-radius:${d.radius}px;`:""}"><img src="assets/${d.img}.png" alt="" draggable="false">${spots}</div>`; }
