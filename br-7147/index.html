@@ -303,6 +303,8 @@ body:not(.proto) .oos{outline:1px dashed #e0b400;outline-offset:3px;border-radiu
 .kbd i{height:42px;flex:0 0 33px;background:#fff;border-radius:5px;box-shadow:0 1px 0 #8e8e93}
 .kbd .w{flex:0 0 188px}
 .home{height:22px;flex:none;display:grid;place-items:center}
+/* Figma's 72px tab bar already includes the home indicator area: overlay it instead of adding a strip below */
+.p-tabs + .home{position:absolute;left:0;right:0;bottom:0;pointer-events:none}
 .home::after{content:"";width:134px;height:5px;border-radius:3px;background:#111}
 .up-menu{position:absolute;left:21px;bottom:261px;width:290px;background:#3a3a3a;color:#fff;z-index:9;display:flex;flex-direction:column}
 .up-menu button{display:flex;align-items:center;height:56px;padding:8px;gap:0;border:0;border-bottom:.75px solid #fff;background:none;color:#fff;font:500 14px var(--b-font);text-align:left}
