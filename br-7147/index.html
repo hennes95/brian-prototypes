@@ -2,9 +2,11 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>BR-7147 · Redesign Input Field (prototype)</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#ffffff">
 <style>.cbtn{display:none!important}</style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -62,7 +64,12 @@ body.proto .main{grid-template-columns:1fr!important}
 body.proto .app{grid-template-rows:1fr}
 body.proto .stage{background:#111}
 body.proto .kbd{display:none}
-@media (max-width:600px){ body.proto .phone{border-radius:0;box-shadow:none} body.proto .stage{background:#fff} }
+/* native: on a phone the prototype IS the app: full width, real status bar, safe areas */
+body.native .stage{background:var(--b-bg,#fff)}
+body.native .pwrap{left:0;top:0;transform:none!important}
+body.native .phone{width:100vw;height:var(--vvh,100dvh);border-radius:0;box-shadow:none;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}
+body.native .p-status,body.native .home{display:none}
+body.native .minimap,body.native .cbtn{display:none!important}
 .main{--docw:50%;display:grid;grid-template-columns:minmax(0,1fr) var(--docw);min-height:0;transition:grid-template-columns .18s}
 .main.nosb{grid-template-columns:minmax(0,1fr) var(--docw)}
 #left,#tog-sb{display:none!important}
@@ -575,11 +582,14 @@ function growInput(){
 }
 function fit(){
   const st=document.getElementById("stage"), w=document.getElementById("pwrap");
+  const nat=document.body.classList.contains("proto")&&innerWidth<=600; document.body.classList.toggle("native",nat);
+  if(nat){ document.documentElement.style.setProperty("--vvh",(window.visualViewport?visualViewport.height:innerHeight)+"px"); w.style.transform="none"; ui.scale=1; return; }
   const pv=document.body.classList.contains("proto"), small=pv&&innerWidth<=600;
   const sc=small? Math.min(st.clientWidth/402, st.clientHeight/874) : pv? Math.min((st.clientHeight-40)/894,(st.clientWidth-40)/422,1.4) : Math.max(.3,Math.min((st.clientHeight-130)/894,(st.clientWidth-130)/422,1));
   w.style.transform=`translate(-50%,-50%) scale(${sc})`; ui.scale=sc;
 }
 window.addEventListener("resize",()=>{ fit(); placeAiCtl(); });
+if(window.visualViewport) visualViewport.addEventListener("resize",()=>{ if(document.body.classList.contains("native")) fit(); });
 
 /* numbered badges outside the phone, with leader lines */
 function placeBadges(){
