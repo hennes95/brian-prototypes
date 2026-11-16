@@ -217,7 +217,9 @@ pre.md{white-space:pre-wrap;background:var(--bg);border-radius:8px;padding:12px;
 .p-head{height:35px;flex:none;display:flex;align-items:center;justify-content:space-between;padding:0 24px;margin:12px 0 8px}
 .p-head .t{font-weight:700;font-size:16px}
 .p-head [data-el]{display:grid;place-items:center;width:24px;height:24px;border:0;background:none;padding:0;color:inherit}
-.p-chat{flex:1;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end;padding-bottom:8px}
+.p-chat{flex:1;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-start;padding-bottom:8px}
+/* bottom-aligned without justify-content:flex-end, which makes the overflow at the top unreachable (no scrolling up) */
+.p-chat>:first-child{margin-top:auto}
 .m-t{padding:12px 24px 4px;display:flex;flex-direction:column;gap:8px}
 .m-t p{margin:0}
 .m-t .act{display:flex;height:16px}
@@ -243,6 +245,7 @@ pre.md{white-space:pre-wrap;background:var(--bg);border-radius:8px;padding:12px;
 .cmp .c-right.send{background:var(--b-ink);color:#fff}
 .cmp .resv{position:absolute;inset:2px;border:1.5px dashed #c69a00;border-radius:50%;display:none}
 .reserved .cmp .resv{display:block}
+.c-right.send.inactive{opacity:.35;cursor:default}
 .cmp .bar{position:absolute;right:52px;top:10px;width:3px;height:44px;border-radius:2px;background:#c4c4c4;display:none}
 .cmp.over .bar{display:block}
 .cmp.focused{flex-direction:column;align-items:stretch;gap:2px}
@@ -271,7 +274,8 @@ pre.md{white-space:pre-wrap;background:var(--bg);border-radius:8px;padding:12px;
 .cmp.fs .c-exp{top:14px;right:21px}
 .cmp.fs .c-body{flex:1;min-height:0;justify-content:flex-start}
 .cmp.fs textarea{flex:1;height:auto!important;overflow-y:auto!important}
-.cmp.fs .bar{display:none!important}
+.cmp.fs .bar{display:none}
+.cmp.fs.over .bar{display:block}
 .phone:has(.cmp.fs) .p-head{visibility:hidden}
 body.native .cmp.fs{top:calc(env(safe-area-inset-top) + 5px)}
 body:not(.proto) .phone:has(.kbd) .cmp.fs{bottom:291px}
@@ -286,6 +290,7 @@ body:not(.proto) .phone:has(.kbd) .cmp.fs{bottom:291px}
 .p-head::after{content:"";position:absolute;left:-24px;right:-24px;bottom:-8px;height:1px;background:var(--b-ink);transform:scaleY(.75);transform-origin:0 100%;opacity:0;transition:opacity .15s;z-index:3;pointer-events:none}
 .phone.topover .p-head::after{opacity:1}
 .phone.headhidden .p-head{height:0;margin:0;opacity:0;overflow:hidden}
+.phone.cmphidden .cmp{display:none}
 .oos{position:relative;margin-top:10px;display:inline-block}
 .oos-chip{display:inline-block;font:500 13px var(--b-font);color:#858585;border:1px dashed #b5b5b5;border-radius:6px;padding:6px 10px;background:repeating-linear-gradient(135deg,transparent 0 6px,rgba(0,0,0,.035) 6px 12px)}
 .oos::after{content:attr(data-oos);position:absolute;left:0;top:calc(100% + 4px);white-space:nowrap;font:500 10px var(--mono);color:#a07a00;background:#fff8db;border:1px solid #f0d36b;border-radius:4px;padding:1px 5px;opacity:0;transition:opacity .15s;pointer-events:none;z-index:5}
@@ -602,14 +607,14 @@ function phoneHTML(st,live={},interactive=true){
       ${typing?`<div class="typing"><div class="ava">B</div><div class="dots"><span></span><span></span><span></span></div></div>`:reply}
     </div>
     ${(()=>{ const plus=`<button class="c-plus" ${el("plus","Add attachment (+)")} aria-label="Add attachment">${I.plus(v==="pill"&&!dark?"#fff":ink)}</button>`;
-      const right=hasText?`<button class="c-right send" ${el("send","Send")} aria-label="Send">${I.send}</button>`:`<button class="c-right" ${el("mic","Voice input (reserved)")} aria-label="Voice input">${I.mic}<span class="resv"></span></button>`;
+      const right=hasText?`<button class="c-right send ${q.typing?"inactive":""}" ${el("send","Send")} aria-label="Send" ${q.typing?'aria-disabled="true"':""}>${I.send}</button>`:`<button class="c-right" ${el("mic","Voice input (reserved)")} aria-label="Voice input">${I.mic}<span class="resv"></span></button>`;
       const body=`<div class="c-body">${q.attach?`<div class="c-att">${q.attach.map((t,i)=>`<span class="att a-${t}"><span class="acard" data-open="${i}" role="button" aria-label="${ATT_NAME[t]||t}">${ATT[t]}</span>${t==="doc"?`<span class="aname">${ATT_NAME.doc}</span>`:""}<button class="rm" data-rm="${i}" ${el("att-rm-"+i,"Remove attachment "+(i+1))} aria-label="Remove attachment">×</button></span>`).join("")}</div>`:""}<textarea rows="1" placeholder="Ask anything" aria-label="Message" ${el("field","Text field")} ${interactive?"":"tabindex=-1"}>${esc(q.text)}</textarea></div>`;
       /* spec (Typing): on focus, + and mic move below the text, the field spans the message width and gets a border */
       /* Figma 12596:173965: while the text fits on one line, the field stays in one row between + and mic/send; it underlines what is typed (solid) on a dashed line. Only when it no longer fits do + and send move below. */
       const uline=`<span class="uline" aria-hidden="true"><i style="width:${Math.min(Math.ceil(textW(q.text||""))+4,inlineFieldW()+8)}px"></i></span>`;
       if(q.focused&&q.inline) return `<div class="cmp inline focused-inline v-${v}">${plus}${body.replace(/<\/div>$/,uline+"</div>")}${right}<span class="bar"></span></div>`;
-      return q.focused
-        ? `<div class="cmp focused v-${v} ${q.fs?"fs":""}"><button class="c-exp" ${el("expand",q.fs?"Collapse (exit full screen)":"Expand to full screen")} aria-label="${q.fs?"Collapse":"Expand"}">${q.fs?I.collapse:I.expand}</button>${body}<div class="c-ctrl">${plus}${right}</div><span class="bar"></span></div>`
+      return (q.focused||hasText)
+        ? `<div class="cmp focused ${q.focused?"":"resting"} v-${v} ${q.fs?"fs":""}"><button class="c-exp" ${el("expand",q.fs?"Collapse (exit full screen)":"Expand to full screen")} aria-label="${q.fs?"Collapse":"Expand"}">${q.fs?I.collapse:I.expand}</button>${body}<div class="c-ctrl">${plus}${right}</div><span class="bar"></span></div>`
         : `<div class="cmp inline v-${v} ${tab?"":"notab"} ${hasText?"hastext":""}">${plus}${body.replace(/<\/div>$/,uline+"</div>")}${right}<span class="bar"></span></div>`; })()}
     ${tab?`<div class="p-tabs"><button ${el("tab-map","Tab: Map")} aria-label="Map">${I.tabMap}</button><button class="sel" ${el("tab-chat","Tab: AI Tutor")} aria-label="AI Tutor">${I.tabChat}</button><button ${el("tab-stats","Tab: Statistics")} aria-label="Statistics">${I.tabStats}</button></div>`:""}
     ${q.focused?`<div class="kbd"><div>${"<i></i>".repeat(10)}</div><div>${"<i></i>".repeat(9)}</div><div>${"<i></i>".repeat(7)}</div><div><i></i><i></i><i class="w"></i><i></i></div></div>`:`<div class="home"></div>`}
@@ -665,14 +670,15 @@ function renderStage(){
     /* topover: chat text sits under the top bar, either scrolled or clipped at the top (bottom-aligned chat) */
     const over=()=>{ const f=ch.firstElementChild; return ch.scrollTop>0||(!!f&&f.getBoundingClientRect().top<ch.getBoundingClientRect().top-1); };
     const updOver=()=>ph.classList.toggle("topover",over());
-    ch.addEventListener("scroll",()=>{ const up=ch.scrollTop<ch.scrollHeight-ch.clientHeight-12; ph.classList.toggle("headhidden",up&&!!$("#pwrap .cmp.focused")); updOver(); });
+    ch.addEventListener("scroll",()=>{ const up=ch.scrollTop<ch.scrollHeight-ch.clientHeight-12; const typing=!!$("#pwrap .cmp.focused:not(.resting), #pwrap .cmp.focused-inline"); ph.classList.toggle("headhidden",up); ph.classList.toggle("cmphidden",up&&!typing&&!ui.live.menu&&!ui.live.picker); updOver(); });
     updOver(); requestAnimationFrame(updOver); setTimeout(updOver,300); }
 }
 function growInput(){
   const t=$("#pwrap textarea"); if(!t) return;
   const ul=t.closest(".cmp.inline")&&t.parentElement.querySelector(".uline i"); if(ul){ ul.style.width=Math.min(Math.ceil(textW(t.value))+4,inlineFieldW()+8)+"px"; ul.style.display=t.value?"":"none"; }
   if(t.closest(".cmp.focused-inline")) return;
-  if(t.closest(".cmp.fs")){ t.style.height=""; t.style.overflowY="auto"; return; }
+  if(t.closest(".cmp.fs")){ t.style.height=""; t.style.overflowY="auto"; const fc=t.closest(".cmp.fs"), fo=t.scrollHeight>t.clientHeight+2; fc.classList.toggle("over",fo); const fb=fc.querySelector(".bar");
+    if(fb&&fo){ const sc=ui.scale||1, vis=t.clientHeight/t.scrollHeight, hh=Math.max(16,t.clientHeight*vis); fb.style.top=((t.getBoundingClientRect().top-fc.getBoundingClientRect().top)/sc)+"px"; fb.style.height=hh+"px"; const pb=()=>{ fb.style.transform=`translateY(${(t.scrollTop/(t.scrollHeight-t.clientHeight||1))*(t.clientHeight-hh)}px)`; }; pb(); t.onscroll=pb; } return; }
   const LH=22.4,PAD=17.6,MAX=7;                    // R1: 7 lines, then scroll
   /* decide "over" with the expand icon's space already reserved; otherwise adding the icon re-wraps the text and it flickers at the 7-line threshold */
   const cmp=$("#pwrap .cmp");
@@ -756,25 +762,25 @@ document.getElementById("pwrap").addEventListener("click",e=>{
   if(b){ badgeClick(b.dataset.el,b.dataset.label); return; }
   const M=ensureModel(); const ta=$("#pwrap textarea"); if(ta) M.text=ta.value;
   if(e.target.dataset.dim){ if(M.picker){ const back=M.pickKind==="edit"||M.pickKind==="view"; M.picker=false; M.menu=!back; if(back) M.focused=true; rerenderKeepCaret(back); }
-    else { const keep=inCmp(e); M.menu=false; if(!keep){ M.focused=false; ta&&ta.blur(); } rerenderKeepCaret(keep); } syncSel(); return; }
+    else { const keep=inCmp(e)&&!!M.focused; M.menu=false; if(!keep){ M.focused=false; ta&&ta.blur(); } rerenderKeepCaret(keep); } syncSel(); return; }
   const op=e.target.closest("[data-open]");
-  if(op){ const t=M.atts[+op.dataset.open]; if(t==="loading") return; ta&&ta.blur(); M.picker=true; M.pickKind=t==="doc"?"view":"edit"; rerenderKeepCaret(); syncSel(); return; }
+  if(op){ const t=M.atts[+op.dataset.open]; if(t==="loading") return; M.viewKbd=!!M.focused; ta&&ta.blur(); M.picker=true; M.pickKind=t==="doc"?"view":"edit"; rerenderKeepCaret(); syncSel(); return; }
   const rmb=e.target.closest("[data-rm]");
-  if(rmb){ M.atts.splice(+rmb.dataset.rm,1); M.focused=true; rerenderKeepCaret(true); syncSel(); return; }
+  if(rmb){ M.atts.splice(+rmb.dataset.rm,1); rerenderKeepCaret(!!M.focused); syncSel(); return; }
   const t=e.target.closest("[data-el]");
   if(!t){ if(e.target.closest(".p-chat")&&M.focused&&!M.menu&&!M.picker){ M.focused=false; rerenderKeepCaret(); syncSel(); } return; }
   if(t.tagName==="TEXTAREA") return;
   const id=t.dataset.el, st=curState(), link=st.links?.[id];
   if(link&&find(link)&&!/^(plus|send|opt-|pick-|att-rm-)/.test(id)){ go(link); return; }
-  if(id==="plus"){ M.menu=true; M.focused=true; rerenderKeepCaret(true); syncSel(); return; }
+  if(id==="plus"){ M.menu=true; M.menuKbd=!!M.focused; rerenderKeepCaret(M.menuKbd); syncSel(); return; }
   if(id==="expand"){ M.fs=!M.fs; M.focused=true; M.menu=false; rerenderKeepCaret(true); if(!M.fs){ const n=$("#pwrap textarea"); if(n) n.scrollTop=n.scrollHeight; } syncSel(); return; }
   else if(id.startsWith("opt-")){ ta&&ta.blur(); M.menu=false; M.picker=true; M.pickKind={"opt-gallery":"gallery","opt-camera":"camera","opt-doc":"doc","opt-draw":"draw"}[id]; M.pickType={"opt-gallery":"image","opt-camera":"image","opt-doc":"doc","opt-draw":"drawing"}[id]; }
-  else if(id==="pick-cancel"){ M.picker=false; M.menu=true; M.focused=true; rerenderKeepCaret(true); syncSel(); return; }
+  else if(id==="pick-cancel"){ M.picker=false; M.menu=true; M.focused=!!M.menuKbd; rerenderKeepCaret(M.focused); syncSel(); return; }
   else if(id==="pick-next"){ M.pickKind="docsel"; }
   else if(id==="pick-back"){ M.pickKind="doc"; }
-  else if(id==="view-close"){ M.picker=false; M.focused=true; rerenderKeepCaret(true); syncSel(); return; }
-  else if(id==="pick-add"){ M.picker=false; M.atts.push(M.pickType||"image"); M.focused=true; rerenderKeepCaret(true); syncSel(); return; }
-  else if(id==="send"){ const txt=M.text.trim(); if(!txt&&!M.atts.length) return; M.thread.push({who:"s",text:txt,atts:[...M.atts]}); M.text=""; M.atts=[]; M.focused=false; M.fs=false; M.stacked=false; M.waiting=true; saveThread();
+  else if(id==="view-close"){ M.picker=false; M.focused=!!M.viewKbd; rerenderKeepCaret(M.focused); syncSel(); return; }
+  else if(id==="pick-add"){ M.picker=false; M.atts.push(M.pickType||"image"); M.focused=!!M.menuKbd; rerenderKeepCaret(M.focused); syncSel(); return; }
+  else if(id==="send"){ if(M.waiting) return; const txt=M.text.trim(); if(!txt&&!M.atts.length) return; M.thread.push({who:"s",text:txt,atts:[...M.atts]}); M.text=""; M.atts=[]; M.focused=false; M.fs=false; M.stacked=false; M.waiting=true; saveThread();
     rerenderKeepCaret(); syncSel(); setTimeout(()=>{ M.waiting=false; M.thread.push({who:"t",text:REPLIES[(M.thread.length/2|0)%REPLIES.length]}); saveThread(); renderStage(); syncSel(); },1400); return; }
   else if(id==="newchat"){ M.thread=[]; M.text=""; M.atts=[]; M.focused=false; saveThread(); }
   else return;
