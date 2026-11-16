@@ -575,9 +575,12 @@ let _mctx=null;
 function textW(t){ if(!_mctx){ _mctx=document.createElement("canvas").getContext("2d"); } _mctx.font='500 16px "Nunito Sans",system-ui,sans-serif'; return _mctx.measureText(t).width; }
 function inlineFieldW(){ const ph=document.querySelector("#pwrap .phone"); const w=ph?ph.clientWidth:402; return w-144; } /* 20+20 padding, 40 +, 40 mic/send, 2x8 gaps, 2x4 text padding */
 function fitsInline(text,atts){ if(atts&&atts.length) return false; if(/\n/.test(text||"")) return false; return textW(text||"")<=inlineFieldW()-2; }
+/* R2: once the text has switched to the full-width layout it stays there until the message is sent or all text is deleted */
+function isInline(M){ return !!M.focused&&!M.fs&&!M.stacked&&fitsInline(M.text,M.atts); }
+function updStacked(M){ if(!(M.text||"").trim()&&!(M.atts||[]).length) M.stacked=false; else if(!fitsInline(M.text,M.atts)) M.stacked=true; }
 function phoneHTML(st,live={},interactive=true){
   const M=interactive?ensureModel():seed(st.kind);
-  const q={text:M.text,focused:M.focused,inline:M.focused&&!M.fs&&fitsInline(M.text,M.atts),fs:M.focused&&!!M.fs,sheet:M.menu,picker:M.picker,pickKind:M.pickKind,attach:M.atts.length?M.atts:false,typing:M.waiting,note:M.note,reserved:M.reserved};
+  const q={text:M.text,focused:M.focused,inline:isInline(M),fs:M.focused&&!!M.fs,sheet:M.menu,picker:M.picker,pickKind:M.pickKind,attach:M.atts.length?M.atts:false,typing:M.waiting,note:M.note,reserved:M.reserved};
   const dark=ui.context==="dialog", v=ui.variant;
   const tab=!dark&&!q.focused;
   const hasText=(q.text||"").trim().length>0||q.attach;
@@ -771,7 +774,7 @@ document.getElementById("pwrap").addEventListener("click",e=>{
   else if(id==="pick-back"){ M.pickKind="doc"; }
   else if(id==="view-close"){ M.picker=false; M.focused=true; rerenderKeepCaret(true); syncSel(); return; }
   else if(id==="pick-add"){ M.picker=false; M.atts.push(M.pickType||"image"); M.focused=true; rerenderKeepCaret(true); syncSel(); return; }
-  else if(id==="send"){ const txt=M.text.trim(); if(!txt&&!M.atts.length) return; M.thread.push({who:"s",text:txt,atts:[...M.atts]}); M.text=""; M.atts=[]; M.focused=false; M.fs=false; M.waiting=true; saveThread();
+  else if(id==="send"){ const txt=M.text.trim(); if(!txt&&!M.atts.length) return; M.thread.push({who:"s",text:txt,atts:[...M.atts]}); M.text=""; M.atts=[]; M.focused=false; M.fs=false; M.stacked=false; M.waiting=true; saveThread();
     rerenderKeepCaret(); syncSel(); setTimeout(()=>{ M.waiting=false; M.thread.push({who:"t",text:REPLIES[(M.thread.length/2|0)%REPLIES.length]}); saveThread(); renderStage(); syncSel(); },1400); return; }
   else if(id==="newchat"){ M.thread=[]; M.text=""; M.atts=[]; M.focused=false; saveThread(); }
   else return;
@@ -793,8 +796,8 @@ document.getElementById("pwrap").addEventListener("focusin",e=>{
 });
 document.getElementById("pwrap").addEventListener("input",e=>{
   if(e.target.tagName!=="TEXTAREA") return; const M=ensureModel();
-  const before=M.text.trim().length>0, wasInline=fitsInline(M.text,M.atts); M.text=e.target.value; M.focused=true;
-  if(before!==(M.text.trim().length>0)||wasInline!==fitsInline(M.text,M.atts)){ const pos=e.target.selectionStart; renderStage(); const t=$("#pwrap textarea"); t.focus(); t.setSelectionRange(pos,pos); }
+  const before=M.text.trim().length>0, wasInline=isInline(M); M.text=e.target.value; M.focused=true; updStacked(M);
+  if(before!==(M.text.trim().length>0)||wasInline!==isInline(M)){ const pos=e.target.selectionStart; renderStage(); const t=$("#pwrap textarea"); t.focus(); t.setSelectionRange(pos,pos); }
   else growInput();
   const k=ui.sel.state; syncSel(); if(ui.sel.state!==k){ /* keep caret after state switch */ const t=$("#pwrap textarea"); if(t&&document.activeElement!==t){ t.focus(); t.setSelectionRange(t.value.length,t.value.length); } }
 });
