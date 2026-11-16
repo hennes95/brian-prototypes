@@ -315,12 +315,14 @@ body:not(.proto) .oos{outline:1px dashed #e0b400;outline-offset:3px;border-radiu
 .cmp.inline .uline{position:absolute;left:0;right:-48px;bottom:-4px;height:1px;background:linear-gradient(to right,var(--b-ink) 50%,transparent 0) left top/8px 1px repeat-x;transform:scaleY(.75);transform-origin:0 0;pointer-events:none}
 .cmp.inline .uline i{position:absolute;left:0;top:0;height:1px;background:var(--b-bg)}
 .cmp.inline .uline i::after{content:"";position:absolute;inset:0;background:var(--b-ink)}
+/* FLOW 2 (Figma 12639-183097): no line at all once the field is tapped or holds content; the dashed line only shows on the empty, resting field */
+.cmp.focused-inline .uline,.cmp.inline.hastext .uline{display:none}
 .cmp.focused-inline .c-right:not(.send){background:none;color:var(--b-ink)}
 .cmp.focused-inline textarea{height:40px!important;overflow:hidden!important}
 .v-open.focused-inline{padding-bottom:15.5px}
 /* stacked field (text no longer fits one line): solid 0.75 line under the text */
 .v-open.focused .c-body{position:relative}
-.v-open.focused .c-body::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;background:var(--b-ink);transform:scaleY(.75);transform-origin:0 100%}
+.v-open.focused .c-body::after{display:none;content:"";position:absolute;left:0;right:0;bottom:0;height:1px;background:var(--b-ink);transform:scaleY(.75);transform-origin:0 100%}
 .v-open.notab{background:none}
 .v-pill{margin:0 16px 10px;padding:4px;background:var(--b-ink);color:#fff;border-radius:24px}
 .v-pill .c-plus{background:none}
@@ -605,7 +607,7 @@ function phoneHTML(st,live={},interactive=true){
       if(q.focused&&q.inline) return `<div class="cmp inline focused-inline v-${v}">${plus}${body.replace(/<\/div>$/,uline+"</div>")}${right}<span class="bar"></span></div>`;
       return q.focused
         ? `<div class="cmp focused v-${v} ${q.fs?"fs":""}"><button class="c-exp" ${el("expand",q.fs?"Collapse (exit full screen)":"Expand to full screen")} aria-label="${q.fs?"Collapse":"Expand"}">${q.fs?I.collapse:I.expand}</button>${body}<div class="c-ctrl">${plus}${right}</div><span class="bar"></span></div>`
-        : `<div class="cmp inline v-${v} ${tab?"":"notab"}">${plus}${body.replace(/<\/div>$/,uline+"</div>")}${right}<span class="bar"></span></div>`; })()}
+        : `<div class="cmp inline v-${v} ${tab?"":"notab"} ${hasText?"hastext":""}">${plus}${body.replace(/<\/div>$/,uline+"</div>")}${right}<span class="bar"></span></div>`; })()}
     ${tab?`<div class="p-tabs"><button ${el("tab-map","Tab: Map")} aria-label="Map">${I.tabMap}</button><button class="sel" ${el("tab-chat","Tab: AI Tutor")} aria-label="AI Tutor">${I.tabChat}</button><button ${el("tab-stats","Tab: Statistics")} aria-label="Statistics">${I.tabStats}</button></div>`:""}
     ${q.focused?`<div class="kbd"><div>${"<i></i>".repeat(10)}</div><div>${"<i></i>".repeat(9)}</div><div>${"<i></i>".repeat(7)}</div><div><i></i><i></i><i class="w"></i><i></i></div></div>`:`<div class="home"></div>`}
     ${q.note?`<div class="ph-note"><b>${esc(q.note[0])}</b>${esc(q.note[1])}</div>`:""}
