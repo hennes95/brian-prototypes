@@ -156,7 +156,11 @@ aside{background:var(--panel);border-right:1px solid var(--line);overflow:auto;m
 /* ~20 words per line, centered */
 .edscroll,.doc-head,.tools,.jump{padding-left:max(40px,calc((100% - 92ch)/2))!important;padding-right:max(40px,calc((100% - 92ch)/2))!important}
 .ed{padding:6px 0 18px;font:15px/1.6 var(--ui);outline:none;min-height:28px}
-.dsec{color:var(--ink);transition:color .15s}
+.dsec{color:var(--ink);transition:color .15s;position:relative}
+/* comment pins in the spec (same as on the screen) */
+.dpin{position:absolute;margin:-24px 0 0 0}
+body.commenting .edscroll .ed{cursor:crosshair}
+.cpop.fixed{position:fixed}
 body.attn-proto .dsec:not(.cur){color:var(--muted)}
 .dsec .sec-name{color:inherit}
 .dsec.empty .sec-name{color:var(--muted2)}
@@ -225,8 +229,11 @@ pre.md{white-space:pre-wrap;background:var(--bg);border-radius:8px;padding:12px;
 .m-t .act{display:flex;height:16px}
 .m-t .act button{border:0;background:none;padding:0;width:16px;height:16px}
 .m-s{padding:12px 24px 12px 64px;display:flex;flex-direction:column;gap:16px}
+.m-s,.m-t{overflow-wrap:anywhere;word-break:break-word}
+/* student messages shorter than one line sit on the right (Hannes 16.11) */
+.m-s.short>div:first-child{text-align:right}
 .m-s .wl{height:1px;background:var(--b-ink);transform:scaleY(.75);transform-origin:0 0}
-.tag{align-self:center;border:0;position:relative;font:700 12px/1.4 var(--b-font);padding:3px 8px;margin:8px 0}
+.tag{align-self:center;border:0;position:relative;font:700 12px/1.4 var(--b-font);padding:3px 8px;margin:24px 0}
 .typing{display:flex;align-items:center;gap:16px;padding:12px 24px}
 .ava{width:40px;height:40px;border-radius:50%;background:#efefef;border:0;position:relative;display:grid;place-items:center;font:700 15px var(--b-font)}
 .dots{display:flex;gap:5px}.dots span{width:7px;height:7px;border-radius:50%;background:var(--b-ink);animation:bl 1.2s infinite}
@@ -270,10 +277,12 @@ pre.md{white-space:pre-wrap;background:var(--bg);border-radius:8px;padding:12px;
 .cmp.focused.over .c-exp,.cmp.fs .c-exp{display:grid}
 .cmp.focused.over textarea,.cmp.fs textarea{padding-right:36px}
 /* expanded: the field grows up to 59px below the top (status bar stays, chat peeks above the angled line), top bar hidden */
-.cmp.fs{position:absolute;left:0;right:0;top:59px;bottom:0;z-index:8;margin:0;padding:32px 20px 13px;gap:8px;animation:fsIn .22s ease-out}
+.cmp.fs{position:absolute;left:0;right:0;top:59px;bottom:0;z-index:8;margin:0;padding:8px 20px 13px;gap:8px;animation:fsIn .22s ease-out}
 .cmp.fs .c-exp{top:14px;right:21px}
 .cmp.fs .c-body{flex:1;min-height:0;justify-content:flex-start}
-.cmp.fs textarea{flex:1;height:auto!important;overflow-y:auto!important}
+.cmp.fs textarea{flex:1;height:auto!important;overflow-y:auto!important;padding-top:24px}
+.cmp.fs .c-att{margin-top:24px}
+.cmp.fs .c-att+textarea,.cmp.fs .c-att~textarea{padding-top:8px}
 .cmp.fs .bar{display:none}
 .cmp.fs.over .bar{display:block}
 .phone:has(.cmp.fs) .p-head{visibility:hidden}
@@ -415,7 +424,7 @@ body:not(.proto) .oos{outline:1px dashed #e0b400;outline-offset:3px;border-radiu
       <div class="pwrap" id="pwrap"></div>
       <div class="badge-tip" id="tip"></div>
       <button class="minimap" id="minimap" aria-label="Show all screens" title="All screens"></button>
-            <button class="cbtn" id="cbtn" title="Comment for Claude: click here, then click the screen (or Option+click the screen)">💬 Comment</button>
+            <button class="cbtn" id="cbtn" title="Comment for Claude: click here, then click the screen or the spec (or Option+click either)">💬 Comment</button>
       <div class="overview" id="overview"></div>
     </section>
     <section class="doc" id="doc"></section>
@@ -655,6 +664,7 @@ function sysSheet(kind,el){ const d=SYS[kind]; if(!d) return ""; const L=d.left|
   const spots=d.spots.map(([id,label,x,y,w,h],i)=>`<button class="sys-spot" ${el(id,label)} data-spot="${i}" aria-label="${esc(label)}" style="left:${x/d.w*100}%;top:${y/d.h*100}%;width:${w/d.w*100}%;height:${h/d.h*100}%"></button>`).join("");
   return `<div class="up-scrim" data-dim="sys" style="background:rgba(0,0,0,.25)"></div><div class="sys-sheet" style="left:${L/402*100}%;width:${wPct}%;bottom:${d.bottom||0}px;aspect-ratio:${d.w}/${d.h};${d.radius?`border-radius:${d.radius}px;`:""}"><img src="assets/${d.img}.png" alt="" draggable="false">${spots}</div>`; }
 /* attachment menu opens to the right of the + button, vertically centred on it; shifted up/down only as far as needed to stay on screen */
+function markShortMsgs(){ document.querySelectorAll("#pwrap .m-s>div:first-child").forEach(d=>{ const lh=parseFloat(getComputedStyle(d).lineHeight)||22.4; d.parentElement.classList.toggle("short", d.getBoundingClientRect().height/(ui.scale||1)<=lh*1.4); }); }
 function placeUpMenu(){ const W=document.getElementById("pwrap"); if(!W) return; const um=W.querySelector(".up-menu"), pl=W.querySelector(".c-plus"), ph=W.querySelector(".phone"); if(!um||!pl||!ph) return;
   const s=ui.scale||1, P=ph.getBoundingClientRect(), B=pl.getBoundingClientRect(); const h=um.offsetHeight, phH=P.height/s;
   let top=(B.top+B.height/2-P.top)/s-h/2; top=Math.max(8,Math.min(top,phH-h-8));
@@ -663,7 +673,7 @@ function renderStage(){
   const W=document.getElementById("pwrap"); const st=curState(); if(!st){ W.innerHTML=""; return; }
   W.innerHTML=`<svg class="lines" id="lines"></svg>${phoneHTML(st,ui.live,true)}`;
   /* attachment menu sits 8px above the composer, wherever the composer is (fake keyboard in the frame, real keyboard on the phone) */
-  placeUpMenu();
+  placeUpMenu(); markShortMsgs();
   growInput(); fit(); placeBadges(); renderMinimap();
   const ch=$("#pwrap .p-chat"), ph=$("#pwrap .phone");
   if(ch){ ch.scrollTop=ch.scrollHeight;
@@ -827,8 +837,8 @@ function covOf(st){ const nums=countFor(st).map(elNum), r=allRefs(); const c=num
 
 /* ================= comments for Claude on the screen ================= */
 const cbtn=document.getElementById("cbtn");
-cbtn.addEventListener("click",e=>{ e.stopPropagation(); ui.commenting=!ui.commenting; cbtn.classList.toggle("on",ui.commenting); stageEl.classList.toggle("commenting",ui.commenting); cbtn.textContent=ui.commenting?"Click the screen…":"💬 Comment"; });
-function endCommenting(){ ui.commenting=false; cbtn.classList.remove("on"); stageEl.classList.remove("commenting"); cbtn.textContent="💬 Comment"; document.querySelector(".cpop")?.remove(); }
+cbtn.addEventListener("click",e=>{ e.stopPropagation(); ui.commenting=!ui.commenting; cbtn.classList.toggle("on",ui.commenting); stageEl.classList.toggle("commenting",ui.commenting); document.body.classList.toggle("commenting",ui.commenting); cbtn.textContent=ui.commenting?"Click the screen…":"💬 Comment"; });
+function endCommenting(){ ui.commenting=false; cbtn.classList.remove("on"); stageEl.classList.remove("commenting"); document.body.classList.remove("commenting"); cbtn.textContent="💬 Comment"; document.querySelector(".cpop")?.remove(); }
 function popAt(cx,cy,html){ document.querySelector(".cpop")?.remove(); const sr=stageEl.getBoundingClientRect(); const d=document.createElement("div"); d.className="cpop";
   d.style.left=Math.max(8,Math.min(cx-sr.left+10,sr.width-252))+"px"; d.style.top=Math.max(8,Math.min(cy-sr.top-10,sr.height-130))+"px"; d.innerHTML=html; stageEl.appendChild(d); return d; }
 stageEl.addEventListener("click",e=>{
@@ -846,6 +856,34 @@ stageEl.addEventListener("click",e=>{
   d.querySelector("[data-cancel]").addEventListener("click",endCommenting);
   t.addEventListener("keydown",k=>{ if(k.key==="Escape"){ k.preventDefault(); endCommenting(); }
     if(k.key==="Enter"&&!k.shiftKey){ k.preventDefault(); const v=t.value.trim(); if(v){ S.pins=S.pins||[]; S.pins.push({id:uid("c-"),state:curState().id,variant:ui.variant,x,y,text:v,at:new Date().toISOString()}); save(); } endCommenting(); renderStage(); } });
+},true);
+
+/* ================= comment pins in the spec ================= */
+/* stored in S.docpins: anchored to the block (bullet/paragraph) that was clicked, via the start of its text, so pins follow edits */
+function docPop(cx,cy,html){ document.querySelector(".cpop")?.remove(); const d=document.createElement("div"); d.className="cpop fixed"; d.style.left=Math.max(8,Math.min(cx+10,innerWidth-252))+"px"; d.style.top=Math.max(8,Math.min(cy-10,innerHeight-130))+"px"; d.innerHTML=html; document.body.appendChild(d); return d; }
+function blockAt(el,sec){ let b=el&&el.closest&&el.closest("li,p,h1,h2,h3,h4,div"); if(b&&!sec.contains(b)) b=null; return b; }
+function renderDocPins(){ document.querySelectorAll(".dpin").forEach(n=>n.remove()); (S.docpins||[]).forEach((p,i)=>{ const sec=document.querySelector(`.dsec[data-sec="${CSS.escape(p.sec)}"]`); if(!sec) return;
+  let top=p.y; const blocks=[...sec.querySelectorAll(".ed li,.ed p,.ed h2,.ed h3,.ed div")]; const b=p.anchor&&blocks.find(n=>n.textContent.trim().startsWith(p.anchor));
+  if(b){ const sr=sec.getBoundingClientRect(), br=b.getBoundingClientRect(); top=br.top-sr.top+p.dy; }
+  const btn=document.createElement("button"); btn.className="cpin dpin"; btn.dataset.dpin=p.id; btn.style.left=p.dx+"px"; btn.style.top=top+"px"; btn.title=p.text; btn.textContent=i+1; sec.appendChild(btn); }); }
+{ const _rd=renderDoc; renderDoc=function(...a){ const r=_rd.apply(this,a); requestAnimationFrame(renderDocPins); return r; }; }
+let dpinT=null; document.addEventListener("input",e=>{ if(e.target.closest&&e.target.closest(".ed")){ clearTimeout(dpinT); dpinT=setTimeout(renderDocPins,300); } });
+document.addEventListener("mousedown",e=>{ if((ui.commenting||e.altKey)&&e.target.closest&&e.target.closest("#edscroll .dsec")&&!e.target.closest(".dpin")) e.preventDefault(); },true);
+document.addEventListener("click",e=>{
+  const dp=e.target.closest&&e.target.closest(".dpin");
+  if(dp){ e.preventDefault(); e.stopPropagation(); const p=(S.docpins||[]).find(x=>x.id===dp.dataset.dpin); if(!p) return;
+    const d=docPop(e.clientX,e.clientY,`<div>${esc(p.text)}</div><div class="row"><span>for Claude · spec</span><button data-del>Delete</button></div>`);
+    d.querySelector("[data-del]").addEventListener("click",()=>{ S.docpins=S.docpins.filter(x=>x.id!==p.id); save(); d.remove(); renderDocPins(); }); return; }
+  const sec=e.target.closest&&e.target.closest("#edscroll .dsec");
+  if(!sec||!(ui.commenting||e.altKey)){ if(!(e.target.closest&&e.target.closest(".cpop"))&&!(e.target.closest&&e.target.closest(".phone"))) document.querySelector(".cpop.fixed")?.remove(); return; }
+  e.preventDefault(); e.stopPropagation();
+  const sr=sec.getBoundingClientRect(), b=blockAt(e.target,sec); const dx=Math.round(e.clientX-sr.left), y=Math.round(e.clientY-sr.top);
+  const anchor=b?b.textContent.trim().slice(0,40):""; const dy=b?Math.round(e.clientY-b.getBoundingClientRect().top):0;
+  const d=docPop(e.clientX,e.clientY,`<textarea placeholder="Comment for Claude… Enter to save"></textarea><div class="row"><span>spec</span><button data-cancel>Cancel</button></div>`);
+  const t=d.querySelector("textarea"); t.focus();
+  d.querySelector("[data-cancel]").addEventListener("click",()=>{ d.remove(); endCommenting(); });
+  t.addEventListener("keydown",k=>{ if(k.key==="Escape"){ k.preventDefault(); d.remove(); endCommenting(); }
+    if(k.key==="Enter"&&!k.shiftKey){ k.preventDefault(); const v=t.value.trim(); if(v){ S.docpins=S.docpins||[]; S.docpins.push({id:uid("d-"),sec:sec.dataset.sec,anchor,dx,dy,y,text:v,at:new Date().toISOString()}); save(); } d.remove(); endCommenting(); renderDocPins(); } });
 },true);
 
 /* ================= minimap + overview ================= */
@@ -915,7 +953,7 @@ function renderDoc(force){
   let h=`<div class="doc-head"><div class="crumb">BR-7147</div><div class="doc-title">Redesign Input Field</div></div>
     <nav class="jump" id="jump"><button data-jump="brief">Brief</button><button data-jump="solution">Solution</button><button data-jump="edges">Edge cases & touchpoints</button><button data-jump="questions">Open questions</button></nav>
     <div class="tools"><button data-cmd="h2" title="Heading">H</button><button data-cmd="ol" title="Numbered list">1.</button><button data-cmd="ul" title="Bullet list">•</button><button data-cmd="indent" title="Indent (Tab)">→</button><button data-cmd="outdent" title="Outdent (Shift+Tab)">←</button><button data-cmd="bold" title="Bold"><b>B</b></button>
-      <button data-cmd="ask" title="Comment or question for Claude (Option+C)">💬 Ask Claude</button><button data-cmd="accept" class="acc" id="acc" title="Make all of Claude’s blue text your own">Accept all blue</button><span class="sp"></span><span class="meta" id="covmeta"></span></div>
+      </div>
     <div class="edscroll" id="edscroll">`;
   h+=`<h2 class="grp-h" data-grp-h="brief">Brief</h2>`+blk("brief","Problem, goal & scope",S.docs.brief,"Problem · Goal · Success criteria · In scope · Out of scope","brief");
   h+=`<h2 class="grp-h" data-grp-h="solution">Solution</h2>`+blk("rules","Global rules",S.docs.rules,"Behavior that holds on every screen. One rule per line with an ID: R1, R2 …","solution");
@@ -1041,7 +1079,7 @@ docEl.addEventListener("paste",e=>{ const ed=e.target.closest&&e.target.closest(
   if(/^https:\/\/(www\.)?figma\.com\/\S+$/.test(t)){ const nid=(t.match(/node-id=([\d-]+)/)||[])[1]; document.execCommand("insertHTML",false,`<a class="fig" href="${esc(t)}" target="_blank" rel="noopener" contenteditable="false">Figma${nid?" "+nid:""} ↗</a>&nbsp;`); edSave(ed); return; }
   document.execCommand("insertText",false,t); } });
 docEl.addEventListener("click",e=>{ const a=e.target.closest("a.fig"); if(a){ e.preventDefault(); window.open(a.href,"_blank","noopener"); } });
-document.addEventListener("keydown",e=>{ if(e.altKey&&e.code==="KeyC"){ e.preventDefault(); insertAsk(); } });
+/* Option+C removed: comments for Claude are placed with 💬 Comment / Option+click, in the spec and on the screen */
 
 /* attention: clicks in the prototype switch the doc to highlight mode; reading/typing in the doc switches back */
 document.getElementById("stage").addEventListener("pointerdown",()=>document.body.classList.add("attn-proto"),true);
