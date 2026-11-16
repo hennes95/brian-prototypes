@@ -148,6 +148,16 @@ aside{background:var(--panel);border-right:1px solid var(--line);overflow:auto;m
 .doc-title{font:600 26px/1.2 var(--ui);border:0;background:none;padding:0;width:100%;color:var(--ink);outline:none}
 .tools{display:flex;gap:2px;padding:4px 36px;border-bottom:1px solid var(--line)}
 .tools button{border:0;background:none;padding:4px 8px;border-radius:6px;color:var(--muted);font-size:12px}
+.tools .sp{flex:1}
+/* global counters: yellow = your comments for Claude, blue = Claude's additions to review */
+.tools .cnt{min-width:24px;height:24px;margin-left:6px;padding:0 7px;border-radius:12px 12px 12px 2px;font:700 11px/24px var(--mono);text-align:center;cursor:pointer}
+.tools .cnt.cy{background:#ffd43b;color:#5c4400}
+.tools .cnt.cb{background:var(--accent);color:#fff;border-radius:12px 12px 2px 12px}
+.tools .cnt[hidden]{display:none}
+.flash{animation:flash 1.2s ease-out}
+@keyframes flash{0%,40%{box-shadow:0 0 0 4px rgba(255,212,59,.9)}100%{box-shadow:0 0 0 4px rgba(255,212,59,0)}}
+span.ai.flash{animation:flashb 1.2s ease-out}
+@keyframes flashb{0%,40%{background:rgba(120,140,255,.35)}100%{background:transparent}}
 .tools button:hover{background:var(--bg);color:var(--ink)}
 .tools .sp{flex:1}
 .tools .meta{font-size:11px;color:var(--muted);align-self:center}
@@ -231,7 +241,9 @@ pre.md{white-space:pre-wrap;background:var(--bg);border-radius:8px;padding:12px;
 .m-s{padding:12px 24px 12px 64px;display:flex;flex-direction:column;gap:16px}
 .m-s,.m-t{overflow-wrap:anywhere;word-break:break-word}
 /* student messages shorter than one line sit on the right (Hannes 16.11) */
-.m-s.short>div:first-child{text-align:right}
+/* student messages shorter than one line: right-aligned, the line underneath hugs the text width (Hannes 16.11) */
+.m-s.short{align-items:flex-end}
+.m-s.short>div:first-child{text-align:right;width:fit-content}
 .m-s .wl{height:1px;background:var(--b-ink);transform:scaleY(.75);transform-origin:0 0}
 .tag{align-self:center;border:0;position:relative;font:700 12px/1.4 var(--b-font);padding:3px 8px;margin:24px 0}
 .typing{display:flex;align-items:center;gap:16px;padding:12px 24px}
@@ -664,7 +676,7 @@ function sysSheet(kind,el){ const d=SYS[kind]; if(!d) return ""; const L=d.left|
   const spots=d.spots.map(([id,label,x,y,w,h],i)=>`<button class="sys-spot" ${el(id,label)} data-spot="${i}" aria-label="${esc(label)}" style="left:${x/d.w*100}%;top:${y/d.h*100}%;width:${w/d.w*100}%;height:${h/d.h*100}%"></button>`).join("");
   return `<div class="up-scrim" data-dim="sys" style="background:rgba(0,0,0,.25)"></div><div class="sys-sheet" style="left:${L/402*100}%;width:${wPct}%;bottom:${d.bottom||0}px;aspect-ratio:${d.w}/${d.h};${d.radius?`border-radius:${d.radius}px;`:""}"><img src="assets/${d.img}.png" alt="" draggable="false">${spots}</div>`; }
 /* attachment menu opens to the right of the + button, vertically centred on it; shifted up/down only as far as needed to stay on screen */
-function markShortMsgs(){ document.querySelectorAll("#pwrap .m-s>div:first-child").forEach(d=>{ const lh=parseFloat(getComputedStyle(d).lineHeight)||22.4; d.parentElement.classList.toggle("short", d.getBoundingClientRect().height/(ui.scale||1)<=lh*1.4); }); }
+function markShortMsgs(){ document.querySelectorAll("#pwrap .m-s>div:first-child").forEach(d=>{ const lh=parseFloat(getComputedStyle(d).lineHeight)||22.4; const short=d.getBoundingClientRect().height/(ui.scale||1)<=lh*1.4; d.parentElement.classList.toggle("short",short); const wl=d.parentElement.querySelector(".wl"); if(wl){ d.style.width=short?"fit-content":""; wl.style.width=short?(d.getBoundingClientRect().width/(ui.scale||1))+"px":""; } }); }
 function placeUpMenu(){ const W=document.getElementById("pwrap"); if(!W) return; const um=W.querySelector(".up-menu"), pl=W.querySelector(".c-plus"), ph=W.querySelector(".phone"); if(!um||!pl||!ph) return;
   const s=ui.scale||1, P=ph.getBoundingClientRect(), B=pl.getBoundingClientRect(); const h=um.offsetHeight, phH=P.height/s;
   let top=(B.top+B.height/2-P.top)/s-h/2; top=Math.max(8,Math.min(top,phH-h-8));
@@ -886,6 +898,25 @@ document.addEventListener("click",e=>{
     if(k.key==="Enter"&&!k.shiftKey){ k.preventDefault(); const v=t.value.trim(); if(v){ S.docpins=S.docpins||[]; S.docpins.push({id:uid("d-"),sec:sec.dataset.sec,anchor,dx,dy,y,text:v,at:new Date().toISOString()}); save(); } d.remove(); endCommenting(); renderDocPins(); } });
 },true);
 
+/* ================= global comment / addition counters ================= */
+let cntCi=-1, cntAi=-1;
+function allComments(){ const scr=(S.pins||[]).map(p=>({kind:"screen",p})), doc=(S.docpins||[]).map(p=>({kind:"doc",p})); return [...doc,...scr]; }
+function updateCounters(){ const c=$("#cntC"), a=$("#cntA"); if(!c||!a) return; const nc=allComments().length+document.querySelectorAll("#edscroll mark.ask").length, na=document.querySelectorAll("#edscroll span.ai").length;
+  c.textContent=nc; c.hidden=!nc; a.textContent=na; a.hidden=!na; }
+document.addEventListener("click",e=>{
+  if(e.target.closest&&e.target.closest("#cntC")){ const list=allComments(); const asks=[...document.querySelectorAll("#edscroll mark.ask")]; const n=list.length+asks.length; if(!n) return; cntCi=(cntCi+1)%n;
+    if(cntCi<list.length){ const it=list[cntCi];
+      if(it.kind==="doc"){ const b=document.querySelector(`.dpin[data-dpin="${it.p.id}"]`); if(b){ b.scrollIntoView({block:"center",behavior:"smooth"}); b.classList.remove("flash"); void b.offsetWidth; b.classList.add("flash"); } }
+      else { if(ui.sel.state!==it.p.state) go(it.p.state); setTimeout(()=>{ const b=document.querySelector(`.cpin[data-pin="${it.p.id}"]`); if(b){ b.classList.remove("flash"); void b.offsetWidth; b.classList.add("flash"); } },120); } }
+    else { const m=asks[cntCi-list.length]; m.scrollIntoView({block:"center",behavior:"smooth"}); m.classList.add("flash"); }
+    return; }
+  if(e.target.closest&&e.target.closest("#cntA")){ const ai=[...document.querySelectorAll("#edscroll span.ai")]; if(!ai.length) return; cntAi=(cntAi+1)%ai.length; const sp=ai[cntAi]; sp.scrollIntoView({block:"center",behavior:"smooth"}); sp.classList.remove("flash"); void sp.offsetWidth; sp.classList.add("flash"); return; }
+},true);
+{ const _rd2=renderDoc; renderDoc=function(...a){ const r=_rd2.apply(this,a); requestAnimationFrame(updateCounters); return r; }; }
+{ const _rs=renderStage; renderStage=function(...a){ const r=_rs.apply(this,a); updateCounters(); return r; }; }
+{ const _sv=save; save=function(...a){ const r=_sv.apply(this,a); requestAnimationFrame(updateCounters); return r; }; }
+document.addEventListener("input",e=>{ if(e.target.closest&&e.target.closest(".ed")) requestAnimationFrame(updateCounters); });
+
 /* ================= minimap + overview ================= */
 function renderMinimap(){
   const mm=document.getElementById("minimap");
@@ -953,7 +984,7 @@ function renderDoc(force){
   let h=`<div class="doc-head"><div class="crumb">BR-7147</div><div class="doc-title">Redesign Input Field</div></div>
     <nav class="jump" id="jump"><button data-jump="brief">Brief</button><button data-jump="solution">Solution</button><button data-jump="edges">Edge cases & touchpoints</button><button data-jump="questions">Open questions</button></nav>
     <div class="tools"><button data-cmd="h2" title="Heading">H</button><button data-cmd="ol" title="Numbered list">1.</button><button data-cmd="ul" title="Bullet list">•</button><button data-cmd="indent" title="Indent (Tab)">→</button><button data-cmd="outdent" title="Outdent (Shift+Tab)">←</button><button data-cmd="bold" title="Bold"><b>B</b></button>
-      </div>
+      <span class="sp"></span><button class="cnt cy" id="cntC" title="Your comments for Claude (screen + spec): click to go to the next one">0</button><button class="cnt cb" id="cntA" title="Claude's additions (blue) to accept or decline: click to go to the next one">0</button></div>
     <div class="edscroll" id="edscroll">`;
   h+=`<h2 class="grp-h" data-grp-h="brief">Brief</h2>`+blk("brief","Problem, goal & scope",S.docs.brief,"Problem · Goal · Success criteria · In scope · Out of scope","brief");
   h+=`<h2 class="grp-h" data-grp-h="solution">Solution</h2>`+blk("rules","Global rules",S.docs.rules,"Behavior that holds on every screen. One rule per line with an ID: R1, R2 …","solution");
