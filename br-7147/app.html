@@ -432,6 +432,56 @@ body:not(.proto) .oos{outline:1px dashed #e0b400;outline-offset:3px;border-radiu
 .q-result{flex:1;background:#e8605a;display:flex;align-items:flex-start;justify-content:center;padding:28px 24px 0;min-height:120px}
 .q-end{width:100%;background:#fff;color:#2f2f2f;border:0;font:600 15px var(--b-font,inherit);padding:10px}
 .phone.quiz .home{position:absolute;bottom:0;left:0;right:0}
+/* inverted field (Figma 12702-194812): the field area takes the opposite colour of the chat */
+.phone:not(.dark) .v-inv{--b-bg:#3a3a3a;--b-ink:#f1f1f1;--b-muted:#a5a5a5;color:#f1f1f1}
+.phone.dark .v-inv{--b-bg:#fff;--b-ink:#2f2f2f;--b-muted:#8a8a8a;color:#2f2f2f}
+.phone:not(.dark) .cmp.v-inv .c-plus{background:#f1f1f1}
+.phone.dark .cmp.v-inv .c-plus{background:#2f2f2f}
+.phone.dark .cmp.v-inv .c-plus svg path{stroke:#fff}
+.phone:not(.dark) .cmp.v-inv .c-plus svg path{stroke:#2f2f2f}
+.phone:not(.dark) .v-inv .c-right.send{color:#2f2f2f;background:#f1f1f1}
+.phone.dark .v-inv .c-right.send{color:#fff;background:#2f2f2f}
+.v-inv textarea{color:inherit}
+.phone.vinv:not(.dark) .home{background:#3a3a3a}.phone.vinv:not(.dark) .home::after{background:#eee}
+.phone.vinv.dark .home{background:#fff}.phone.vinv.dark .home::after{background:#111}
+.phone.vinv:not(.dark) .p-tabs{background:#3a3a3a;color:#f1f1f1}
+.phone.vinv.dark .kbd,.phone.vinv .kbd{position:relative}
+/* quiz: red result sheet angled against the field line, ~170px */
+.phone.quiz .q-chat{flex:1;max-height:none}
+.q-card{flex:1;justify-content:space-between;min-height:0}
+.q-q{display:flex;flex-direction:column;gap:14px;margin-top:auto;margin-bottom:auto}
+.q-foot{display:flex;align-items:center;justify-content:center;position:relative;border-top:1.5px solid #2f2f2f;padding-top:10px}
+.q-foot>span:first-child{position:absolute;left:4px;top:12px}
+.q-result{flex:none;height:150px;min-height:0;margin-top:-6px;padding:30px 24px 0;flex-direction:column;align-items:stretch;gap:10px;clip-path:polygon(0 0,100% 6px,100% 100%,0 100%);background:#ec625c}
+.q-disc{align-self:flex-end;border:0;background:none;color:#fff;font:500 18px var(--b-font,inherit);display:flex;align-items:center;gap:8px;padding:0}
+.q-end{border:1.5px solid #2f2f2f}
+.phone.quiz .home{background:transparent}
+/* discussion room */
+.phone.disc .p-status{background:#3a3a3a;color:#fff}
+.d-chat{padding:0;justify-content:flex-start}.d-chat>:first-child{margin-top:0!important}
+.d-top{background:#3a3a3a;padding:4px 24px 26px;flex:none}
+.d-peek{margin:0;min-height:0;flex:none}
+.d-sheet{flex:1;display:flex;flex-direction:column;padding:10px 24px 8px;background:#fff;border-top:.75px solid #2f2f2f}
+.d-grab{width:28px;height:2px;background:#2f2f2f;align-self:center;margin-bottom:14px}
+.d-h{display:flex;justify-content:space-between;align-items:center;font-size:17px}
+.d-rules{font-size:13px;margin:6px 0 10px}
+.d-empty{display:flex;flex-direction:column;gap:6px;font-size:13px;line-height:1.45;margin-top:auto;margin-bottom:auto}
+.d-empty p{margin:0}.d-e1{margin-bottom:10px!important}
+.d-ill{align-self:center;width:110px;height:90px;border:1px dashed #bbb;color:#999;display:grid;place-items:center;font-size:11px;margin-bottom:14px}
+.cmp.noplus .c-body{margin-left:0}
+/* learning diary */
+.d-head{justify-content:flex-start;gap:14px}.d-head .t{font-size:20px}
+.y-chat{padding:0 24px;justify-content:flex-start}.y-chat>:first-child{margin-top:8px!important}
+.y-stats{display:flex;align-items:center;justify-content:space-between}
+.y-st{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:11px}.y-st i{font-style:normal}
+.y-c{width:64px;height:64px;border-radius:50%;border:.75px solid var(--b-ink);display:grid;place-items:center;font-weight:700;font-size:13px;grid-auto-flow:column;align-content:center}
+.y-c small{font-size:9px;font-weight:600}
+.y-ring{background:radial-gradient(closest-side,var(--b-bg) 84%,transparent 85%),conic-gradient(#5aa9e6 0 300deg,#2f2f2f 300deg 360deg);border:0}
+.y-div{width:1px;height:36px;background:var(--b-ink)}
+.y-act{display:flex;justify-content:space-between;font-size:12px;margin:16px 0 0;padding-bottom:12px}
+.y-empty{margin:auto 0;display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;font-size:12px;line-height:1.45}
+.y-empty b{font-size:14px}.y-empty p{margin:0}
+
 
 .phone.dark .cmp .c-plus{background:#f1f1f1}
 .phone.dark .cmp .c-plus svg path{stroke:#2f2f2f}
@@ -497,13 +547,13 @@ const DEFAULT = {
     {id:"voice",name:"Voice (reserved)",status:"open",figma:"",states:[{id:"v-res",name:"Reserved space",kind:"reserved",doc:"",links:{}}]}
   ]
 };
-const VARIANTS=[{id:"open",name:"Workbook line",figma:FIG("12532-149018")},{id:"pill",name:"Pill",figma:FIG("12532-148660")}];
+const VARIANTS=[{id:"open",name:"Workbook line",figma:FIG("12532-149018")},{id:"inv",name:"Inverted",figma:FIG("12702-194812")},{id:"pill",name:"Pill",figma:FIG("12532-148660")}];
 const CONTEXTS=[
  {id:"tutor",name:"AI Tutor tab",ctx:"tutor",figma:FIG("12639-183880")},
  {id:"dialog",name:"Chatbot / AI Dialog",ctx:"dialog",figma:FIG("12639-183918")},
  {id:"quiz",name:"AI Tutor (Quiz)",ctx:"quiz",figma:FIG("12665-190401")},
- {id:"discussion",name:"Discussion Room (Quiz)",ctx:null,figma:FIG("12665-190401"),note:"Potentially out of scope · not built"},
- {id:"diary",name:"Learning Diary",ctx:null,figma:FIG("12639-183838"),note:"Out of scope (→ BR-7144) · not built"}];
+ {id:"discussion",name:"Discussion Room (Quiz)",ctx:"discussion",figma:FIG("12665-190401"),note:"Potentially out of scope"},
+ {id:"diary",name:"Learning Diary",ctx:"diary",figma:FIG("12639-183838"),note:"Out of scope (→ BR-7144)"}];
 const isDarkCtx=c=>c==="dialog"||c==="quiz";
 let S=structuredClone(DEFAULT);
 const ui={sel:{kind:"state",mode:"idle",state:"idle-rest"},variant:"open",context:"tutor",sb:true,live:{}};
@@ -605,6 +655,10 @@ const I={
  send:`<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M21.0894 10.5014L5.80142 2.56271C5.19742 2.25071 4.47208 2.32938 3.94809 2.76004C3.42542 3.19204 3.21209 3.89204 3.40409 4.54138L5.31742 11H11.8481C12.4001 11 12.8481 11.448 12.8481 12C12.8481 12.552 12.4001 13 11.8481 13H5.31742L3.40409 19.4587C3.21075 20.1094 3.42542 20.808 3.94809 21.24C4.25742 21.4947 4.63875 21.6267 5.02275 21.6267C5.28808 21.6267 5.55475 21.564 5.80142 21.436L21.0894 13.4974C21.6508 13.2054 22.0001 12.632 22.0001 11.9987C22.0001 11.3654 21.6508 10.7934 21.0894 10.5014Z" fill="currentColor"/></svg>`,
  menu:`<svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.33" stroke-linecap="round"><path d="M18.33 12.33H1.67M9 17H1.67M18.33 7.67H1.67M18.33 3H1.67"/></svg>`,
  newchat:`<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.33" stroke-linecap="round"><circle cx="12" cy="12" r="9.67"/><path d="M7.67 12h8.66M12 7.67v8.66"/></svg>`,
+ back:`<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>`,
+ bubble:`<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 3.5c4.9 0 8.5 3.2 8.5 7.3s-3.6 7.3-8.5 7.3c-1 0-2-.1-2.9-.4L4.5 20l1.2-3.7C4.3 15 3.5 13 3.5 10.8 3.5 6.7 7.1 3.5 12 3.5z"/></svg>`,
+ flip:`<svg width="28" height="26" viewBox="0 0 28 26" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M9 2h14v7H9z"/><path d="M8 12h16" stroke-dasharray="2 2"/><path d="M9 15h14l1 9H8z" fill="currentColor"/><path d="M5 8a6 6 0 0 0 0 9" /><path d="M3.5 15.5 5 17l1.5-1.5"/></svg>`,
+ clip:`<svg width="64" height="80" viewBox="0 0 64 80" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"><path d="M6 10h52v66H6z"/><path d="M24 6h16v8H24z" fill="#fff"/><path d="M14 26l3 3 5-6M14 40l3 3 5-6M14 54l3 3 5-6"/><path d="M28 27h20M28 41h20M28 55h16M14 66h6"/></svg>`,
  help:`<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.33" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9.67"/><path d="M9.53 9.67c0-1.33 1.07-2.33 2.47-2.33s2.47.93 2.47 2.2c0 2.07-2.47 2.07-2.47 4.2"/><circle cx="12" cy="16.8" r=".7" fill="currentColor"/></svg>`,
  close:`<svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.33" stroke-linecap="round"><path d="M4 4l12 12M16 4L4 16"/></svg>`,
  speaker:`<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#858585" stroke-width="1.33" stroke-linecap="round" stroke-linejoin="round"><path d="M4.44 5.11H2c-.74 0-1.33.6-1.33 1.33v3.11c0 .74.6 1.34 1.33 1.34h2.44l4.88 3.12c.3.19.68-.02.68-.37V2.36c0-.35-.39-.56-.68-.37z"/><path d="M12.36 6.75c.7.7.7 1.82 0 2.51M14.1 5.01a4.2 4.2 0 0 1 0 5.98"/></svg>`,
@@ -673,20 +727,28 @@ function fitsInline(text,atts){ if(atts&&atts.length) return false; if(/\n/.test
 /* R2: once the text has switched to the full-width layout it stays there until the message is sent or all text is deleted */
 function isInline(M){ return !!M.focused&&!M.fs&&!M.stacked&&fitsInline(M.text,M.atts); }
 function updStacked(M){ if(!(M.text||"").trim()&&!(M.atts||[]).length) M.stacked=false; else if(!fitsInline(M.text,M.atts)) M.stacked=true; }
+function discBody(extra){
+  return `<div class="p-chat d-chat"><div class="d-top"><div class="q-card d-peek"><p>What does <b>m</b> stand for in y = mx + b?</p><div class="q-ans">The point where the line crosses the y-axis</div></div></div>
+  <div class="d-sheet"><span class="d-grab"></span><div class="d-h"><b>Discussion room</b>${I.bubble}</div><div class="d-rules">Rules ›</div>
+  ${extra||`<div class="d-empty"><div class="d-ill">Illustration</div><p class="d-e1">Nothing has been discussed yet.</p><p>Got a question or an idea? Share it here and explain briefly why you’re asking. That helps others help you.</p></div>`}</div></div>`; }
+function diaryBody(extra){
+  return `<div class="p-chat y-chat"><div class="y-stats"><div class="y-st"><span class="y-c">+9<small>min</small></span><i>Time</i></div><span class="y-div"></span><div class="y-st"><span class="y-c y-ring">+10<small>%</small></span><i>Progress</i></div><span class="y-div"></span><div class="y-st"><span class="y-c">+22</span><i>Points</i></div></div>
+  <div class="y-act">4 activities <span>›</span></div>
+  ${extra||`<div class="y-empty">${I.clip}<b>How was your learning day?</b><p>Note down how your learning went. If you record what worked and what didn’t, you’ll see over time what really helps you.</p></div>`}</div>`; }
 function phoneHTML(st,live={},interactive=true){
   const M=interactive?ensureModel():seed(st.kind);
   const q={text:M.text,focused:M.focused,inline:isInline(M),fs:M.focused&&!!M.fs,sheet:M.menu,picker:M.picker,pickKind:M.pickKind,attach:M.atts.length?M.atts:false,typing:M.waiting,note:M.note,reserved:M.reserved};
-  const dark=isDarkCtx(ui.context), quiz=ui.context==="quiz", v=ui.variant;
-  const tab=!dark&&!q.focused;
+  const ctx=ui.context, dark=isDarkCtx(ctx), quiz=ctx==="quiz", disc=ctx==="discussion", diary=ctx==="diary", v=ui.variant, inv=v==="inv", vcls=inv?"v-open v-inv":"v-"+v;
+  const tab=ctx==="tutor"&&!q.focused;
   const hasText=(q.text||"").trim().length>0||q.attach;
   const ink=dark?"#2f2f2f":"#fff";
   const extra=(M.thread||[]).map(x=>x.who==="s"?`<div class="m-s"><div>${esc(x.text)}${x.atts&&x.atts.length?`<div class="oos" data-oos="In-chat attachments: not part of BR-7147 (→ BR-7144)"><span class="oos-chip">📎 ${x.atts.length} attachment${x.atts.length>1?"s":""}</span></div>`:""}</div><div class="wl"></div></div>`:`<div class="m-t"><p>${esc(x.text)}</p><div class="act"><button ${el("speaker2","Read answer aloud")} aria-label="Read aloud">${I.speaker}</button></div></div>`).join("");
   const typing=q.typing;
   const reply="";
-  return `<div class="phone ${dark?"dark":""} ${quiz?"quiz":""} ${q.focused?"kbdopen":""} ${q.reserved?"reserved":""} ${q.picker?"headhidden":""}">
+  return `<div class="phone ${dark?"dark":""} ${quiz?"quiz":""} ${disc?"disc":""} ${diary?"diary":""} ${inv?"vinv":""} ${q.focused?"kbdopen":""} ${q.reserved?"reserved":""} ${q.picker?"headhidden":""}">
     <div class="p-status"><span>9:41</span><svg width="66" height="12" viewBox="0 0 66 12" fill="currentColor"><rect x="0" y="7" width="3" height="4" rx=".7"/><rect x="4.5" y="5" width="3" height="6" rx=".7"/><rect x="9" y="3" width="3" height="8" rx=".7"/><rect x="13.5" y="0" width="3" height="11" rx=".7"/><path d="M28 3.2a9 9 0 0 1 12 0l-1.2 1.3a7.2 7.2 0 0 0-9.6 0zM30.4 5.8a5.4 5.4 0 0 1 7.2 0L36.4 7a3.6 3.6 0 0 0-4.8 0zM34 10.6l-1.4-1.5a2 2 0 0 1 2.8 0z"/><rect x="44" y=".5" width="20" height="11" rx="2.7" fill="none" stroke="currentColor"/><rect x="46" y="2.5" width="16" height="7" rx="1.3"/></svg></div>
-    <div class="p-head">${dark?`<button ${el("help","Help")} aria-label="Help">${I.help}</button>`:`<button ${el("menu","Open chat history")} aria-label="Menu">${I.menu}</button>`}<span class="t">${quiz?"Linear Functions":dark?"Creating Linear Equations":"AI-Tutor"}</span>${dark?`<button ${el("close","Close")} aria-label="Close">${I.close}</button>`:`<button ${el("newchat","New chat")} aria-label="New chat">${I.newchat}</button>`}</div>
-    ${quiz?`<div class="p-chat q-chat"><div class="q-prog"><span class="q-bar"><i></i></span></div><div class="q-card"><p>What does <b>m</b> stand for in y = mx + b?</p><div class="q-ans">The point where the line crosses the y-axis</div></div><div class="q-hint">Tap the card</div><div class="q-wrong">Wrong!</div>${extra}${typing?`<div class="typing"><div class="ava">B</div><div class="dots"><span></span><span></span><span></span></div></div>`:""}</div>`:`<div class="p-chat">
+    ${disc?"":diary?`<div class="p-head d-head"><button ${el("back","Back")} aria-label="Back">${I.back}</button><span class="t">Today, 17.11.2026</span></div>`:`<div class="p-head">${dark?`<button ${el("help","Help")} aria-label="Help">${I.help}</button>`:`<button ${el("menu","Open chat history")} aria-label="Menu">${I.menu}</button>`}<span class="t">${quiz?"Linear Functions":dark?"Creating Linear Equations":"AI-Tutor"}</span>${dark?`<button ${el("close","Close")} aria-label="Close">${I.close}</button>`:`<button ${el("newchat","New chat")} aria-label="New chat">${I.newchat}</button>`}</div>`}
+    ${disc?discBody(extra):diary?diaryBody(extra):quiz?`<div class="p-chat q-chat"><div class="q-prog"><span class="q-bar"><i></i></span></div><div class="q-card"><div class="q-q"><p>What does <b>m</b> stand for in y = mx + b?</p><div class="q-ans">The point where the line crosses the y-axis</div></div><div class="q-foot"><span>${I.speaker}</span><span class="q-flip">${I.flip}</span></div></div><div class="q-hint">Tap the card</div><div class="q-wrong">Wrong!</div>${extra}${typing?`<div class="typing"><div class="ava">B</div><div class="dots"><span></span><span></span><span></span></div></div>`:""}</div>`:`<div class="p-chat">
       ${interactive?`<div class="m-t"><p>Welcome back, Alex. Today we continue with <b>linear functions</b>. Ready?</p></div><div class="m-s"><div>Yes, let’s go.</div><div class="wl"></div></div>`:""}
       <div class="m-t"><p>Imagine a line that crosses the y-axis at 3 and goes up by 2 for every step to the right. <b>How would you describe it?</b> Take your time and use your own words.</p><div class="act"><button ${el("speaker","Read message aloud")} aria-label="Read aloud">${I.speaker}</button></div></div>
       <div class="m-s"><div>It starts at 3 on the y-axis, and every time I go one step to the right, it goes up by 2.</div><div class="wl"></div></div>
@@ -696,18 +758,18 @@ function phoneHTML(st,live={},interactive=true){
       ${extra}
       ${typing?`<div class="typing"><div class="ava">B</div><div class="dots"><span></span><span></span><span></span></div></div>`:reply}
     </div>`}
-    ${(()=>{ const plus=`<button class="c-plus" ${el("plus","Add attachment (+)")} aria-label="Add attachment">${I.plus(v==="pill"&&!dark?"#fff":ink)}</button>`;
+    ${(()=>{ const plus=`<button class="c-plus" ${el("plus","Add attachment (+)")} aria-label="Add attachment">${I.plus(inv?(dark?"#fff":"#2f2f2f"):(v==="pill"&&!dark?"#fff":ink))}</button>`;
       const right=hasText?`<button class="c-right send ${q.typing?"inactive":""}" ${el("send","Send")} aria-label="Send" ${q.typing?'aria-disabled="true"':""}>${I.send}</button>`:`<button class="c-right" ${el("mic","Voice input (reserved)")} aria-label="Voice input">${I.mic}<span class="resv"></span></button>`;
-      const body=`<div class="c-body">${q.attach?`<div class="c-att">${q.attach.map((t,i)=>`<span class="att a-${t}"><span class="acard" data-open="${i}" role="button" aria-label="${ATT_NAME[t]||t}">${ATT[t]}</span>${t==="doc"?`<span class="aname">${ATT_NAME.doc}</span>`:""}<button class="rm" data-rm="${i}" ${el("att-rm-"+i,"Remove attachment "+(i+1))} aria-label="Remove attachment">×</button></span>`).join("")}</div>`:""}<textarea rows="1" placeholder="${quiz?"Something unclear?":"Ask anything"}" aria-label="Message" ${el("field","Text field")} ${interactive?"":"tabindex=-1"}>${esc(q.text)}</textarea></div>`;
+      const body=`<div class="c-body">${q.attach?`<div class="c-att">${q.attach.map((t,i)=>`<span class="att a-${t}"><span class="acard" data-open="${i}" role="button" aria-label="${ATT_NAME[t]||t}">${ATT[t]}</span>${t==="doc"?`<span class="aname">${ATT_NAME.doc}</span>`:""}<button class="rm" data-rm="${i}" ${el("att-rm-"+i,"Remove attachment "+(i+1))} aria-label="Remove attachment">×</button></span>`).join("")}</div>`:""}<textarea rows="1" placeholder="${quiz?"Something unclear?":disc?"Post a question":diary?"What went well today?":"Ask anything"}" aria-label="Message" ${el("field","Text field")} ${interactive?"":"tabindex=-1"}>${esc(q.text)}</textarea></div>`;
       /* spec (Typing): on focus, + and mic move below the text, the field spans the message width and gets a border */
       /* Figma 12596:173965: while the text fits on one line, the field stays in one row between + and mic/send; it underlines what is typed (solid) on a dashed line. Only when it no longer fits do + and send move below. */
       const uline=`<span class="uline" aria-hidden="true"><i style="width:${Math.min(Math.ceil(textW(q.text||""))+4,inlineFieldW()+8)}px"></i></span>`;
-      if(q.focused&&q.inline) return `<div class="cmp inline focused-inline v-${v}">${plus}${body.replace(/<\/div>$/,uline+"</div>")}${right}<span class="bar"></span></div>`;
+      if(q.focused&&q.inline) return `<div class="cmp inline focused-inline ${vcls} ${disc?"noplus":""}">${disc?"":plus}${body.replace(/<\/div>$/,uline+"</div>")}${right}<span class="bar"></span></div>`;
       return (q.focused||hasText)
-        ? `<div class="cmp focused ${q.focused?"":"resting"} v-${v} ${q.fs?"fs":""}"><button class="c-exp" ${el("expand",q.fs?"Collapse (exit full screen)":"Expand to full screen")} aria-label="${q.fs?"Collapse":"Expand"}">${q.fs?I.collapse:I.expand}</button>${body}<div class="c-ctrl">${plus}${right}</div><span class="bar"></span></div>`
-        : `<div class="cmp inline v-${v} ${tab?"":"notab"} ${hasText?"hastext":""}">${plus}${body.replace(/<\/div>$/,uline+"</div>")}${right}<span class="bar"></span></div>`; })()}
+        ? `<div class="cmp focused ${q.focused?"":"resting"} ${vcls} ${disc?"noplus":""} ${q.fs?"fs":""}"><button class="c-exp" ${el("expand",q.fs?"Collapse (exit full screen)":"Expand to full screen")} aria-label="${q.fs?"Collapse":"Expand"}">${q.fs?I.collapse:I.expand}</button>${body}<div class="c-ctrl">${disc?"<span></span>":plus}${right}</div><span class="bar"></span></div>`
+        : `<div class="cmp inline ${vcls} ${disc?"noplus":""} ${tab?"":"notab"} ${hasText?"hastext":""}">${disc?"":plus}${body.replace(/<\/div>$/,uline+"</div>")}${right}<span class="bar"></span></div>`; })()}
     ${tab?`<div class="p-tabs"><button ${el("tab-map","Tab: Map")} aria-label="Map">${I.tabMap}</button><button class="sel" ${el("tab-chat","Tab: AI Tutor")} aria-label="AI Tutor">${I.tabChat}</button><button ${el("tab-stats","Tab: Statistics")} aria-label="Statistics">${I.tabStats}</button></div>`:""}
-    ${quiz&&!q.focused?`<div class="q-result"><button class="q-end" ${el("q-end","End quiz")}>End</button></div>`:""}
+    ${quiz&&!q.focused?`<div class="q-result"><button class="q-disc" ${el("q-disc","Open discussion room")}>0 ${I.bubble}</button><button class="q-end" ${el("q-end","End quiz")}>End</button></div>`:""}
     ${q.focused?`<div class="kbd"><div>${"<i></i>".repeat(10)}</div><div>${"<i></i>".repeat(9)}</div><div>${"<i></i>".repeat(7)}</div><div><i></i><i></i><i class="w"></i><i></i></div></div>`:`<div class="home"></div>`}
     ${q.note?`<div class="ph-note"><b>${esc(q.note[0])}</b>${esc(q.note[1])}</div>`:""}
     ${q.sheet?`<div class="up-scrim" data-dim="typing-empty"></div><div class="up-menu" role="menu">
@@ -1068,7 +1130,7 @@ function renderDoc(force){
   }
   h+=`<button class="addmode" data-addm="1">+ mode</button>`;
   h+=`<h2 class="grp-h" data-grp-h="edges">Edge cases & touchpoints</h2>`+blk("edges","Across screens",S.docs.edges,"Effects on existing data · Edge cases across screens · Side effects (emails, notifications, tracking). Write “none” if checked.","edges")
-    +`<h3 class="tp-group">Touchpoints</h3>`+CONTEXTS.map(t=>`<section class="dsec tp-sec" data-sec="tp:${t.id}" data-grp="edges"><h3 class="sec-h">${esc(t.name)}${t.figma?` <a class="tp-fig" href="${t.figma}" target="_blank" rel="noopener">Figma ↗</a>`:""}${t.ctx?"":` <span class="tp-nb">${esc(t.note||"not built")}</span>`}</h3><div class="ed" contenteditable="true" data-key="tp:${t.id}" data-ph="What differs here: background, what sits below the field, placement, copy. Only the screens that differ." spellcheck="true">${S.docs["tp:"+t.id]||""}</div></section>`).join("");
+    +`<h3 class="tp-group">Touchpoints</h3>`+CONTEXTS.map(t=>`<section class="dsec tp-sec" data-sec="tp:${t.id}" data-grp="edges"><h3 class="sec-h">${esc(t.name)}${t.figma?` <a class="tp-fig" href="${t.figma}" target="_blank" rel="noopener">Figma ↗</a>`:""}${t.note?` <span class="tp-nb">${esc(t.note)}</span>`:""}</h3><div class="ed" contenteditable="true" data-key="tp:${t.id}" data-ph="What differs here: background, what sits below the field, placement, copy. Only the screens that differ." spellcheck="true">${S.docs["tp:"+t.id]||""}</div></section>`).join("");
   h+=`<h2 class="grp-h" data-grp-h="ds">Design system changes</h2>`+blk("ds","Components",S.docs.ds,"One line per component: name · new or changed · what changed · Figma link","ds");
   h+=`<h2 class="grp-h" data-grp-h="questions">Open questions</h2>`+blk("questions","Undecided",S.docs.questions,"What is unclear? Which decisions are still open?","questions");
   h+=`<div style="height:40vh"></div></div>`;
@@ -1255,7 +1317,7 @@ function md(html){
 function ticketMd(){
   let o=`# Problem, goal & scope\n${md(S.docs.brief)}\n\n# Proposed solution\n## Global rules\n${md(S.docs.rules)}\n`;
   for(const m of S.modes){ o+=`\n## ${m.name}${m.figma?` ([Figma](${m.figma}))`:""}\n`; for(const s of m.states) o+=`\n### ${s.name}\n${md(s.doc)||"_no spec yet_"}\n`; }
-  o+=`\n# Edge cases & touchpoints\n${md(S.docs.edges||"")||"_none yet_"}\n\n## Touchpoints\n${CONTEXTS.map(t=>`### ${t.name}${t.ctx?"":` (${t.note||"not built"})`}\nFigma: ${t.figma||"–"}\n${md(S.docs["tp:"+t.id]||"")||"_not specced yet_"}`).join("\n\n")}\n\n# Design system changes\n${md(S.docs.ds||"")||"_none_"}\n\n# Open questions\n${md(S.docs.questions)}\n`; return o;
+  o+=`\n# Edge cases & touchpoints\n${md(S.docs.edges||"")||"_none yet_"}\n\n## Touchpoints\n${CONTEXTS.map(t=>`### ${t.name}${t.note?` (${t.note})`:""}\nFigma: ${t.figma||"–"}\n${md(S.docs["tp:"+t.id]||"")||"_not specced yet_"}`).join("\n\n")}\n\n# Design system changes\n${md(S.docs.ds||"")||"_none_"}\n\n# Open questions\n${md(S.docs.questions)}\n`; return o;
 }
 const modal=document.getElementById("modal"), card=document.getElementById("mcard");
 document.addEventListener("click",e=>{ if(!(e.target.closest&&e.target.closest("#b-ticket"))) return;
