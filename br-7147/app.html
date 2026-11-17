@@ -503,6 +503,9 @@ body:not(.proto) .oos{outline:1px dashed #e0b400;outline-offset:3px;border-radiu
 .d-rules{display:flex;align-items:center;gap:2px}.d-rules svg,.y-act svg{display:block}
 .y-act span{display:grid;place-items:center}
 .d-h svg{display:block}
+/* variant: angled sheet, no lines at all (workbook line without the lines) */
+.v-angled::after,.v-angled.focused::after,.v-angled.inline::after{display:none!important}
+.v-angled .uline,.v-angled.focused .c-body::after{display:none!important}
 </style>
 </head>
 <body>
@@ -559,7 +562,7 @@ const DEFAULT = {
     {id:"voice",name:"Voice (reserved)",status:"open",figma:"",states:[{id:"v-res",name:"Reserved space",kind:"reserved",doc:"",links:{}}]}
   ]
 };
-const VARIANTS=[{id:"open",name:"Workbook line",figma:FIG("12532-149018")},{id:"inv",name:"Inverted",figma:FIG("12702-194812")},{id:"pill",name:"Pill",figma:FIG("12532-148660")}];
+const VARIANTS=[{id:"open",name:"Workbook line",figma:FIG("12532-149018")},{id:"angled",name:"Angled, no line"},{id:"inv",name:"Inverted",figma:FIG("12702-194812")},{id:"pill",name:"Pill",figma:FIG("12532-148660")}];
 const CONTEXTS=[
  {id:"tutor",name:"AI Tutor tab",ctx:"tutor",figma:FIG("12639-183880")},
  {id:"dialog",name:"Chatbot / AI Dialog",ctx:"dialog",figma:FIG("12639-183918")},
@@ -763,7 +766,7 @@ function diaryBody(extra){
 function phoneHTML(st,live={},interactive=true){
   const M=interactive?ensureModel():seed(st.kind);
   const q={text:M.text,focused:M.focused,inline:isInline(M),fs:M.focused&&!!M.fs,sheet:M.menu,picker:M.picker,pickKind:M.pickKind,attach:M.atts.length?M.atts:false,typing:M.waiting,note:M.note,reserved:M.reserved};
-  const ctx=ui.context, dark=isDarkCtx(ctx), quiz=ctx==="quiz", disc=ctx==="discussion", diary=ctx==="diary", v=ui.variant, inv=v==="inv", vcls=inv?"v-open v-inv":"v-"+v;
+  const ctx=ui.context, dark=isDarkCtx(ctx), quiz=ctx==="quiz", disc=ctx==="discussion", diary=ctx==="diary", v=ui.variant, inv=v==="inv", vcls=inv?"v-open v-inv":v==="angled"?"v-open v-angled":"v-"+v;
   const tab=ctx==="tutor"&&!q.focused;
   const hasText=(q.text||"").trim().length>0||q.attach;
   const ink=dark?"#2f2f2f":"#fff";
