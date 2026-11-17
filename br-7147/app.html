@@ -503,8 +503,7 @@ body:not(.proto) .oos{outline:1px dashed #e0b400;outline-offset:3px;border-radiu
 .d-rules{display:flex;align-items:center;gap:2px}.d-rules svg,.y-act svg{display:block}
 .y-act span{display:grid;place-items:center}
 .d-h svg{display:block}
-/* variant: angled sheet, no lines at all (workbook line without the lines) */
-.v-angled::after,.v-angled.focused::after,.v-angled.inline::after{display:none!important}
+/* variant: workbook line, but without the line under the text (separator stays) */
 .v-angled .uline,.v-angled.focused .c-body::after{display:none!important}
 </style>
 </head>
@@ -562,7 +561,7 @@ const DEFAULT = {
     {id:"voice",name:"Voice (reserved)",status:"open",figma:"",states:[{id:"v-res",name:"Reserved space",kind:"reserved",doc:"",links:{}}]}
   ]
 };
-const VARIANTS=[{id:"open",name:"Workbook line",figma:FIG("12532-149018")},{id:"angled",name:"Angled, no line"},{id:"inv",name:"Inverted",figma:FIG("12702-194812")},{id:"pill",name:"Pill",figma:FIG("12532-148660")}];
+const VARIANTS=[{id:"open",name:"Workbook line",figma:FIG("12532-149018")},{id:"angled",name:"No underline"},{id:"inv",name:"Inverted",figma:FIG("12702-194812")},{id:"pill",name:"Pill",figma:FIG("12532-148660")}];
 const CONTEXTS=[
  {id:"tutor",name:"AI Tutor tab",ctx:"tutor",figma:FIG("12639-183880")},
  {id:"dialog",name:"Chatbot / AI Dialog",ctx:"dialog",figma:FIG("12639-183918")},
@@ -852,7 +851,15 @@ function renderStage(){
     /* topover: chat text sits under the top bar, either scrolled or clipped at the top (bottom-aligned chat) */
     const over=()=>{ const f=ch.firstElementChild; return ch.scrollTop>0||(!!f&&f.getBoundingClientRect().top<ch.getBoundingClientRect().top-1); };
     const updOver=()=>ph.classList.toggle("topover",over());
-    ch.addEventListener("scroll",()=>{ const up=ch.scrollTop<ch.scrollHeight-ch.clientHeight-12; const typing=!!$("#pwrap .cmp.focused:not(.resting), #pwrap .cmp.focused-inline"); ph.classList.toggle("headhidden",up); ph.classList.toggle("cmphidden",up&&!typing&&!ui.live.menu&&!ui.live.picker); updOver(); });
+    /* R4: scrolling up hides top bar (and the field when empty/unfocused); scrolling down brings them back right away, not only at the bottom */
+    let lastTop=ch.scrollTop, lockUntil=0, hid=false;
+    const applyHid=()=>{ const typing=!!$("#pwrap .cmp.focused:not(.resting), #pwrap .cmp.focused-inline"); ph.classList.toggle("headhidden",hid); ph.classList.toggle("cmphidden",hid&&!typing&&!ui.live.menu&&!ui.live.picker); updOver(); };
+    const setHid=h=>{ if(h===hid) return; hid=h; lockUntil=performance.now()+350; applyHid(); };
+    ch.addEventListener("scroll",()=>{ const now=ch.scrollTop, d=now-lastTop; if(Math.abs(d)>=4||now<=0){ lastTop=now; if(performance.now()>=lockUntil){ const atBottom=now>=ch.scrollHeight-ch.clientHeight-12; if(atBottom) setHid(false); else if(d<0) setHid(true); else if(d>0) setHid(false); } } applyHid(); });
+    /* when the content fits once the bars are hidden there is nothing to scroll: a downward gesture still brings them back */
+    ch.addEventListener("wheel",e=>{ if(hid&&e.deltaY>0) setHid(false); },{passive:true});
+    let ty=null; ch.addEventListener("touchstart",e=>{ ty=e.touches[0].clientY; },{passive:true});
+    ch.addEventListener("touchmove",e=>{ if(ty==null) return; const dy=e.touches[0].clientY-ty; if(hid&&dy<-6){ setHid(false); ty=e.touches[0].clientY; } else if(!hid&&dy>6&&ch.scrollTop<=0){ ty=e.touches[0].clientY; } },{passive:true});
     updOver(); requestAnimationFrame(updOver); setTimeout(updOver,300); }
 }
 function growInput(){
