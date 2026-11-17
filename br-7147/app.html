@@ -55,7 +55,18 @@ header{display:flex;align-items:center;gap:10px;padding:0 12px;background:var(--
 .cpop textarea{width:100%;border:0;background:none;resize:none;font:inherit;color:inherit;outline:none;min-height:54px}
 .cpop .row{display:flex;justify-content:space-between;align-items:center;font-size:11px;color:#8a7400;margin-top:4px}
 .cpop .row button{border:0;background:none;color:#8a7400;font:600 11px var(--ui);padding:2px 4px;cursor:pointer}
-.cbtn{position:absolute;right:14px;bottom:14px;z-index:8;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:999px;padding:7px 12px;font:500 12px var(--ui);cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.08)}
+.cbtn{position:fixed;right:16px;bottom:16px;z-index:8;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:999px;padding:7px 12px;font:500 12px var(--ui);cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.08)}
+.tp-group{font:600 13px var(--ui);text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:28px 0 4px}
+.tp-fig{font:500 12px var(--ui);color:var(--accent);text-decoration:none;margin-left:6px}
+.tp-nb{font:500 11px var(--ui);color:var(--muted);border:1px dashed var(--line);border-radius:999px;padding:1px 8px;margin-left:6px;vertical-align:2px}
+.tpchips button.nb{border-style:dashed}
+.tpchips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;min-width:0}.tpchips::-webkit-scrollbar{display:none}
+.tpchips button{flex:none;white-space:nowrap;border:1px solid var(--line);background:var(--panel);color:var(--muted);font:500 12px var(--ui);padding:5px 11px;border-radius:999px;cursor:pointer}
+.tpchips button.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.varpill{position:absolute;left:14px;bottom:14px;z-index:8;display:flex;gap:2px;padding:3px;border:1px solid var(--line);background:var(--panel);border-radius:999px;box-shadow:0 2px 8px rgba(0,0,0,.08)}
+.varpill button{border:0;background:none;color:var(--muted);font:500 12px var(--ui);padding:5px 11px;border-radius:999px;cursor:pointer}
+.varpill button.on{background:var(--ink);color:var(--bg)}
+body.proto .varpill,body.native .varpill{display:none!important}
 .cbtn.on{background:#ffd43b;border-color:#f0c000;color:#3d3200}
 .stage.commenting .phone{cursor:crosshair}
 body.proto .cbtn{position:fixed;right:16px;bottom:24px;padding:12px 14px;font-size:14px}
@@ -115,12 +126,14 @@ aside{background:var(--panel);border-right:1px solid var(--line);overflow:auto;m
 .pwrap{position:absolute;left:50%;top:50%;transform-origin:center center}
 .lines{position:absolute;inset:-80px;width:calc(100% + 160px);height:calc(100% + 160px);pointer-events:none;overflow:visible}
 .lines line{stroke:var(--accent);stroke-width:1.2}
+.badge,#lines{display:none!important}
 .badge{position:absolute;width:30px;height:30px;margin:-15px 0 0 -15px;border-radius:50%;border:2px solid var(--accent);background:var(--panel);color:var(--accent);font:600 13px var(--mono);display:grid;place-items:center;padding:0;z-index:5;transition:opacity .12s}
 .badge.cov{background:var(--accent);color:#fff}
 .badge:hover{transform:scale(1.1)}
 .pwrap.hide-b .badge,.pwrap.hide-b .lines{opacity:0;pointer-events:none}
 .badge-tip{position:absolute;z-index:9;background:var(--ink);color:var(--bg);font-size:12px;padding:4px 8px;border-radius:6px;white-space:nowrap;pointer-events:none;display:none}
-.minimap{position:absolute;left:14px;top:14px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px;display:flex;flex-direction:column;gap:4px;cursor:pointer;z-index:6}
+.minimap{display:none!important}
+.mm-old{position:absolute;left:14px;top:14px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px;display:flex;flex-direction:column;gap:4px;cursor:pointer;z-index:6}
 .minimap:hover{border-color:var(--accent)}
 .mm-row{display:flex;gap:3px}
 .mm-cell{width:9px;height:16px;border-radius:2px;background:var(--line)}
@@ -145,6 +158,7 @@ aside{background:var(--panel);border-right:1px solid var(--line);overflow:auto;m
 .doc-head{padding:22px 40px 8px;display:flex;flex-direction:column;gap:6px}
 .crumb{font-size:12px;color:var(--muted);display:flex;gap:8px;align-items:center}
 .crumb a{color:var(--accent);text-decoration:none}
+.doc-trow{display:flex;align-items:center;justify-content:space-between;gap:16px}.doc-trow .hbtn{flex:none}
 .doc-title{font:600 26px/1.2 var(--ui);border:0;background:none;padding:0;width:100%;color:var(--ink);outline:none}
 .tools{display:flex;gap:2px;padding:4px 36px;border-bottom:1px solid var(--line)}
 .tools button{border:0;background:none;padding:4px 8px;border-radius:6px;color:var(--muted);font-size:12px}
@@ -176,8 +190,8 @@ body.attn-proto .dsec:not(.cur){color:var(--muted)}
 .dsec.empty .sec-name{color:var(--muted2)}
 .dsec.empty .ed:empty::before{content:"Not specced yet";color:var(--muted2);font-style:italic}
 .dsec.empty.cur .ed:empty::before{content:attr(data-ph);font-style:normal}
-.jump{display:flex;gap:2px;padding:6px 40px 0;border-bottom:1px solid var(--line)}
-.jump button{border:0;background:none;padding:8px 12px;border-bottom:2px solid transparent;color:var(--muted);font:500 13px var(--ui);cursor:pointer;margin-bottom:-1px}
+.jump{display:flex;gap:2px;padding:6px 40px 0;border-bottom:1px solid var(--line);overflow-x:auto;scrollbar-width:none}.jump::-webkit-scrollbar{display:none}
+.jump button{flex:none;white-space:nowrap;border:0;background:none;padding:8px 12px;border-bottom:2px solid transparent;color:var(--muted);font:500 13px var(--ui);cursor:pointer;margin-bottom:-1px}
 .jump button.on{color:var(--ink);border-bottom-color:var(--ink)}
 .grp-h{margin:44px 0 0;font:600 22px var(--ui);color:var(--ink)}
 .edscroll>.grp-h:first-child{margin-top:0}
@@ -406,6 +420,19 @@ body:not(.proto) .oos{outline:1px dashed #e0b400;outline-offset:3px;border-radiu
 .ph-note b{display:block;color:var(--b-ink)}
 /* AI Dialog context (dark) */
 .phone.dark{--b-bg:#2f2f2f;--b-ink:#f1f1f1;--b-muted:#a5a5a5}
+.phone.dark{--b-bg:#3a3a3a}
+.phone.quiz .q-chat{flex:none;max-height:calc(100% - 300px)}
+.phone.quiz.kbdopen .q-chat{flex:1;max-height:none}
+.phone.quiz .q-chat>:first-child{margin-top:0}
+.q-prog{padding:6px 24px 4px}.q-bar{display:block;height:1px;background:var(--b-ink);position:relative;transform:scaleY(.75)}.q-bar i{position:absolute;left:0;top:0;width:45%;height:1px;background:var(--b-ink)}
+.q-card{margin:14px 24px 6px;background:#fff;color:#2f2f2f;padding:18px 16px;font-size:15px;line-height:1.45;display:flex;flex-direction:column;gap:14px}
+.q-card p{margin:0}.q-ans{border:.75px solid #2f2f2f;padding:8px 10px;font-size:13px}
+.q-hint{text-align:center;color:var(--b-muted);font-size:13px;margin:4px 0}
+.q-wrong{color:#ff6b5b;font-weight:700;font-size:18px;margin:6px 24px 0}
+.q-result{flex:1;background:#e8605a;display:flex;align-items:flex-start;justify-content:center;padding:28px 24px 0;min-height:120px}
+.q-end{width:100%;background:#fff;color:#2f2f2f;border:0;font:600 15px var(--b-font,inherit);padding:10px}
+.phone.quiz .home{position:absolute;bottom:0;left:0;right:0}
+
 .phone.dark .cmp .c-plus{background:#f1f1f1}
 .phone.dark .cmp .c-plus svg path{stroke:#2f2f2f}
 .phone.dark .c-right.send{color:#2f2f2f}
@@ -420,15 +447,11 @@ body:not(.proto) .oos{outline:1px dashed #e0b400;outline-offset:3px;border-radiu
 <div class="app">
   <header>
     <button class="ib" id="tog-sb" title="Show / hide sidebar" aria-label="Toggle sidebar">☰</button>
-    <span class="tid">BR-7147</span><span class="ttl">Redesign Input Field</span>
-    <label class="dd">Variant <select id="sel-var"></select></label>
-    <label class="dd">Context <select id="sel-ctx"></select></label>
+    <div class="tpchips" id="tpchips" role="group" aria-label="Touchpoint"></div>
     <span class="sp"></span>
     <span class="sync" id="sync">connecting…</span>
     <div class="split" id="split"><a class="hbtn sp-main" id="b-proto" href="https://hennes95.github.io/brian-prototypes/br-7147/" target="_blank" rel="noopener">Open prototype</a><button class="hbtn sp-dd" id="b-qr" aria-haspopup="true" aria-expanded="false" title="Open on your phone">▾</button>
       <div class="qr-pop" id="qr-pop" hidden><div id="qr"></div><p>Scan to open the prototype on your phone</p><code id="qr-url"></code><button class="hbtn" id="qr-copy">Copy link</button></div></div>
-    <button class="hbtn" id="b-ticket">Ticket draft</button>
-    <a class="hbtn pri" id="b-figma" target="_blank" rel="noopener">Figma ↗</a>
   </header>
   <div class="main" id="main">
     <aside id="left"></aside>
@@ -436,12 +459,13 @@ body:not(.proto) .oos{outline:1px dashed #e0b400;outline-offset:3px;border-radiu
       <div class="pwrap" id="pwrap"></div>
       <div class="badge-tip" id="tip"></div>
       <button class="minimap" id="minimap" aria-label="Show all screens" title="All screens"></button>
-            <button class="cbtn" id="cbtn" title="Comment for Claude: click here, then click the screen or the spec (or Option+click either)">💬 Comment</button>
+      <div class="varpill" id="varpill" role="group" aria-label="Design direction"></div>
       <div class="overview" id="overview"></div>
     </section>
     <section class="doc" id="doc"></section>
   </div>
 </div>
+<button class="cbtn" id="cbtn" title="Comment for Claude: click here, then click the screen or the spec (or Option+click either)">💬 Comment</button>
 <div id="measure" aria-hidden="true" style="position:absolute;left:-9999px;top:0;visibility:hidden"></div>
 <div class="modal" id="modal"><div class="card" id="mcard"></div></div>
 
@@ -473,13 +497,50 @@ const DEFAULT = {
     {id:"voice",name:"Voice (reserved)",status:"open",figma:"",states:[{id:"v-res",name:"Reserved space",kind:"reserved",doc:"",links:{}}]}
   ]
 };
-const VARIANTS=[{id:"open",name:"Open (workbook line)",figma:FIG("12532-149018")},{id:"pill",name:"Pill",figma:FIG("12532-148660")}];
-const CONTEXTS=[{id:"tutor",name:"AI Tutor"},{id:"dialog",name:"AI Dialog (dark)"}];
+const VARIANTS=[{id:"open",name:"Workbook line",figma:FIG("12532-149018")},{id:"pill",name:"Pill",figma:FIG("12532-148660")}];
+const CONTEXTS=[
+ {id:"tutor",name:"AI Tutor tab",ctx:"tutor",figma:FIG("12639-183880")},
+ {id:"dialog",name:"Chatbot / AI Dialog",ctx:"dialog",figma:FIG("12639-183918")},
+ {id:"quiz",name:"AI Tutor (Quiz)",ctx:"quiz",figma:FIG("12665-190401")},
+ {id:"discussion",name:"Discussion Room (Quiz)",ctx:null,figma:FIG("12665-190401"),note:"Potentially out of scope · not built"},
+ {id:"diary",name:"Learning Diary",ctx:null,figma:FIG("12639-183838"),note:"Out of scope (→ BR-7144) · not built"}];
+const isDarkCtx=c=>c==="dialog"||c==="quiz";
 let S=structuredClone(DEFAULT);
 const ui={sel:{kind:"state",mode:"idle",state:"idle-rest"},variant:"open",context:"tutor",sb:true,live:{}};
 
 /* ================= persistence ================= */
 let dirty=false,DOC=null,DB=null,saving=false,again=false,tmr=null,lastSaved=null,pendingRemote=null,lastSnap=0;
+/* ---- save only what changed (3-way merge) ----
+   base = last version known to match the database. On save we read the latest database version and apply only
+   the fields this page changed since base, so edits made elsewhere (Claude, another tab) are kept, never overwritten. */
+let base=null, needRender=false;
+const jeq=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
+const SFIELDS=["doc","name","kind","links"], MFIELDS=["name","figma","status"];
+function structOf(ms){ return (ms||[]).map(m=>m.id+":"+(m.states||[]).map(x=>x.id).join(",")).join("|"); }
+function mergeById(b=[],l=[],r=[]){ const bIds=new Set(b.map(x=>x.id)), lIds=new Set(l.map(x=>x.id));
+  const removed=new Set([...bIds].filter(i=>!lIds.has(i))), added=l.filter(x=>!bIds.has(x.id)), changed=l.filter(x=>bIds.has(x.id)&&!jeq(x,b.find(y=>y.id===x.id)));
+  const out=r.filter(x=>!removed.has(x.id)).map(x=>changed.find(c=>c.id===x.id)||x); added.forEach(a=>{ if(!out.some(x=>x.id===a.id)) out.push(a); }); return out; }
+function mergeModes(b=[],l=[],r=[]){ const find=(arr,id)=>(arr||[]).find(x=>x.id===id);
+  if(structOf(l)===structOf(b)){ /* local kept the structure: start from remote, overlay local field edits */
+    const out=structuredClone(r); for(const lm of l){ const bm=find(b,lm.id), om=find(out,lm.id); if(!om) continue;
+      for(const f of MFIELDS) if(!jeq(lm[f],bm&&bm[f])) om[f]=structuredClone(lm[f]);
+      for(const ls of lm.states||[]){ const bs=find(bm&&bm.states,ls.id), os=find(om.states,ls.id); if(!os) continue; for(const f of SFIELDS) if(!jeq(ls[f],bs&&bs[f])) os[f]=structuredClone(ls[f]); } }
+    return out; }
+  /* local changed the structure (added/removed/reordered): keep local structure, take remote fields wherever local didn't touch them */
+  const out=structuredClone(l); for(const om of out){ const bm=find(b,om.id), rm=find(r,om.id); if(!bm||!rm) continue;
+    for(const f of MFIELDS) if(jeq(om[f],bm[f])) om[f]=structuredClone(rm[f]);
+    for(const os of om.states||[]){ const bs=find(bm.states,os.id), rs=find(rm.states,os.id); if(!bs||!rs) continue; for(const f of SFIELDS) if(jeq(os[f],bs[f])) os[f]=structuredClone(rs[f]); } }
+  return out; }
+function merge3(b,l,r){ if(!b) return structuredClone(l); const out=structuredClone(r);
+  const keys=new Set([...Object.keys(l||{}),...Object.keys(r||{})]);
+  for(const k of keys){
+    if(k==="docs"){ const bd=b.docs||{}, ld=l.docs||{}, o=Object.assign({},r.docs||{}); for(const dk of new Set([...Object.keys(ld),...Object.keys(bd)])) if(!jeq(ld[dk],bd[dk])){ if(ld[dk]===undefined) delete o[dk]; else o[dk]=ld[dk]; } out.docs=o; }
+    else if(k==="modes") out.modes=mergeModes(b.modes,l.modes,r.modes);
+    else if(k==="pins"||k==="docpins") out[k]=mergeById(b[k],l[k],r[k]);
+    else if(k==="elnums"){ const o=Object.assign({},r.elnums||{}); for(const [ek,ev] of Object.entries(l.elnums||{})) if(!jeq(ev,(b.elnums||{})[ek])) o[ek]=ev; out.elnums=o; }
+    else if(k==="updated") continue;
+    else if(!jeq(l[k],b[k])) out[k]=structuredClone(l[k]); }
+  return out; }
 const syncEl=document.getElementById("sync");
 const setSync=t=>syncEl.textContent=t;
 function unwrap(s){ if(!s) return null; if(typeof s.data==="function") return s.data(); if(s.exists===false) return null; return s.data!==undefined?s.data:s; }
@@ -501,18 +562,25 @@ async function initDb(){
     let d=unwrap(await DOC.get());
     if(!valid(d)){ const old=unwrap(await db.doc("workbench/br-7147").get()); d=migrate(old); S=d; flush(); }
     else S=structuredClone(d);
+    base=structuredClone(S);
     try{ await db.doc("history/pre-unified-doc").get().then(async x=>{ if(!unwrap(x)) await db.doc("history/pre-unified-doc").set({at:new Date().toISOString(),data:JSON.parse(JSON.stringify(d))}); }); }catch(e){}
     clearTimeout(guard); render(true); setSync("saved"); loadPreviews();
-    try{ DOC.onSnapshot(snap=>{ const r=unwrap(snap); if(!valid(r)||r.updated===lastSaved||r.updated===S.updated) return;
-      if(saving||tmr||dirty) return;
-      const a=document.activeElement; if(a&&a.closest&&a.closest(".ed,.sec-name")){ pendingRemote=r; setSync("Claude updated · click outside to load"); return; }
-      S=structuredClone(r); render(true); setSync("updated by Claude"); }); }catch(e){}
+    try{ DOC.onSnapshot(snap=>{ const r=unwrap(snap); if(!valid(r)||r.updated===lastSaved) return;
+      if(saving||tmr) return; /* the next save merges it in */
+      S=merge3(base,S,r); base=structuredClone(r);
+      const a=document.activeElement; if(a&&a.closest&&a.closest(".ed,.sec-name")){ needRender=true; setSync("Claude updated · click outside to see it"); return; }
+      render(true); setSync("saved"); }); }catch(e){}
   }catch(e){ loadLocal(); setSync("offline · local"); }
 }
 function loadLocal(){ try{ const d=JSON.parse(localStorage.getItem("wb-br7147-v2")||"null"); if(valid(d)){ S=structuredClone(d); render(); } }catch(e){} }
 function save(){ dirty=true; try{ localStorage.setItem("wb-br7147-v2",JSON.stringify(S)); }catch(e){} if(!DOC) return; setSync("editing…"); clearTimeout(tmr); tmr=setTimeout(flush,800); }
 async function flush(){ tmr=null; if(!DOC) return; if(saving){ again=true; return; } saving=true; setSync("saving…");
-  try{ S.updated=new Date().toISOString(); lastSaved=S.updated; await DOC.set(JSON.parse(JSON.stringify(S))); dirty=false; setSync("saved");
+  try{ const snap=structuredClone(S); let remote=null; try{ remote=unwrap(await DOC.get()); }catch(e){}
+    const merged=valid(remote)?merge3(base,snap,remote):snap; merged.updated=new Date().toISOString(); lastSaved=merged.updated;
+    await DOC.set(JSON.parse(JSON.stringify(merged))); base=structuredClone(merged);
+    const fromElsewhere=valid(remote)&&!jeq({...merged,updated:0},{...snap,updated:0});
+    S=merge3(snap,S,merged); S.updated=merged.updated; dirty=false; setSync("saved");
+    if(fromElsewhere){ const a=document.activeElement; if(a&&a.closest&&a.closest(".ed,.sec-name")) needRender=true; else render(true); }
     if(Date.now()-lastSnap>600000){ lastSnap=Date.now(); try{ await DB.doc("history/"+S.updated.replace(/[^0-9T]/g,"")).set({at:S.updated,data:JSON.parse(JSON.stringify(S))}); }catch(e){} } }catch(e){ setSync("save failed · kept locally"); }
   saving=false; if(again){ again=false; flush(); } }
 
@@ -537,6 +605,7 @@ const I={
  send:`<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M21.0894 10.5014L5.80142 2.56271C5.19742 2.25071 4.47208 2.32938 3.94809 2.76004C3.42542 3.19204 3.21209 3.89204 3.40409 4.54138L5.31742 11H11.8481C12.4001 11 12.8481 11.448 12.8481 12C12.8481 12.552 12.4001 13 11.8481 13H5.31742L3.40409 19.4587C3.21075 20.1094 3.42542 20.808 3.94809 21.24C4.25742 21.4947 4.63875 21.6267 5.02275 21.6267C5.28808 21.6267 5.55475 21.564 5.80142 21.436L21.0894 13.4974C21.6508 13.2054 22.0001 12.632 22.0001 11.9987C22.0001 11.3654 21.6508 10.7934 21.0894 10.5014Z" fill="currentColor"/></svg>`,
  menu:`<svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.33" stroke-linecap="round"><path d="M18.33 12.33H1.67M9 17H1.67M18.33 7.67H1.67M18.33 3H1.67"/></svg>`,
  newchat:`<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.33" stroke-linecap="round"><circle cx="12" cy="12" r="9.67"/><path d="M7.67 12h8.66M12 7.67v8.66"/></svg>`,
+ help:`<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.33" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9.67"/><path d="M9.53 9.67c0-1.33 1.07-2.33 2.47-2.33s2.47.93 2.47 2.2c0 2.07-2.47 2.07-2.47 4.2"/><circle cx="12" cy="16.8" r=".7" fill="currentColor"/></svg>`,
  close:`<svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.33" stroke-linecap="round"><path d="M4 4l12 12M16 4L4 16"/></svg>`,
  speaker:`<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#858585" stroke-width="1.33" stroke-linecap="round" stroke-linejoin="round"><path d="M4.44 5.11H2c-.74 0-1.33.6-1.33 1.33v3.11c0 .74.6 1.34 1.33 1.34h2.44l4.88 3.12c.3.19.68-.02.68-.37V2.36c0-.35-.39-.56-.68-.37z"/><path d="M12.36 6.75c.7.7.7 1.82 0 2.51M14.1 5.01a4.2 4.2 0 0 1 0 5.98"/></svg>`,
  tabMap:`<svg width="54" height="54" viewBox="0 0 54 54" fill="none"><path fill="currentColor" fill-rule="evenodd" d="M42.99 28.76c.02.06.02.13.01.19a.4.4 0 0 1-.16.29.4.4 0 0 1-.4.12.44.44 0 0 1-.36-.23 72 72 0 0 0-5-5.92c-.78-.8-1.57-1.6-2.42-2.32l-.43.3a.44.44 0 0 1-.64-.12L29.16 25.44l-8.22 8.07-8.1 7.98a.47.47 0 0 1-.38.09 2.47 2.47 0 0 1-1.9-1.84.45.45 0 0 1 .13-.44l4.58-4.5 8.12-7.99 8.03-7.9-.23-.22a.43.43 0 0 1-.1-.46c.07-.13.15-.24.29-.43-1.39-1.28-2.8-2.53-4.29-3.71a.45.45 0 0 1 0-.64l.86-.84c.13-.18.38-.24.59-.14.92.45 1.83.9 2.71 1.42.84.5 1.65 1.04 2.42 1.63.2-.14.41-.27.63-.4a.44.44 0 0 1 .61.1l.05.05.27-.3c.18-.18.37-.35.57-.5a.46.46 0 0 1 .46-.04c.39.21.74.48 1.04.8.17.17.33.35.47.55.12.17.21.36.25.56.01.12-.02.24-.1.33a4 4 0 0 1-.75.79l.12.12c.18.18.18.46 0 .64l-.16.24c.46.4.89.84 1.29 1.3 2.3 2.55 4.05 5.72 4.43 9.13zM34.53 15.9l1.98 1.92c-.36.6-.86 1.13-1.39 1.6-.42.39-.87.75-1.34 1.08a28 28 0 0 0-1.75-1.79 6.6 6.6 0 0 1 2.5-2.81zM28.46 13.23l-.43.43c1.32 1.06 2.6 2.2 3.85 3.34.33-.39.7-.75 1.09-1.08a28 28 0 0 0-4.51-2.69zM24.97 28.3l-8.2 8.06-4.37 4.3a2 2 0 0 1-.92-.86l7.96-7.83 8.11-7.98 3.8-3.73c-.02.5.1 1.01.34 1.46zM36.31 21.18l.2.19a62 62 0 0 1 5.26 5.83 14.6 14.6 0 0 0-5.04-8.12l-.29.32c.1.21.14.44.13.67-.01.39-.11.75-.26 1.11z"/></svg>`,
@@ -607,17 +676,17 @@ function updStacked(M){ if(!(M.text||"").trim()&&!(M.atts||[]).length) M.stacked
 function phoneHTML(st,live={},interactive=true){
   const M=interactive?ensureModel():seed(st.kind);
   const q={text:M.text,focused:M.focused,inline:isInline(M),fs:M.focused&&!!M.fs,sheet:M.menu,picker:M.picker,pickKind:M.pickKind,attach:M.atts.length?M.atts:false,typing:M.waiting,note:M.note,reserved:M.reserved};
-  const dark=ui.context==="dialog", v=ui.variant;
+  const dark=isDarkCtx(ui.context), quiz=ui.context==="quiz", v=ui.variant;
   const tab=!dark&&!q.focused;
   const hasText=(q.text||"").trim().length>0||q.attach;
   const ink=dark?"#2f2f2f":"#fff";
   const extra=(M.thread||[]).map(x=>x.who==="s"?`<div class="m-s"><div>${esc(x.text)}${x.atts&&x.atts.length?`<div class="oos" data-oos="In-chat attachments: not part of BR-7147 (→ BR-7144)"><span class="oos-chip">📎 ${x.atts.length} attachment${x.atts.length>1?"s":""}</span></div>`:""}</div><div class="wl"></div></div>`:`<div class="m-t"><p>${esc(x.text)}</p><div class="act"><button ${el("speaker2","Read answer aloud")} aria-label="Read aloud">${I.speaker}</button></div></div>`).join("");
   const typing=q.typing;
   const reply="";
-  return `<div class="phone ${dark?"dark":""} ${q.reserved?"reserved":""} ${q.picker?"headhidden":""}">
+  return `<div class="phone ${dark?"dark":""} ${quiz?"quiz":""} ${q.focused?"kbdopen":""} ${q.reserved?"reserved":""} ${q.picker?"headhidden":""}">
     <div class="p-status"><span>9:41</span><svg width="66" height="12" viewBox="0 0 66 12" fill="currentColor"><rect x="0" y="7" width="3" height="4" rx=".7"/><rect x="4.5" y="5" width="3" height="6" rx=".7"/><rect x="9" y="3" width="3" height="8" rx=".7"/><rect x="13.5" y="0" width="3" height="11" rx=".7"/><path d="M28 3.2a9 9 0 0 1 12 0l-1.2 1.3a7.2 7.2 0 0 0-9.6 0zM30.4 5.8a5.4 5.4 0 0 1 7.2 0L36.4 7a3.6 3.6 0 0 0-4.8 0zM34 10.6l-1.4-1.5a2 2 0 0 1 2.8 0z"/><rect x="44" y=".5" width="20" height="11" rx="2.7" fill="none" stroke="currentColor"/><rect x="46" y="2.5" width="16" height="7" rx="1.3"/></svg></div>
-    <div class="p-head">${dark?`<button ${el("close","Close dialog")} aria-label="Close">${I.close}</button>`:`<button ${el("menu","Open chat history")} aria-label="Menu">${I.menu}</button>`}<span class="t">${dark?"Creating Linear Equations":"AI-Tutor"}</span>${dark?`<span style="width:24px"></span>`:`<button ${el("newchat","New chat")} aria-label="New chat">${I.newchat}</button>`}</div>
-    <div class="p-chat">
+    <div class="p-head">${dark?`<button ${el("help","Help")} aria-label="Help">${I.help}</button>`:`<button ${el("menu","Open chat history")} aria-label="Menu">${I.menu}</button>`}<span class="t">${quiz?"Linear Functions":dark?"Creating Linear Equations":"AI-Tutor"}</span>${dark?`<button ${el("close","Close")} aria-label="Close">${I.close}</button>`:`<button ${el("newchat","New chat")} aria-label="New chat">${I.newchat}</button>`}</div>
+    ${quiz?`<div class="p-chat q-chat"><div class="q-prog"><span class="q-bar"><i></i></span></div><div class="q-card"><p>What does <b>m</b> stand for in y = mx + b?</p><div class="q-ans">The point where the line crosses the y-axis</div></div><div class="q-hint">Tap the card</div><div class="q-wrong">Wrong!</div>${extra}${typing?`<div class="typing"><div class="ava">B</div><div class="dots"><span></span><span></span><span></span></div></div>`:""}</div>`:`<div class="p-chat">
       ${interactive?`<div class="m-t"><p>Welcome back, Alex. Today we continue with <b>linear functions</b>. Ready?</p></div><div class="m-s"><div>Yes, let’s go.</div><div class="wl"></div></div>`:""}
       <div class="m-t"><p>Imagine a line that crosses the y-axis at 3 and goes up by 2 for every step to the right. <b>How would you describe it?</b> Take your time and use your own words.</p><div class="act"><button ${el("speaker","Read message aloud")} aria-label="Read aloud">${I.speaker}</button></div></div>
       <div class="m-s"><div>It starts at 3 on the y-axis, and every time I go one step to the right, it goes up by 2.</div><div class="wl"></div></div>
@@ -626,7 +695,7 @@ function phoneHTML(st,live={},interactive=true){
       <div class="m-s"><div>y = 2x + 3. So m is 2 because the line goes up by 2, and b is 3 because that's where it crosses the y-axis.</div><div class="wl"></div></div>
       ${extra}
       ${typing?`<div class="typing"><div class="ava">B</div><div class="dots"><span></span><span></span><span></span></div></div>`:reply}
-    </div>
+    </div>`}
     ${(()=>{ const plus=`<button class="c-plus" ${el("plus","Add attachment (+)")} aria-label="Add attachment">${I.plus(v==="pill"&&!dark?"#fff":ink)}</button>`;
       const right=hasText?`<button class="c-right send ${q.typing?"inactive":""}" ${el("send","Send")} aria-label="Send" ${q.typing?'aria-disabled="true"':""}>${I.send}</button>`:`<button class="c-right" ${el("mic","Voice input (reserved)")} aria-label="Voice input">${I.mic}<span class="resv"></span></button>`;
       const body=`<div class="c-body">${q.attach?`<div class="c-att">${q.attach.map((t,i)=>`<span class="att a-${t}"><span class="acard" data-open="${i}" role="button" aria-label="${ATT_NAME[t]||t}">${ATT[t]}</span>${t==="doc"?`<span class="aname">${ATT_NAME.doc}</span>`:""}<button class="rm" data-rm="${i}" ${el("att-rm-"+i,"Remove attachment "+(i+1))} aria-label="Remove attachment">×</button></span>`).join("")}</div>`:""}<textarea rows="1" placeholder="Ask anything" aria-label="Message" ${el("field","Text field")} ${interactive?"":"tabindex=-1"}>${esc(q.text)}</textarea></div>`;
@@ -638,6 +707,7 @@ function phoneHTML(st,live={},interactive=true){
         ? `<div class="cmp focused ${q.focused?"":"resting"} v-${v} ${q.fs?"fs":""}"><button class="c-exp" ${el("expand",q.fs?"Collapse (exit full screen)":"Expand to full screen")} aria-label="${q.fs?"Collapse":"Expand"}">${q.fs?I.collapse:I.expand}</button>${body}<div class="c-ctrl">${plus}${right}</div><span class="bar"></span></div>`
         : `<div class="cmp inline v-${v} ${tab?"":"notab"} ${hasText?"hastext":""}">${plus}${body.replace(/<\/div>$/,uline+"</div>")}${right}<span class="bar"></span></div>`; })()}
     ${tab?`<div class="p-tabs"><button ${el("tab-map","Tab: Map")} aria-label="Map">${I.tabMap}</button><button class="sel" ${el("tab-chat","Tab: AI Tutor")} aria-label="AI Tutor">${I.tabChat}</button><button ${el("tab-stats","Tab: Statistics")} aria-label="Statistics">${I.tabStats}</button></div>`:""}
+    ${quiz&&!q.focused?`<div class="q-result"><button class="q-end" ${el("q-end","End quiz")}>End</button></div>`:""}
     ${q.focused?`<div class="kbd"><div>${"<i></i>".repeat(10)}</div><div>${"<i></i>".repeat(9)}</div><div>${"<i></i>".repeat(7)}</div><div><i></i><i></i><i class="w"></i><i></i></div></div>`:`<div class="home"></div>`}
     ${q.note?`<div class="ph-note"><b>${esc(q.note[0])}</b>${esc(q.note[1])}</div>`:""}
     ${q.sheet?`<div class="up-scrim" data-dim="typing-empty"></div><div class="up-menu" role="menu">
@@ -712,10 +782,10 @@ function growInput(){
 }
 function fit(){
   const st=document.getElementById("stage"), w=document.getElementById("pwrap");
-  const nat=document.body.classList.contains("proto")&&innerWidth<=600; document.body.classList.toggle("native",nat); document.body.classList.toggle("ctx-dark",ui.context==="dialog");
+  const nat=document.body.classList.contains("proto")&&innerWidth<=600; document.body.classList.toggle("native",nat); document.body.classList.toggle("ctx-dark",isDarkCtx(ui.context));
   if(nat){ requestAnimationFrame(placeUpMenu); const vv=window.visualViewport; document.documentElement.style.setProperty("--vvh",(vv?vv.height:innerHeight)+"px"); document.documentElement.style.setProperty("--vvtop",(vv?vv.offsetTop:0)+"px"); w.style.transform="none"; ui.scale=1; return; }
   const pv=document.body.classList.contains("proto"), small=pv&&innerWidth<=600;
-  const sc=small? Math.min(st.clientWidth/402, st.clientHeight/874) : pv? Math.min((st.clientHeight-40)/894,(st.clientWidth-40)/422,1.4) : Math.max(.3,Math.min((st.clientHeight-130)/894,(st.clientWidth-130)/422,1));
+  const sc=small? Math.min(st.clientWidth/402, st.clientHeight/874) : pv? Math.min((st.clientHeight-40)/894,(st.clientWidth-40)/422,1.4) : Math.max(.3,Math.min((st.clientHeight-48)/874,(st.clientWidth-48)/402,1.2));
   w.style.transform=`translate(-50%,-50%) scale(${sc})`; ui.scale=sc;
 }
 window.addEventListener("resize",()=>{ fit(); placeAiCtl(); });
@@ -899,6 +969,8 @@ document.addEventListener("click",e=>{
 },true);
 
 /* ================= global comment / addition counters ================= */
+/* the jump highlight is temporary: remove the class when it ends so it never gets saved into the spec */
+document.addEventListener("animationend",e=>{ if(e.target.classList&&e.target.classList.contains("flash")) e.target.classList.remove("flash"); },true);
 let cntCi=-1, cntAi=-1;
 function allComments(){ const scr=(S.pins||[]).map(p=>({kind:"screen",p})), doc=(S.docpins||[]).map(p=>({kind:"doc",p})); return [...doc,...scr]; }
 function updateCounters(){ const c=$("#cntC"), a=$("#cntA"); if(!c||!a) return; const nc=allComments().length+document.querySelectorAll("#edscroll mark.ask").length, na=document.querySelectorAll("#edscroll span.ai").length;
@@ -981,8 +1053,8 @@ function renderDoc(force){
   const keep=$("#edscroll")?.scrollTop||0; docSig=sig;
   const D=document.getElementById("doc");
   const blk=(key,title,html,ph,grp,tag="h3")=>`<section class="dsec" data-sec="${key}" data-grp="${grp}"><${tag} class="sec-h">${title}</${tag}><div class="ed" contenteditable="true" data-key="${key}" data-ph="${esc(ph)}" spellcheck="true">${html||""}</div></section>`;
-  let h=`<div class="doc-head"><div class="crumb">BR-7147</div><div class="doc-title">Redesign Input Field</div></div>
-    <nav class="jump" id="jump"><button data-jump="brief">Brief</button><button data-jump="solution">Solution</button><button data-jump="edges">Edge cases & touchpoints</button><button data-jump="questions">Open questions</button></nav>
+  let h=`<div class="doc-head"><div class="crumb">BR-7147</div><div class="doc-trow"><div class="doc-title">Redesign Input Field</div><button class="hbtn" id="b-ticket" contenteditable="false">Preview</button></div></div>
+    <nav class="jump" id="jump"><button data-jump="brief">Brief</button><button data-jump="solution">Solution</button><button data-jump="edges">Edge cases & touchpoints</button><button data-jump="ds">Design system changes</button><button data-jump="questions">Open questions</button></nav>
     <div class="tools"><button data-cmd="h2" title="Heading">H</button><button data-cmd="ol" title="Numbered list">1.</button><button data-cmd="ul" title="Bullet list">•</button><button data-cmd="indent" title="Indent (Tab)">→</button><button data-cmd="outdent" title="Outdent (Shift+Tab)">←</button><button data-cmd="bold" title="Bold"><b>B</b></button>
       <span class="sp"></span><button class="cnt cy" id="cntC" title="Your comments for Claude (screen + spec): click to go to the next one">0</button><button class="cnt cb" id="cntA" title="Claude's additions (blue) to accept or decline: click to go to the next one">0</button></div>
     <div class="edscroll" id="edscroll">`;
@@ -995,7 +1067,9 @@ function renderDoc(force){
     h+=`<button class="addscr" data-adds="${m.id}">+ screen</button>`;
   }
   h+=`<button class="addmode" data-addm="1">+ mode</button>`;
-  h+=`<h2 class="grp-h" data-grp-h="edges">Edge cases & touchpoints</h2>`+blk("edges","Across screens",S.docs.edges,"Effects on existing data · Edge cases across screens · Touchpoints & side effects (emails, notifications, tracking). Write “none” if checked.","edges");
+  h+=`<h2 class="grp-h" data-grp-h="edges">Edge cases & touchpoints</h2>`+blk("edges","Across screens",S.docs.edges,"Effects on existing data · Edge cases across screens · Side effects (emails, notifications, tracking). Write “none” if checked.","edges")
+    +`<h3 class="tp-group">Touchpoints</h3>`+CONTEXTS.map(t=>`<section class="dsec tp-sec" data-sec="tp:${t.id}" data-grp="edges"><h3 class="sec-h">${esc(t.name)}${t.figma?` <a class="tp-fig" href="${t.figma}" target="_blank" rel="noopener">Figma ↗</a>`:""}${t.ctx?"":` <span class="tp-nb">${esc(t.note||"not built")}</span>`}</h3><div class="ed" contenteditable="true" data-key="tp:${t.id}" data-ph="What differs here: background, what sits below the field, placement, copy. Only the screens that differ." spellcheck="true">${S.docs["tp:"+t.id]||""}</div></section>`).join("");
+  h+=`<h2 class="grp-h" data-grp-h="ds">Design system changes</h2>`+blk("ds","Components",S.docs.ds,"One line per component: name · new or changed · what changed · Figma link","ds");
   h+=`<h2 class="grp-h" data-grp-h="questions">Open questions</h2>`+blk("questions","Undecided",S.docs.questions,"What is unclear? Which decisions are still open?","questions");
   h+=`<div style="height:40vh"></div></div>`;
   D.innerHTML=`<div class="resizer" id="resizer" title="Drag to resize"></div>`+h; $("#edscroll").scrollTop=keep;
@@ -1009,7 +1083,7 @@ function placeAiCtl(){ const sc=$("#edscroll"); if(!sc) return; sc.querySelector
     else { const rl=rs[rs.length-1]; c.style.top=(rl.top-so.top+sc.scrollTop-1)+"px"; c.style.left=Math.min(rl.right-so.left+16, sc.clientWidth-64)+"px"; } /* narrow pane: no margin, fall back to after the last line */
     c.innerHTML=`<button class="ok" title="Accept: make it your text" aria-label="Accept">✓</button><button class="no" title="Decline: remove it">✕</button>`; c._sp=sp; sc.appendChild(c); }); }
 function syncNames(){ document.querySelectorAll(".sec-name").forEach(i=>{ const f=find(i.dataset.state); if(f&&document.activeElement!==i&&i.value!==f.s.name) i.value=f.s.name; }); markActive(); }
-function markActive(){ const key=ui.sel.kind==="state"?"state:"+ui.sel.state:ui.sel.kind; let grp=null; document.querySelectorAll(".dsec").forEach(x=>{ const on=x.dataset.sec===key; x.classList.toggle("cur",on); if(on) grp=x.dataset.grp; }); if(ui.sel.kind==="state") grp="solution"; document.querySelectorAll("#jump button").forEach(b=>b.classList.toggle("on",b.dataset.jump===grp)); }
+function markActive(){ const key=ui.sel.kind==="state"?"state:"+ui.sel.state:ui.sel.kind; let grp=null; document.querySelectorAll(".dsec").forEach(x=>{ const on=x.dataset.sec===key; x.classList.toggle("cur",on); if(on) grp=x.dataset.grp; }); if(ui.sel.kind==="state") grp="solution"; document.querySelectorAll("#jump button").forEach(b=>{ const on=b.dataset.jump===grp; b.classList.toggle("on",on); if(on){ const nav=b.parentElement, l=b.offsetLeft-nav.offsetLeft, r=l+b.offsetWidth; if(l<nav.scrollLeft||r>nav.scrollLeft+nav.clientWidth) nav.scrollTo({left:Math.max(0,l-40),behavior:"smooth"}); } }); }
 function scrollToSel(){ const key=ui.sel.kind==="state"?"state:"+ui.sel.state:ui.sel.kind; const sec=document.querySelector(`.dsec[data-sec="${CSS.escape(key)}"]`), sc=$("#edscroll"); if(!sec||!sc) return;
   progScroll=Date.now(); const room=sc.clientHeight-112, rel=sec.offsetTop-sc.offsetTop; const top=sec.offsetHeight<=room? rel-(sc.clientHeight-sec.offsetHeight)/2 : rel-56; sc.scrollTo({top:Math.max(0,top),behavior:"smooth"}); markActive(); }
 /* doc -> prototype sync only for scrolling the user does in the doc; scrolls caused by the prototype (it jumps the doc to the current state) must never reset the prototype's model */
@@ -1146,12 +1220,18 @@ docEl.addEventListener("keydown",e=>{
 docEl.addEventListener("focusout",e=>{ const inp=e.target.closest&&e.target.closest(".sec-name"); if(inp){ delete inp.dataset.arm; if(inp.value===""){ const f=find(inp.dataset.state); if(f){ inp.value=f.s.name||"Untitled screen"; } inp.placeholder=""; } } });
 
 /* ================= header ================= */
-const sv=document.getElementById("sel-var"), sc=document.getElementById("sel-ctx");
-sv.innerHTML=VARIANTS.map(v=>`<option value="${v.id}">${v.name}</option>`).join("");
-sc.innerHTML=CONTEXTS.map(v=>`<option value="${v.id}">${v.name}</option>`).join("");
-sv.addEventListener("change",()=>{ ui.variant=sv.value; renderStage(); renderHeader(); renderLeft(); updateCovMeta(); });
-sc.addEventListener("change",()=>{ ui.context=sc.value; renderStage(); renderLeft(); updateCovMeta(); });
-function renderHeader(){ const v=VARIANTS.find(x=>x.id===ui.variant); const m=curMode(); document.getElementById("b-figma").href=(ui.sel.kind==="state"&&m.figma)?m.figma:v.figma; }
+const tpc=document.getElementById("tpchips"), vp=document.getElementById("varpill");
+tpc.innerHTML=CONTEXTS.map(c=>`<button data-c="${c.id}" class="${c.ctx?"":"nb"}" title="${c.ctx?"Show in the prototype · jump to its spec":esc(c.note||"")+" · jump to its spec"}">${c.name}</button>`).join("");
+const sc={ set value(x){ tpc.querySelectorAll("button").forEach(b=>b.classList.toggle("on",b.dataset.c===x)); }, addEventListener(){} };
+tpc.addEventListener("click",e=>{ const b=e.target.closest("button[data-c]"); if(!b) return; const t=CONTEXTS.find(c=>c.id===b.dataset.c); if(t.ctx&&t.ctx!==ui.context){ ui.context=t.ctx; sc.value=ui.context; renderStage(); renderLeft(); updateCovMeta(); } const sec=document.querySelector(`.dsec[data-sec="tp:${t.id}"]`), scr=$("#edscroll"); if(sec&&scr){ progScroll=Date.now(); scr.scrollTo({top:Math.max(0,sec.offsetTop-scr.offsetTop-40),behavior:"smooth"}); } });
+const sv={ set value(x){ vp.querySelectorAll("button").forEach(b=>b.classList.toggle("on",b.dataset.v===x)); }, addEventListener(){} };
+vp.innerHTML=VARIANTS.map(v=>`<button data-v="${v.id}" title="Design direction">${v.name.replace(/ \(.*\)/,"")}</button>`).join("");
+vp.addEventListener("click",e=>{ const b=e.target.closest("button[data-v]"); if(!b) return; ui.variant=b.dataset.v; sv.value=ui.variant; renderStage(); renderHeader(); renderLeft(); updateCovMeta(); });
+sc.value=ui.context;
+function renderHeader(){ try{ sv.value=ui.variant; sc.value=ui.context; }catch(e){} }
+/* touchpoints in the spec: working in a touchpoint's block shows it in the phone */
+function tpFocus(e){ const sec=e.target.closest&&e.target.closest('.dsec[data-sec^="tp:"]'); if(!sec) return; const t=CONTEXTS.find(c=>"tp:"+c.id===sec.dataset.sec); if(!t||!t.ctx||t.ctx===ui.context) return; ui.context=t.ctx; sc.value=t.ctx; renderStage(); renderLeft(); updateCovMeta(); }
+docEl.addEventListener("click",tpFocus); docEl.addEventListener("focusin",tpFocus);
 
 /* ================= ticket draft (HTML → markdown) ================= */
 function md(html){
@@ -1175,11 +1255,11 @@ function md(html){
 function ticketMd(){
   let o=`# Problem, goal & scope\n${md(S.docs.brief)}\n\n# Proposed solution\n## Global rules\n${md(S.docs.rules)}\n`;
   for(const m of S.modes){ o+=`\n## ${m.name}${m.figma?` ([Figma](${m.figma}))`:""}\n`; for(const s of m.states) o+=`\n### ${s.name}\n${md(s.doc)||"_no spec yet_"}\n`; }
-  o+=`\n# Edge cases & touchpoints\n${md(S.docs.edges||"")||"_none yet_"}\n\n# Open questions\n${md(S.docs.questions)}\n`; return o;
+  o+=`\n# Edge cases & touchpoints\n${md(S.docs.edges||"")||"_none yet_"}\n\n## Touchpoints\n${CONTEXTS.map(t=>`### ${t.name}${t.ctx?"":` (${t.note||"not built"})`}\nFigma: ${t.figma||"–"}\n${md(S.docs["tp:"+t.id]||"")||"_not specced yet_"}`).join("\n\n")}\n\n# Design system changes\n${md(S.docs.ds||"")||"_none_"}\n\n# Open questions\n${md(S.docs.questions)}\n`; return o;
 }
 const modal=document.getElementById("modal"), card=document.getElementById("mcard");
-document.getElementById("b-ticket").addEventListener("click",()=>{
-  card.innerHTML=`<h2>Ticket draft</h2><p class="meta">Assembled from the workbench: Brief → Global rules → Specs per screen → Open questions.</p><pre class="md">${esc(ticketMd())}</pre><div class="row-end"><button class="hbtn" id="cp">Copy markdown</button><button class="hbtn pri" id="cl">Close</button></div>`;
+document.addEventListener("click",e=>{ if(!(e.target.closest&&e.target.closest("#b-ticket"))) return;
+  card.innerHTML=`<h2>Ticket preview</h2><p class="meta">Assembled from the workbench: Brief → Global rules → Specs per screen → Open questions.</p><pre class="md">${esc(ticketMd())}</pre><div class="row-end"><button class="hbtn" id="cp">Copy markdown</button><button class="hbtn pri" id="cl">Close</button></div>`;
   modal.classList.add("show");
 });
 card.addEventListener("click",async e=>{ if(e.target.id==="cl") modal.classList.remove("show"); if(e.target.id==="cp"){ try{ await navigator.clipboard.writeText(ticketMd()); e.target.textContent="Copied"; }catch(err){ e.target.textContent="Copy blocked: select the text"; } } });
@@ -1200,9 +1280,8 @@ document.getElementById("qr-copy").addEventListener("click",async e=>{ try{ awai
 function render(force){ renderLeft(); renderStage(); renderDoc(force); renderHeader(); renderLeft(); }
 applyRoute();
 render();
-document.addEventListener("focusout",e=>{ if(pendingRemote&&e.target.closest&&e.target.closest(".ed,.sec-name")){ setTimeout(()=>{ if(pendingRemote&&!tmr&&!saving&&!(document.activeElement&&document.activeElement.closest&&document.activeElement.closest(".ed,.sec-name"))){ S=structuredClone(pendingRemote); pendingRemote=null; render(true); setSync("updated by Claude"); } },900); } });
+document.addEventListener("focusout",e=>{ if(needRender&&e.target.closest&&e.target.closest(".ed,.sec-name")){ setTimeout(()=>{ if(needRender&&!tmr&&!saving&&!(document.activeElement&&document.activeElement.closest&&document.activeElement.closest(".ed,.sec-name"))){ needRender=false; render(true); setSync("saved"); } },900); } });
 document.fonts?.ready?.then(()=>{ fit(); placeBadges(); renderLeft(); updateCovMeta(); });
-/* static build: no database, defaults only */
 </script>
 </body>
 </html>
