@@ -300,7 +300,7 @@ pre.md{white-space:pre-wrap;background:var(--bg);border-radius:8px;padding:12px;
 .cmp.focused .bar{right:4px;top:6px}
 /* full-screen input (focus mode), per Figma "Focus Mode (optional)" 12610:178200 */
 /* entry: Nucleo/Expand in a 40px slot top right of the text; text column keeps 36px free on the right (326 of 362) */
-.cmp .c-exp{display:none;position:absolute;top:6px;right:16px;width:40px;height:40px;border:0;background:none;padding:0;place-items:center;color:var(--b-ink);z-index:2}
+.cmp .c-exp{display:none;position:absolute;top:6px;right:16px;width:40px;height:40px;border:0;background:none;padding:0;place-items:center;color:var(--b-muted);z-index:2}
 /* shown once the text reaches the 8th line (the field starts scrolling anyway); only then does the text make room for it */
 .cmp.focused.over .c-exp,.cmp.fs .c-exp{display:grid}
 .cmp.focused.over textarea,.cmp.fs textarea{padding-right:36px}
@@ -399,7 +399,7 @@ body:not(.proto) .oos{outline:1px dashed #e0b400;outline-offset:3px;border-radiu
 .opt::before{border-radius:18.667px}
 /* menu: white 2px borders (outer + separators) so it separates from what is behind it — Hannes 12.11, exception to the 0.75px rule */
 /* outer border as a real border with the dark fill clipped inside it, so no dark/grey fringe shows outside the white edge */
-.up-menu{border:2px solid #fff;background-clip:padding-box;box-sizing:border-box}
+.up-menu{border:2px solid #fff;background-clip:padding-box;box-sizing:border-box;border-radius:16px;overflow:hidden}
 /* separators between items stay 0.75px (scaled 1px line) */
 .up-menu button:not(:last-child)::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;background:#fff;transform:scaleY(.75);transform-origin:0 100%;z-index:1}
 .att.a-doc{margin-bottom:20px}
@@ -600,7 +600,7 @@ const CONTEXTS=[
  {id:"diary",name:"Learning Diary",ctx:"diary",figma:FIG("12639-183838"),note:"Out of scope (→ BR-7144)"}];
 const isDarkCtx=c=>c==="dialog"||c==="quiz";
 let S=structuredClone(DEFAULT);
-const ui={sel:{kind:"state",mode:"idle",state:"idle-rest"},variant:"open",context:"tutor",sb:true,live:{}};
+const ui={sel:{kind:"state",mode:"idle",state:"idle-rest"},variant:"pill",context:"tutor",sb:true,live:{}};
 
 /* ================= persistence ================= */
 let dirty=false,DOC=null,DB=null,saving=false,again=false,tmr=null,lastSaved=null,pendingRemote=null,lastSnap=0;
