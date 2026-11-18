@@ -509,6 +509,14 @@ body:not(.proto) .oos{outline:1px dashed #e0b400;outline-offset:3px;border-radiu
 .v-angled .uline,.v-angled.focused .c-body::after{display:none!important}
 /* comment badges on touchpoint chips and dots on the phone */
 .tpchips .cb{display:inline-grid;place-items:center;min-width:16px;height:16px;margin-left:7px;padding:0 3px;box-sizing:border-box;border-radius:8px;background:#ffd43b;color:#5c4400;font:700 10px/1 var(--mono);font-style:normal;vertical-align:1px}
+
+#figcard{position:fixed;z-index:70;width:280px;background:#fff;color:#222;border:1px solid var(--line);border-radius:10px;box-shadow:0 8px 28px rgba(0,0,0,.25);padding:8px;font:12px/1.4 var(--ui);cursor:pointer;display:none}
+#figcard.show{display:block}
+#figcard .fp-img{display:flex;align-items:center;justify-content:center;min-height:90px;max-height:230px;background:#f2f2f2;border-radius:6px;overflow:hidden;color:var(--muted)}
+#figcard .fp-img img{display:block;max-width:100%;max-height:230px;object-fit:contain}
+#figcard .fp-cap{display:flex;justify-content:space-between;align-items:center;margin-top:6px;color:var(--muted)}
+#figcard .fp-cap b{color:var(--accent);font-weight:600}
+body.proto #figcard,body.native #figcard{display:none!important}
 #agtdots{position:fixed;inset:0;pointer-events:none;z-index:40}
 .agtdot{position:fixed;transform:translate(-50%,-50%);pointer-events:auto;width:20px;height:20px;padding:0;border-radius:50%;background:#ffd43b;color:#5c4400;border:2px solid #fff;font:700 10px/16px var(--mono);box-shadow:0 1px 4px rgba(0,0,0,.4);cursor:pointer}
 .agtdot.miss{border:2px dashed #5c4400}
@@ -1426,6 +1434,29 @@ document.fonts?.ready?.then(()=>{ fit(); placeBadges(); renderLeft(); updateCovM
 </script>
 
 <script>
+/* Figma link hover preview: live screenshot of the linked node (cached for 5 min), click opens Figma */
+(function(){
+  const cache={}, inflight={}; let cur=null, showT=null, hideT=null;
+  const card=document.createElement("div"); card.id="figcard"; document.body.appendChild(card);
+  const parse=h=>{ try{ const u=new URL(h); if(!/(^|\.)figma\.com$/.test(u.hostname)) return null; const fk=(u.pathname.match(/\/(?:design|file)\/([^/]+)/)||[])[1]; const nid=(u.searchParams.get("node-id")||"").replace("-",":"); return fk&&nid?{fk,nid}:null; }catch(e){ return null; } };
+  function getImg(k){ const key=k.fk+"|"+k.nid, c=cache[key]; if(c&&Date.now()-c.t<300000) return Promise.resolve(c.img); if(inflight[key]) return inflight[key];
+    return inflight[key]=(async()=>{ let mcp=null; try{ mcp=await window.claude.use("mcp"); }catch(e){} if(!mcp) return null;
+      const r=await mcp.callTool("Figma","get_screenshot",{fileKey:k.fk,nodeId:k.nid,maxDimension:480,enableBase64Response:true});
+      const img=findImage(r&&r.payload!==undefined?r.payload:r); if(img) cache[key]={img,t:Date.now()}; return img; })().catch(()=>null).finally(()=>{ delete inflight[key]; }); }
+  function place(a){ const r=a.getBoundingClientRect(), h=card.offsetHeight||200, w=280; let x=Math.min(Math.max(8,r.left),innerWidth-w-8), y=r.bottom+6; if(y+h>innerHeight-8) y=Math.max(8,r.top-h-6); card.style.left=x+"px"; card.style.top=y+"px"; }
+  const cap=a=>{ const t=((a.parentElement&&a.parentElement.textContent)||"").replace(a.textContent,"").trim(); return (t||"Figma").slice(0,40); };
+  const body=(inner,cap)=>`<div class="fp-img">${inner}</div><div class="fp-cap"><span>${cap}</span><b>Click to open in Figma ↗</b></div>`;
+  function show(a,k){ cur=a; card.dataset.href=a.href; card.innerHTML=body("Loading preview…",esc(cap(a))); card.classList.add("show"); place(a);
+    getImg(k).then(img=>{ if(cur!==a) return; card.innerHTML=body(img?`<img src="${img}" alt="">`:"Preview not available",esc(cap(a))); place(a); }); }
+  function hide(){ cur=null; card.classList.remove("show"); }
+  document.addEventListener("mouseover",e=>{ if(document.body.classList.contains("proto")||document.body.classList.contains("native")) return;
+    if(card.contains(e.target)){ clearTimeout(hideT); return; }
+    const a=e.target.closest&&e.target.closest('a[href*="figma.com"]'); if(!a){ return; } const k=parse(a.href); if(!k) return;
+    clearTimeout(hideT); clearTimeout(showT); if(cur===a) return; showT=setTimeout(()=>show(a,k),250); });
+  document.addEventListener("mouseout",e=>{ const a=e.target.closest&&e.target.closest('a[href*="figma.com"]'); if(a||card.contains(e.target)){ clearTimeout(showT); clearTimeout(hideT); hideT=setTimeout(hide,200); } });
+  card.addEventListener("click",()=>{ if(card.dataset.href) window.open(card.dataset.href,"_blank","noopener"); hide(); });
+  addEventListener("scroll",hide,true);
+})();
 /* Shortcut "c": toggle Agentation comment mode (not while typing, not with modifiers) */
 addEventListener("keydown",e=>{
   if(e.key!=="c"&&e.key!=="C") return;
