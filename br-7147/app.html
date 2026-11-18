@@ -1463,9 +1463,9 @@ addEventListener("keydown",e=>{
   if(e.key!=="c"&&e.key!=="C") return;
   if(e.metaKey||e.ctrlKey||e.altKey||e.repeat||e.isComposing) return;
   if(document.body.classList.contains("proto")||document.body.classList.contains("native")) return;
-  const t=e.target, tag=t&&t.tagName;
-  if(tag==="INPUT"||tag==="TEXTAREA"||tag==="SELECT"||(t&&t.isContentEditable)) return;
-  const a=document.activeElement; if(a&&(a.tagName==="INPUT"||a.tagName==="TEXTAREA"||a.isContentEditable)) return;
+  const isTxt=n=>n&&n.nodeType===1&&(n.tagName==="INPUT"||n.tagName==="TEXTAREA"||n.tagName==="SELECT"||n.isContentEditable||n.getAttribute&&n.getAttribute("role")==="textbox");
+  if((e.composedPath?e.composedPath():[e.target]).some(isTxt)) return;
+  let a=document.activeElement; while(a){ if(isTxt(a)) return; a=a.shadowRoot&&a.shadowRoot.activeElement; }
   e.preventDefault(); e.stopImmediatePropagation();
   document.dispatchEvent(new KeyboardEvent("keydown",{key:"F",code:"KeyF",ctrlKey:true,shiftKey:true,bubbles:true,cancelable:true}));
 },true);
