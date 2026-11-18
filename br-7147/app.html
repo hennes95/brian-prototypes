@@ -509,7 +509,8 @@ body:not(.proto) .oos{outline:1px dashed #e0b400;outline-offset:3px;border-radiu
 /* variant: workbook line, but without the line under the text (separator stays) */
 .v-angled .uline,.v-angled.focused .c-body::after{display:none!important}
 /* comment badges on touchpoint chips and dots on the phone */
-.tpchips .cb{display:inline-grid;place-items:center;min-width:16px;height:16px;margin-left:7px;padding:0 3px;box-sizing:border-box;border-radius:8px;background:#ffd43b;color:#5c4400;font:700 10px/1 var(--mono);font-style:normal;vertical-align:1px}
+.tpchips .cb{display:inline-grid;place-items:center;min-width:20px;height:20px;margin:-3px 0 -3px 7px;padding:0 3px;box-sizing:border-box;border-radius:10px;background:#ffd43b;color:#5c4400;border:2px solid var(--bg);font:700 10px/1 var(--mono);font-style:normal;vertical-align:middle}
+.tpchips button:has(.cb){padding-right:5px}
 
 #figcard{position:fixed;z-index:70;width:340px;background:#fff;color:#222;border:1px solid var(--line);border-radius:10px;box-shadow:0 8px 28px rgba(0,0,0,.25);padding:8px;font:12px/1.4 var(--ui);cursor:pointer;display:none}
 #figcard.show{display:block}
@@ -593,8 +594,8 @@ const VARIANTS=[{id:"open",name:"Workbook line",figma:FIG("12532-149018")},{id:"
 const CONTEXTS=[
  {id:"tutor",name:"AI Tutor tab",ctx:"tutor",figma:FIG("12639-183880")},
  {id:"dialog",name:"Chatbot / AI Dialog",ctx:"dialog",figma:FIG("12639-183918")},
- {id:"quiz",name:"AI Tutor (Quiz)",ctx:"quiz",figma:FIG("12665-190401")},
- {id:"discussion",name:"Discussion Room (Quiz)",ctx:"discussion",figma:FIG("12665-190401"),note:"Potentially out of scope"},
+ {id:"quiz",name:"AI Tutor (Quiz)",ctx:"quiz",figma:FIG("12720-16346")},
+ {id:"discussion",name:"Discussion Room (Quiz)",ctx:"discussion",figma:FIG("12721-16560"),note:"Potentially out of scope"},
  {id:"diary",name:"Learning Diary",ctx:"diary",figma:FIG("12639-183838"),note:"Out of scope (→ BR-7144)"}];
 const isDarkCtx=c=>c==="dialog"||c==="quiz";
 let S=structuredClone(DEFAULT);
