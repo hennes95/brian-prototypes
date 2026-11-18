@@ -509,7 +509,8 @@ body:not(.proto) .oos{outline:1px dashed #e0b400;outline-offset:3px;border-radiu
 /* variant: workbook line, but without the line under the text (separator stays) */
 .v-angled .uline,.v-angled.focused .c-body::after{display:none!important}
 /* comment badges on touchpoint chips and dots on the phone */
-.tpchips .cb{display:inline-grid;place-items:center;min-width:20px;height:20px;margin:-3px 0 -3px 7px;padding:0 3px;box-sizing:border-box;border-radius:10px;background:#ffd43b;color:#5c4400;border:2px solid var(--bg);font:700 10px/1 var(--mono);font-style:normal;vertical-align:middle}
+.tpchips button:has(.cb){display:inline-flex;align-items:center}
+.tpchips .cb{display:inline-grid;place-items:center;min-width:20px;height:20px;margin:-4px 0 -4px 7px;padding:0 3px;box-sizing:border-box;border-radius:10px;background:#ffd43b;color:#5c4400;border:2px solid var(--bg);font:700 10px/1 var(--mono);font-style:normal;flex:none}
 .tpchips button:has(.cb){padding-right:5px}
 
 #figcard{position:fixed;z-index:70;width:340px;background:#fff;color:#222;border:1px solid var(--line);border-radius:10px;box-shadow:0 8px 28px rgba(0,0,0,.25);padding:8px;font:12px/1.4 var(--ui);cursor:pointer;display:none}
