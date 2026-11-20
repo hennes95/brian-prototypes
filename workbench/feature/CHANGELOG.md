@@ -1,5 +1,8 @@
 # Feature workbench shell: changelog
 
+## 1.0.4 (20.11.26)
+- Clicking the yellow comment counter also turns the comment layer (Agentation) on, so its markers are visible when it jumps to a comment. Already on: unchanged.
+
 ## 1.0.3 (20.11.26)
 - Comment markers and highlight in yellow (Agentation colour setting forced to yellow on load).
 - The shell no longer draws its own yellow dots on the screen; Agentation's markers replace them. Touchpoint chips keep their comment counts.
