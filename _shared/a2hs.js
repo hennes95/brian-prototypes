@@ -6,9 +6,10 @@
    Never shown once the prototype runs from the home screen, after "Not now"/"Done", or on desktop.
    Look: DialKit dark panel (stacked dial containers with hairline dividers). */
 (function(){
-  var me = document.currentScript, base = me.src.replace(/a2hs\.js.*$/, '');
+  var me = document.currentScript, base = me.src.replace(/a2hs\.js.*$/, ''), ver = (me.src.match(/[?&]v=([^&#]+)/) || [,''])[1];
   var standalone = navigator.standalone === true || matchMedia('(display-mode: standalone)').matches;
-  var KEY = 'a2hs-hidden:' + location.pathname.replace(/[^/]*$/, '');
+  var KEY = 'a2hs-hidden-v2:' + location.pathname.replace(/[^/]*$/, '');
+  if(/#tutorial\b/.test(location.hash)) try{ localStorage.removeItem(KEY); }catch(e){}   // open the link with #tutorial to see it again
   function get(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
   function set(k,v){ try{ localStorage.setItem(k,v); }catch(e){} }
   if(standalone || get(KEY)) return;
@@ -52,7 +53,7 @@
       if(deferred){ deferred.prompt(); deferred.userChoice.then(function(c){ if(c.outcome==='accepted') close(); }); deferred = null; return; }
       ios ? steps() : other(); };
   }
-  function row(n, t, img){ return '<li><span class="n">' + n + '</span>' + t + (img ? '<img alt="" src="' + base + img + '">' : '') + '</li>'; }
+  function row(n, t, img){ return '<li><span class="n">' + n + '</span>' + t + (img ? '<img alt="" src="' + base + img + (ver ? '?v=' + ver : '') + '">' : '') + '</li>'; }
   function steps(){
     card.innerHTML = '<ol>' + row(1,T.s1) + row(2,T.s2) + row(3,T.s3,'a2hs-more.png') + row(4,T.s4,'a2hs-home.png') + row(5,T.s5,'a2hs-add.png') + '</ol>'
       + '<div class="bt"><button class="sec">' + T.done + '</button></div>';
