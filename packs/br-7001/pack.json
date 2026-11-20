@@ -1,0 +1,6 @@
+{
+  "ticket": "BR-7001",
+  "title": "AI Tutor use cases",
+  "shell": "feature@1.0.3",
+  "notes": "Screen code generated from the BR-7001 motion package (wb2/gen_pack.py). Specs from the Notion ticket; Claude's additions in blue."
+}
