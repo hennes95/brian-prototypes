@@ -1,0 +1,27 @@
+# Workbenches
+
+Shells for Hannes' feature and animation workbenches, and the packs that load into them.
+
+## Where things live
+- **GitHub (this repo):** all code. The one source of truth.
+  - `workbench/feature/<version>/`: feature workbench shell. Never contains anything about a ticket.
+  - `packs/<ticket>/`: one ticket's prototype (`pack.js`, `pack.css`, `assets/`) and its pinned shell (`pack.json`).
+  - `workbench/animation/`: animation workbench shell (not yet extracted).
+- **Notion:** skill instructions, and specs after handoff (ticket "Update" sections).
+- **Claude artifacts:** the running copy of a ticket's workbench, published from `dist/` and never edited by hand.
+  The spec, while it's being written, lives in that artifact's database.
+- **GitHub Pages:** hosted prototypes for phones and user tests (`br-7147/` etc.).
+
+## Versions and pinning
+- Every shell release is a new folder (`workbench/feature/1.0.0/`, `1.1.0/` …) plus an entry in `CHANGELOG.md`. Old versions stay.
+- Each pack pins its shell in `pack.json` (`"shell": "feature@1.0.0"`). A ticket stays on that version.
+- When a new shell version exists, Claude asks before upgrading a ticket, and says whether anything would break.
+
+## Build a ticket workbench
+```
+python3 tools/assemble.py br-7147     # -> dist/br-7147/ (shell version from pack.json + the pack)
+```
+Publish the contents of `dist/<ticket>/` as the ticket's artifact. `dist/` is not committed.
+
+## Pack interface
+See `workbench/feature/PACK-API.md`.

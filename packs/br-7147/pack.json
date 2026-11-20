@@ -1,0 +1,6 @@
+{
+  "ticket": "BR-7147",
+  "title": "Redesign Input Field",
+  "shell": "feature@1.0.0",
+  "notes": "Pinned. Upgrade only after Hannes agrees (see workbench/README.md)."
+}
