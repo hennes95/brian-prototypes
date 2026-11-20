@@ -1,5 +1,11 @@
 # Feature workbench shell: changelog
 
+## 1.0.3 (20.11.26)
+- Comment markers and highlight in yellow (Agentation colour setting forced to yellow on load).
+- The shell no longer draws its own yellow dots on the screen; Agentation's markers replace them. Touchpoint chips keep their comment counts.
+- Comments are shown per variant + surface: the URL hash follows the variant and touchpoint (e.g. `#v2-cms`), and Agentation keeps markers per hash.
+  Applies to the jsdelivr build used in Claude artifacts; a local `agt.js` bundle keeps one list for the page.
+
 ## 1.0.2 (20.11.26)
 - Comments in Claude artifacts: 1.0.1's GitHub Pages fallback is blocked there (artifacts only allow scripts from a few CDNs).
   Without a local `agt.js` the shell now loads agentation 3.1.2 (with React 19.3.0) from jsdelivr and mounts it with the same glue the bundle had.
