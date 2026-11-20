@@ -1,5 +1,10 @@
 # Feature workbench shell: changelog
 
+## 1.0.2 (20.11.26)
+- Comments in Claude artifacts: 1.0.1's GitHub Pages fallback is blocked there (artifacts only allow scripts from a few CDNs).
+  Without a local `agt.js` the shell now loads agentation 3.1.2 (with React 19.3.0) from jsdelivr and mounts it with the same glue the bundle had.
+- An import map makes react-dom/client and agentation share one React.
+
 ## 1.0.1 (20.11.26)
 - Comments (Agentation) also work where `agt.js` isn't published next to the page: the shell then loads the copy hosted on GitHub Pages. Needed for Claude artifacts, which can't carry the bundle.
 - No other changes.
