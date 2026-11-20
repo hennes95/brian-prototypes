@@ -1,0 +1,96 @@
+/* BR-6891 pack styles: Teacher CMS + Student app screens, scoped to .fx */
+.fx{color-scheme:light;font-family:'Nunito',system-ui,sans-serif;color:#3a3a3a;-webkit-font-smoothing:antialiased}
+.fx *{box-sizing:border-box}
+.fx button{font-family:inherit;cursor:pointer}
+.fx .t-app{width:100%;height:100%;background:#63c0ff;display:flex;gap:32px;padding:32px;position:relative}
+.fx .t-nav{width:216px;flex:0 0 auto;display:flex;flex-direction:column;gap:6px;color:#fff}
+.fx .t-logo{width:56px;height:56px;border-radius:28px;background:#fff;color:#157ec5;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:22px;margin-bottom:24px}
+.fx .t-nav a{display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:6px;color:#fff;text-decoration:none;font-weight:600;font-size:14px}
+.fx .t-nav a.on{background:#fff;color:#3a3a3a}
+.fx .t-nav hr{border:0;height:1px;background:rgba(255,255,255,.6);margin:14px 0;width:100%}
+.fx .t-card{flex:1 1 auto;min-width:0;background:#fff;border-radius:24px;padding:28px 36px;overflow:hidden;display:flex;flex-direction:column;gap:22px}
+.fx .t-top{display:flex;justify-content:space-between;align-items:flex-start}
+.fx .t-school{font-size:14px;font-weight:600;color:#585858}
+.fx .t-h1{margin:2px 0 0;font-size:24px;font-weight:700}
+.fx .t-btn{display:inline-flex;align-items:center;gap:8px;padding:9px 13px;border:0;border-radius:4px;background:#63c0ff;color:#fff;font-size:14px;font-weight:700}
+.fx .t-btn.sec{background:#fff;color:#157ec5;border:1px solid #63c0ff}
+.fx .t-tabs{display:flex;gap:24px;border-bottom:1px solid #ddd}
+.fx .t-tabs span{padding:0 0 10px;color:#858585;font-weight:700;font-size:15px}
+.fx .t-tabs span.on{color:#3a3a3a;font-weight:800;border-bottom:3px solid #63c0ff;padding-bottom:7px}
+.fx .t-bulk{display:flex;align-items:center;gap:12px;padding:9px 14px;border-radius:8px;background:#c8e9ff}
+.fx .t-bulk b{font-size:14px}
+.fx .t-bulk .x-sp{flex:1}
+.fx .t-bulk button{display:inline-flex;align-items:center;gap:7px;padding:7px 12px;border-radius:4px;font-size:13px;font-weight:700;border:1px solid #3a3a3a;background:#fff;color:#3a3a3a}
+.fx .t-bulk button.lnk{border:0;background:none;color:#157ec5}
+.fx table{width:100%;border-collapse:collapse;font-size:13px}
+.fx th{text-align:left;font-size:12px;font-weight:700;padding:0 12px 12px 0;position:relative;white-space:nowrap}
+.fx td{padding:9px 12px 9px 0;border-top:1px solid #eee;color:#585858;height:44px}
+.fx td.fn{color:#3a3a3a;font-weight:600}
+.fx td:not(.fn){white-space:nowrap}
+.fx tr.sel td{background:#f0f9ff}
+.fx input[type=checkbox]{width:16px;height:16px;accent-color:#63c0ff;margin:0;cursor:pointer}
+.fx .fi{position:relative;display:inline-flex;width:24px;height:24px;border-radius:4px;background:#c8e9ff;color:#157ec5;align-items:center;justify-content:center;vertical-align:middle;margin-right:10px}
+.fx .fi .lk{position:absolute;right:-6px;bottom:-6px;width:15px;height:15px;border-radius:8px;background:#3a3a3a;color:#fff;display:flex;align-items:center;justify-content:center;border:1.5px solid #fff}
+.fx .info{width:18px;height:18px;padding:0;border:0;border-radius:9px;background:#63c0ff;color:#fff;font-size:11px;font-weight:800;line-height:18px;vertical-align:-3px;margin-left:6px}
+.fx .tip{position:absolute;top:26px;left:-30px;z-index:3;width:290px;padding:12px 14px;border-radius:6px;background:#3a3a3a;color:#fff;font-size:13px;font-weight:500;line-height:1.45;white-space:normal;display:flex;flex-direction:column;gap:6px}
+.fx .tip i{color:#ddd}
+/* access cell: V1 = pill always; V2 = resting shows only "Hidden" as text, the toggle appears on row hover / focus */
+.fx .sa{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:14px;font-size:12px;font-weight:700;border:1px solid #ddd;background:#fff;color:#585858}
+.fx .v1 .sa.hid{background:#3a3a3a;border-color:#3a3a3a;color:#fff}
+.fx .v2 .sa{min-width:92px}
+.fx .v2 .sa.hid{background:#f2f2f2;border-color:#ddd;color:#3a3a3a}
+.fx .v2 .sa-rest{font-size:13px;font-weight:600;color:#585858;padding:5px 0}
+.fx .v2 .sa{display:none}
+.fx .v2 tr:hover .sa,.fx .v2 tr:focus-within .sa,.fx .v2 tr.hov .sa{display:inline-flex}
+.fx .v2 tr:hover .sa-rest,.fx .v2 tr:focus-within .sa-rest,.fx .v2 tr.hov .sa-rest{display:none}
+.fx .v2 tr.hov td{background:#f7fbfe}
+.fx .x-ib{width:32px;height:32px;border:0;background:none;color:#3a3a3a;display:inline-flex;align-items:center;justify-content:center}
+.fx .t-foot{margin-top:auto;border-top:1px solid #ddd;padding-top:16px}
+/* dialogs */
+.fx .dim{position:absolute;inset:0;background:rgba(58,58,58,.45);display:flex;align-items:center;justify-content:center;z-index:5}
+.fx .dlg{background:#fff;border-radius:16px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+.fx .dlg-h{background:#63c0ff;color:#fff;padding:18px 24px;display:flex;align-items:center;justify-content:space-between}
+.fx .dlg-h h2{margin:0;font-size:22px;font-weight:700}
+.fx .dlg-h button{border:0;background:none;color:#fff;width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center}
+.fx .dlg-b{padding:24px;display:flex;flex-direction:column;gap:16px}
+.fx .dlg-f{border-top:1px solid #ddd;padding:16px 24px;display:flex;justify-content:flex-end;gap:12px}
+.fx .frow{display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid #ddd;border-radius:8px}
+.fx .callout{display:flex;gap:14px;padding:16px;border-radius:8px;background:#f0f9ff;border:1px solid #c8e9ff}
+.fx .callout .lkc{flex:0 0 auto;width:32px;height:32px;border-radius:16px;background:#3a3a3a;color:#fff;display:flex;align-items:center;justify-content:center}
+.fx .kb{display:grid;grid-template-columns:1fr 1fr;gap:24px;padding:24px;height:470px}
+.fx .kb-up{background:#f2f2f2;border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:12px}
+.fx .kb-tabs{display:flex;gap:4px;background:#fff;padding:4px;border-radius:6px;align-self:flex-start;font-size:14px;font-weight:600;color:#585858}
+.fx .kb-tabs span{padding:6px 10px}.fx .kb-tabs span.on{background:#63c0ff;color:#fff;border-radius:4px}
+.fx .kb-drop{flex:1;border:1.5px dashed #b1b1b1;border-radius:6px;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;font-size:20px;font-weight:600}
+.fx .kb-drop span{color:#157ec5}
+.fx .kb-list{border:1px solid #ddd;border-radius:8px;display:flex;flex-direction:column;min-height:0}
+.fx .kb-head{padding:16px;display:flex;flex-direction:column;gap:8px;border-bottom:1px solid #eee}
+.fx .kb-row{height:32px;display:flex;align-items:center;gap:12px;padding:0 16px;font-size:14px;font-weight:500}
+.fx .kb-row.off{color:#949494}
+.fx .tag{font-size:12px;font-weight:700;color:#585858;padding:2px 8px;border-radius:10px;background:#eee;margin-left:auto;white-space:nowrap}
+.fx .sw{width:36px;height:20px;border-radius:10px;background:#ddd;position:relative;border:0;padding:0;flex:0 0 auto}
+.fx .sw.on{background:#63c0ff}
+.fx .sw::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:8px;background:#fff;transition:left .15s}
+.fx .sw.on::after{left:18px}
+/* student app (phone) */
+.fx .s-app{width:390px;height:844px;background:#fff;display:flex;flex-direction:column;font-size:15px;font-weight:500}
+.fx .s-top{display:flex;align-items:center;gap:6px;padding:52px 12px 12px;border-bottom:.75px solid #ddd}
+.fx .s-chat{flex:1;overflow:auto;padding:20px 16px;display:flex;flex-direction:column;gap:18px;line-height:1.55}
+.fx .s-me{align-self:flex-end;max-width:80%;padding:10px 14px;border-radius:16px 16px 4px 16px;background:#c8e9ff;line-height:1.45}
+.fx .chip{display:inline-flex;align-items:center;gap:4px;padding:1px 8px;border:0;border-radius:10px;font-size:13px;font-weight:700;white-space:nowrap;vertical-align:1px;text-decoration:none}
+.fx .chip.vis{background:#c8e9ff;color:#157ec5}
+.fx .chip.hid{background:#eee;color:#3a3a3a}
+.fx .pop{display:flex;gap:10px;padding:12px 14px;border-radius:10px;background:#3a3a3a;color:#fff;font-size:13px;line-height:1.45}
+.fx .pdf{position:absolute;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:flex-end;z-index:4}
+.fx .pdf-sheet{background:#fff;width:100%;height:78%;border-radius:16px 16px 0 0;display:flex;flex-direction:column}
+.fx .pdf-sheet header{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:.75px solid #ddd;font-weight:700;font-size:14px}
+.fx .pdf-page{margin:16px;flex:1;border:1px solid #ddd;border-radius:4px;padding:18px;font-size:12px;color:#858585;display:flex;flex-direction:column;gap:8px}
+.fx .pdf-page mark{background:#fff3b0;color:#3a3a3a}
+.fx .s-in{padding:12px 16px 30px;border-top:.75px solid #ddd;display:flex;gap:8px;align-items:center}
+.fx .s-in span{flex:1;height:44px;border:.75px solid #ddd;border-radius:22px;display:flex;align-items:center;padding:0 16px;color:#858585}
+/* device frames on the stage */
+#pwrap .phone{background:#fff;overflow:hidden;position:relative;box-shadow:0 18px 60px rgba(0,0,0,.18)}
+#pwrap .phone.dev-desktop{border-radius:8px}
+#pwrap .phone.dev-phone{border-radius:44px;outline:10px solid #1d1d1b}
+.fx .x-ib{width:32px;height:32px;border:0;background:none;color:#3a3a3a;display:inline-flex;align-items:center;justify-content:center;padding:0}
+
