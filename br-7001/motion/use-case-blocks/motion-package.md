@@ -840,13 +840,15 @@ root.MotionEngine = { id:'ai-tutor-blocks', create(ctx){
     }
     function settle(i){ const w = wobs[i]; w.classList.add('rest'); w.style.setProperty('--hx','0px'); w.style.setProperty('--hy','0px'); w.style.setProperty('--hr','0deg'); }
     blocks.forEach((b,i)=>{
-      b.addEventListener('mouseenter',()=>{ if(api.opened()||P('wiggle',api.variant())<=0) return; wob(i,1); setTimeout(()=>settle(i),110); });
+      b.addEventListener('mouseenter',()=>{ if(!HOVER || api.opened()||P('wiggle',api.variant())<=0) return; wob(i,1); setTimeout(()=>settle(i),110); });
       b.addEventListener('mouseleave',()=>settle(i));
       b.addEventListener('pointerdown',()=>{ if(!api.opened()) b.classList.add('pressed'); });
       ['pointerup','pointerleave','pointercancel'].forEach(ev=>b.addEventListener(ev,()=>{ if(!api.opened()) b.classList.remove('pressed'); }));
     });
     phone.querySelector('#newChat').addEventListener('click',()=>api.onPlus());
     const tab = phone.querySelector('.tab.active'); if(tab){ tab.style.cursor='pointer'; tab.addEventListener('click',()=>api.onTab()); }
+
+const HOVER = matchMedia('(hover:hover)').matches;   // touch screens fire mouseenter on tap: no hover wiggle there
 
   function time(){ const d=new Date(); return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); }
   function avatarSvg(kind){
@@ -869,7 +871,7 @@ root.MotionEngine = { id:'ai-tutor-blocks', create(ctx){
 
     let cs = null, ct = null;
     function placeBlock(el,b){
-      el.style.setProperty('--k',b.s);
+      if(el._k !== b.s){ el._k = b.s; el.style.setProperty('--k',b.s); }   // only when it changes: --k re-lays out the block's text
       el.style.transform = 'translate('+(b.cx-W*b.s/2)+'px,'+(b.cy-H*b.s/2)+'px) rotate('+b.r+'deg)';
       el.style.opacity = String(b.o);
     }
