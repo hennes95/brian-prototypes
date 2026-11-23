@@ -161,10 +161,24 @@ const MOCK_LOADER=`<svg class="porthole" viewBox="0 0 100 100" aria-hidden="true
  <circle cx="50" cy="50" r="45" class="rg"/><circle cx="50" cy="50" r="35.5" class="rg"/>
  ${[0,1,2,3,4,5,6,7].map(i=>{const a=(i*45+20)*Math.PI/180;return `<circle cx="${(50+40.2*Math.cos(a)).toFixed(1)}" cy="${(50+40.2*Math.sin(a)).toFixed(1)}" r="2.3" class="rv"/>`;}).join("")}</svg>`;
 const spin=`<span class="loader mock" data-mock="Mock: loader drawn from a screenshot, replace with the app's asset" role="img" aria-label="Uploading">${MOCK_LOADER}</span>`;
+/* Document preview, rebuilt from the Figma component (Document, 12495:98485): page with the top-right corner cut off,
+   a folded triangle in that corner, thin outline and a hard shadow on page and fold. The image is the component's own image fill. */
+let docN=0;
+function docSVG(loading){
+  const id="dpc"+(++docN), page="M0 0H291.1L316.5 24.8L317.1 178.8H0Z";
+  return `<svg class="docsvg" viewBox="0 0 321 183" preserveAspectRatio="none" ${loading?'aria-hidden="true"':'role="img" aria-label="Document"'}>
+    <defs><clipPath id="${id}"><path d="${page}"/></clipPath></defs>
+    <path class="dsh" d="M3 3H294.1L319.5 27.8L320.1 181.8H3Z"/>
+    <g clip-path="url(#${id})">${loading?`<rect class="dfill" width="321" height="183"/>`:`<rect width="321" height="183" fill="#fff"/><image href="assets/document.png" width="317.1" height="178.8" preserveAspectRatio="xMidYMid slice"/><rect width="321" height="183" fill="#000" opacity=".03"/>`}</g>
+    <path class="dln" d="${page}"/>
+    <path class="dsh" d="M294 3.3V27.7H319.2Z"/>
+    <path class="dfold" d="M291 .3V24.7H316.2Z"/>
+  </svg>`;
+}
 function thumb(k,loading,cls=""){
   if(k==="image") return `<span class="th th-img ${cls} ${loading?"ld":""}"><span class="ph">${loading?spin:`<img src="assets/photo.png" alt="Photo">`}</span></span>`;
   if(k==="drawing") return `<span class="th th-draw ${cls} ${loading?"ld":""}">${loading?spin:`<img src="assets/drawing.png" alt="Canvas">`}</span>`;
-  return `<span class="th th-doc ${cls} ${loading?"ld":""}">${loading?`<span class="dshape">${spin}</span>`:`<img src="assets/document.png" alt="Document">`}</span>`;
+  return `<span class="th th-doc ${cls} ${loading?"ld":""}">${docSVG(loading)}${loading?`<span class="dspin">${spin}</span>`:""}</span>`;
 }
 function assetHTML(a,g){
   const id=a.loading?"att-loading":a.k==="two"||a.k==="more"?"att-multi":"att-"+a.k;
