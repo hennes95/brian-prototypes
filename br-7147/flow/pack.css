@@ -377,3 +377,10 @@ body:not(.proto) .oosa{outline:1px dashed #e0b400;outline-offset:4px;border-radi
 /* the scrolling area runs up to the field's top edge, so scrolled content is cut by the pill shape, no blank band (Hannes 24.11) */
 .cmp.attscroll:not(.fs) .c-body{margin-top:-8px;padding-top:8px;box-sizing:border-box}
 .cmp.attscroll:not(.fs) .c-body{-webkit-overflow-scrolling:touch;overscroll-behavior:contain;touch-action:pan-y}
+/* field outline drawn on top of the content (Hannes 24.11), so scrolled text and attachments never paint over it.
+   Pill inverted: light outline (Mono-500) to separate field, text end and page; Pill keeps its dark outline. */
+.v-pill::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:4;box-shadow:inset 0 0 0 .75px #b1b1b1}
+.v-pill.v-pill-light{box-shadow:none}
+.v-pill.v-pill-light::after{box-shadow:inset 0 0 0 .75px var(--b-ink)}
+.phone.dark .v-pill.v-pill-light{box-shadow:none}
+.phone.dark .v-pill.v-pill-light::after{box-shadow:inset 0 0 0 .75px #fff}
