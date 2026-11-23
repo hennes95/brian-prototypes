@@ -71,7 +71,8 @@
         if(!opened || (model && (model.kind==='blur' || model.kind==='enter'))) playKind('focus',undefined,true); },
       onSend: text=>{ if(opened && model && model.kind==='focus' && text) playKind('send',{text},true); },
       onOutside: ()=>{ if(opened && model && model.kind==='focus') playKind('blur',{fromT:tNow},true); },
-      opened: ()=>opened, variant: ()=>variant });
+      opened: ()=>opened, variant: ()=>variant,
+      realKeyboard: PROTO && matchMedia('(pointer:coarse)').matches, scale: ()=>protoK });   // phone build on a touch screen: the OS keyboard
     buildTabs(); buildChips(); renderPanel(); checkVectors(); fit();
     playKind('enter');
   }
@@ -413,17 +414,21 @@
   });
 
   /* ================= FIT ================= */
+  let protoK = 1;                               // phone build: artboard scale (for the real keyboard height)
   function fit(){
     const tl = $('tl'), tlh = tl.offsetHeight+24; document.body.style.setProperty('--tlh', tlh+'px');
     if(!pkg) return; const a = pkg.manifest.artboard;
     if(PROTO){ // on the home screen iOS draws the real status bar above the page, so the artboard's own status-bar strip is cropped
       const home = navigator.standalone===true || matchMedia('(display-mode: standalone)').matches, sb = home ? (a.statusBar||0) : 0;
-      const k = Math.min(window.innerWidth/a.w, window.innerHeight/(a.h-sb));
-      $('stage').style.transform = 'translateY('+(-sb*k/2)+'px) scale('+k+')'; return; }
+      const k = Math.min(window.innerWidth/a.w, window.innerHeight/(a.h-sb)), vv = window.visualViewport; protoK = k;
+      const pan = vv ? (vv.pageTop || 0) : 0;   // iOS pans the page when the keyboard opens: move the screen back so it stays put
+      $('stage').style.transform = 'translateY('+(-sb*k/2+pan)+'px) scale('+k+')'; return; }
     const s = Math.min((window.innerHeight-44-tlh-8)/a.h, ((window.innerWidth<=820?window.innerWidth:window.innerWidth-304)-16)/a.w, 1.6);
     $('stage').style.transform = 'scale('+s+')';
   }
   window.addEventListener('resize', fit);
+  if(PROTO && window.visualViewport){ visualViewport.addEventListener('resize', fit); visualViewport.addEventListener('scroll', fit);
+    document.addEventListener('focusout', ()=>setTimeout(()=>{ window.scrollTo(0,0); fit(); },120)); }   // after the keyboard closes iOS can leave the page scrolled
   document.addEventListener('keydown', e=>{
     if(e.code!=='Space' || e.metaKey || e.ctrlKey || e.altKey || PROTO) return;
     const t = e.target, typing = t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName) && !/^(range|button|checkbox)$/.test(t.type||''));
