@@ -45,12 +45,12 @@ if tps: spec += ['### Touchpoints', ''] + sum([[f"#### {k[3:]}", '', md(docs[k])
 spec += ['## Side effects', '', '### Effects on existing data', '', md(docs.get('data','')) or '_not checked_', '', '### Notifications, emails & tracking', '', md(docs.get('side','')) or '_not checked_', '']
 oq = md(docs.get('questions',''))   # open questions are always checkboxes, so they can be ticked off when clear
 oq = re.sub(r'^(\s*)- (?!\[[ x]\] )', r'\1- [ ] ', oq, flags=re.M)
-spec += ['## Open questions', '', oq or '_none_', '']
 LK = P.get('links', {})
 hub = [('Design', 'Figma', LK.get('figma') or next((m.get('figma') for m in D['modes'] if m.get('figma')), '')), ('Copies', 'Copies ' + P['ticket'], LK.get('copies')),
        ('Feature Workbench', 'Feature Workbench', LK.get('feature')), ('Animation Workbench', 'Animation Workbench', LK.get('animation')),
        ('Prototype', 'Phone prototype', LK.get('phone')), ('Handoff', f"packs/{tk}/handoff", f"https://github.com/hennes95/brian-prototypes/tree/main/packs/{tk}/handoff")]
 spec += ['## Implementation', ''] + [f"- {a}: [{b}]({u})" for a, b, u in hub if u] + ['', '### Design system changes', '', md(docs.get('ds','')) or '_none_', '']
+spec += ['## Open questions', '', oq or '_none_', '']   # always last (Hannes 23.11)
 open(os.path.join(out,'spec.md'),'w').write('\n'.join(spec))
 
 st = {"ticket":P['ticket'], "source":f"packs/{tk} @ {commit}", "states":[{"id":s['id'],"mode":m['name'],"name":s['name'],"figma":m.get('figma') or None} for m in D['modes'] for s in m['states']],

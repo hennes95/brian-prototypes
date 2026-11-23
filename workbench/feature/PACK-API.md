@@ -45,6 +45,6 @@ UI updates: `renderLeft()`, `renderHeader()`, `renderMinimap()`, `markActive()`,
 - `<span class="ai">…</span>`: Claude's own suggestion (blue), accepted or declined one by one.
 - `<div class="imp" data-src="ticket · 19.11">…</div>`: text imported from a source Hannes wrote (Notion ticket, backup). One block per section, kept or dropped as a whole (same ✓ ✕ ↩ as suggestions from 1.0.10, always visible). Never blue.
 
-## Spec structure (shell 1.1.4+) = the Notion ticket
-Brief (Problem · Goal · Scope · Out of scope) → Solution (global rules, modes → states) → Edge cases & touchpoints → Side effects (effects on existing data; notifications, emails & tracking) → Open questions → Implementation (links, design system changes).
+## Spec structure (shell 1.1.5+) = the Notion ticket
+Brief (Problem · Goal · Scope · Out of scope) → Solution (global rules, modes → states) → Edge cases & touchpoints → Side effects (effects on existing data; notifications, emails & tracking) → Implementation (links, design system changes) → Open questions.
 The ticket preview, `tools/export_handoff.py` and the Notion ticket after handover use exactly these sections in this order.
