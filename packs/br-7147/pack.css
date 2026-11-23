@@ -324,3 +324,5 @@ body:not(.proto) .oosa{outline:1px dashed #e0b400;outline-offset:4px;border-radi
 .docsvg .dsh{fill:var(--b-ink)}
 .docsvg .dln{fill:none;stroke:var(--b-ink);stroke-width:.75;vector-effect:non-scaling-stroke}
 .docsvg .dfold{fill:#fff;stroke:var(--b-ink);stroke-width:.75;stroke-linejoin:round;vector-effect:non-scaling-stroke}
+/* Hannes 24.11: attachments as far from the field's left edge as from its top, lined up with the text below (both pill variants) */
+.v-pill .c-att{padding-top:6px;padding-left:16px}
