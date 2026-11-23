@@ -134,6 +134,7 @@ const CHAT=[
  {t:"t",p:[`Exactly. Now tell me: which number is your m, and which one is your b?`]},
  {t:"s",text:"m is 2 and b is 3, so the equation is y = 2x + 3."},
  {t:"t",g:"cite-direct",p:[`Correct. Your workbook also describes what happens to the line for different values of m.`],cite:{type:"direct",intro:"Two sections of your workbook are helpful here:",q:[["»If m is positive, the line goes up from left to right.«","Workbook Maths 8, p. 42"],["»If m is negative, the line goes down from left to right.«","Workbook Maths 8, p. 43"]],between:"and for the opposite case:"},after:[`Can you send me your worksheet on linear functions? Then we can check it together.`]},
+ {t:"t",g:"interactive",p:[`Try it yourself: move the slider and watch what m does to the line.`],ia:"slope"},
  {t:"s",g:"asset-doc",asset:{k:"doc"},text:"Here is my worksheet. Can you check my last two equations?"},
  {t:"tag",g:"dates",text:"Today"},
  {t:"t",g:"cite-indirect",p:[`Thanks, Alex. Both equations are correct. In short, the slope tells you how steep the line is, and the y-intercept tells you where it starts.`],cite:{type:"indirect",t:["Your workbook says that the slope m is the change in y for every step to the right in x.","It also says that b is the point where the line meets the y-axis."],src:["Workbook Maths 8, p. 42","Workbook Maths 8, p. 43"]},after:[`Do you want to try another equation?`]},
@@ -194,11 +195,27 @@ function citeHTML(c,g){
   const sup=["¹","²"];
   return `<div class="cite indirect">${c.t.map((t,i)=>`<p>${esc(t)}${sup[i]}</p>`).join("")}<div class="fns" ${el("cite-foot","Footnote sources",g)}>${c.src.map((s,i)=>`<div class="fn"><span>${i+1}</span><a class="src">${esc(s)}</a></div>`).join("")}</div></div>`;
 }
+/* AI-created interactive element, card variant A (Hannes 23.11, design file row 3): same language as the attachment
+   previews (thin line, hard shadow, body-md title, caption label); ink plus one accent: blue = what you can move. */
+const IA_EXP=`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M10 20H4v-6M20 4l-7 7M4 20l7-7"/></svg>`;
+const IA_HAND=`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 13V5.5a1.5 1.5 0 0 1 3 0V12M11 11.5v-8a1.5 1.5 0 0 1 3 0v8M14 11.5v-6a1.5 1.5 0 0 1 3 0V13M17 9.5a1.5 1.5 0 0 1 3 0V15a7 7 0 0 1-7 7h-1.2a6 6 0 0 1-4.6-2.2L4 16.2a1.6 1.6 0 0 1 2.4-2.1L8 15.5"/></svg>`;
+let IA_M=2;
+function iaLine(m){ /* graph area 0..6 in x, -2..12 in y → svg 260x150 */ const X=x=>20+x*38, Y=y=>136-(y+2)*9; return `M${X(0)} ${Y(3)}L${X(6)} ${Y(3+6*m)}`; }
+function iaHTML(k,g){
+  const grid=[1,2,3,4,5,6].map(x=>`<line class="ia-g" x1="${20+x*38}" y1="10" x2="${20+x*38}" y2="140"/>`).join("")+[0,3,6,9,12].map(y=>`<line class="ia-g" x1="20" y1="${136-(y+2)*9}" x2="252" y2="${136-(y+2)*9}"/>`).join("");
+  return `<div class="ia" ${el("interactive","Interactive element (created by the AI)",g)}>
+   <div class="ia-hd"><div class="ia-tt"><div class="ia-lab">${IA_HAND}Interactive</div><div class="ia-ttl">Slope: what m does to the line</div></div><button class="ia-x" aria-label="Full screen">${IA_EXP}</button></div>
+   <svg class="ia-gr" viewBox="0 0 260 150" role="img" aria-label="Graph of y = m·x + 3"><defs><clipPath id="iac"><rect x="20" y="10" width="232" height="130"/></clipPath></defs>${grid}
+    <line class="ia-ax" x1="20" y1="8" x2="20" y2="142"/><line class="ia-ax" x1="18" y1="118" x2="254" y2="118"/>
+    <path class="ia-ln" clip-path="url(#iac)" d="${iaLine(IA_M)}"/><circle class="ia-pt" cx="20" cy="91" r="3.5"/><text class="ia-t" x="27" y="108">b = 3</text></svg>
+   <div class="ia-sl"><div>Slope m: <b class="ia-v">${IA_M}</b> · y = <span class="ia-eq">${IA_M}x + 3</span></div><input type="range" min="0" max="3" step="0.5" value="${IA_M}" aria-label="Slope m"></div>
+   <div class="ia-note">Simplified: b stays at 3, only the slope changes.</div></div>`;
+}
 let spkDone=false;
 function tutorHTML(m){
   const g=m.g||"";
   const sp=!spkDone?(spkDone=true,el("speaker","Read aloud (only icon for now)","layout")):"";
-  return `<div class="tm" data-g="${g}"><div class="tp">${(m.p||[]).map(x=>`<p>${x}</p>`).join("")}${m.cite?citeHTML(m.cite,g):""}${(m.after||[]).map(x=>`<p>${x}</p>`).join("")}</div><div class="act"><button data-act="speak" ${sp} aria-label="Read aloud">${I.speaker}</button></div></div>`;
+  return `<div class="tm" data-g="${g}"><div class="tp">${(m.p||[]).map(x=>`<p>${x}</p>`).join("")}${m.cite?citeHTML(m.cite,g):""}${m.ia?iaHTML(m.ia,g):""}${(m.after||[]).map(x=>`<p>${x}</p>`).join("")}</div><div class="act"><button data-act="speak" ${sp} aria-label="Read aloud">${I.speaker}</button></div></div>`;
 }
 let wlDone=false;
 function studentHTML(m){
@@ -375,6 +392,7 @@ function syncSel(kind){ if(document.body.classList.contains("proto")) return; co
 const pw=document.getElementById("pwrap");
 pw.addEventListener("click",e=>{
   if(e.target.closest(".badge")){ const id=e.target.closest(".badge").dataset.el; const it=document.querySelector(`#pwrap [data-el="${id}"]`); it&&it.scrollIntoView({block:"center",behavior:"smooth"}); return; }
+  if(e.target.closest(".ia input, .ia-x")) return;
   const att=e.target.closest(".as"); if(att&&!att.querySelector(".ld")&&!att.closest(".cv")){ openViewer(att,e.target); return; }
   const a=e.target.closest("[data-act]");
   if(a){ const k=a.dataset.act; if(k==="send"){ e.preventDefault(); send(); } else if(k==="plus") addPhoto(); else if(k==="newchat"){ THREAD=[]; WAITING=false; renderStage(); } return; }
@@ -382,6 +400,8 @@ pw.addEventListener("click",e=>{
   if(document.body.classList.contains("proto")) return;
   const g=e.target.closest("[data-g]"); if(!g||!g.dataset.g) return; const k=g.dataset.g.split(" ")[0]; const x=flat().find(y=>y.s.kind===k); if(x&&x.s.id!==ui.sel.state) go(x.s.id);
 });
+pw.addEventListener("input",e=>{ const r=e.target.closest(".ia input[type=range]"); if(!r) return; IA_M=+r.value; const c=r.closest(".ia");
+  c.querySelector(".ia-ln").setAttribute("d",iaLine(IA_M)); c.querySelector(".ia-v").textContent=IA_M; c.querySelector(".ia-eq").textContent=(IA_M===0?"":IA_M+"x + ")+"3"; });
 pw.addEventListener("keydown",e=>{ if(e.key==="Enter"&&e.target.matches(".fld input")){ e.preventDefault(); send(); } });
 function go(stateId){ const x=find(stateId); if(!x) return; ui.sel={kind:"state",mode:x.m.id,state:x.s.id}; ui.live={}; render(); scrollToSel(); }
 
@@ -437,4 +457,4 @@ function wireViewer(v){
 }
 
 /* ================= stable element numbers ================= */
-const EL_ORDER=["menu","help","close","newchat","speaker","wline","att-image","att-drawing","att-doc","att-multi","att-loading","cite-source","cite-foot","date","brian"];
+const EL_ORDER=["menu","help","close","newchat","speaker","wline","att-image","att-drawing","att-doc","att-multi","att-loading","cite-source","cite-foot","interactive","date","brian"];
