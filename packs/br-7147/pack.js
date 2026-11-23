@@ -256,10 +256,20 @@ function attDocSVG(src){ const id="adp"+(++attDocN), page="M0 0H272L316.5 43.4L3
   return `<svg class="docsvg" viewBox="0 0 321 183" preserveAspectRatio="none" role="img" aria-label="Document"><defs><clipPath id="${id}"><path d="${page}"/></clipPath></defs><g clip-path="url(#${id})"><rect width="321" height="183" fill="#fff"/><image href="${src}" width="317.1" height="178.8" preserveAspectRatio="xMidYMid slice"/><rect width="321" height="183" fill="#000" opacity=".03"/></g><path class="dln" d="${page}"/><path class="dsh" d="M275 3.3V46.4H319.2Z"/><path class="dfold" d="M272 .3V43.4H316.2Z"/></svg>`; }
 const ATT={
  get image(){ return `<span class="pic"><img src="${PREV.photo||"assets/photo.png"}" alt=""></span>`; },
- loading:`<span class="pic"><span class="spin"></span></span>`,
+ get loading(){ return attLoad("image"); },
  get drawing(){ return `<img class="drw" src="${PREV.drawing||"assets/drawing.png"}" alt="">`; },
  get doc(){ return attDocSVG(PREV.doc||"assets/document.png"); }
 };
+/* Loading (spec u-att edge case, Hannes 24.11): BR-7144 ink dots fill the attachment's own shape (photo frame, canvas card, document page);
+   outline + shadow stay, dots get denser as the upload runs, then the file snaps in. "type~" = still uploading; "loading" = endless (spec frame). */
+function attInk(lv){ return `<span class="ink ${lv==="inf"?"inf":"prog"}" role="img" aria-label="Uploading"></span>`; }
+function attLoad(t,lv="inf"){
+  if(t==="doc") return attDocSVG("").replace(/<image[^>]*\/>/,"")+`<span class="dink">${attInk(lv)}</span>`;
+  if(t==="drawing") return `<span class="dwl">${attInk(lv)}</span>`;
+  return `<span class="pic">${attInk(lv)}</span>`; }
+const attBase=t=>t==="loading"?"image":t.replace(/~$/,"");
+function attCls(t){ return t==="loading"?"image a-up":t.endsWith("~")?attBase(t)+" a-up":t; }
+function attHTML(t){ return t==="loading"?attLoad("image","inf"):t.endsWith("~")?attLoad(attBase(t),"prog"):ATT[t]; }
 
 const el=(id,label)=>`data-el="${id}" data-label="${esc(label)}"`;
 function seed(kind){ const p=preset(kind); return {_m:1,text:p.text||"",focused:!!p.focused,menu:!!p.sheet,picker:false||!!p.picker,atts:Array.isArray(p.attach)?[...p.attach]:[],waiting:!!p.typing,thread:[],note:p.note,reserved:!!p.reserved,fs:!!p.fs}; }
@@ -285,7 +295,7 @@ function phoneHTML(st,live={},interactive=true){
   if(!VARIANTS.some(x=>x.id===ui.variant)&&!(VARIANTS_ARCHIVED.some(x=>x.id===ui.variant)&&ui._showArchived)) ui.variant="pill";
   const ctx=ui.context, dark=isDarkCtx(ctx), quiz=ctx==="quiz", disc=ctx==="discussion", diary=ctx==="diary", v=ui.variant, inv=v==="inv", vcls=v==="pill-light"?"v-pill v-pill-light":inv?"v-open v-inv":v==="angled"?"v-open v-angled":"v-"+v;
   const tab=ctx==="tutor"&&!q.focused;
-  const hasText=(q.text||"").trim().length>0||q.attach;
+  const hasText=(q.text||"").trim().length>0||!!q.attach, canSend=(q.text||"").trim().length>0||(q.attach&&q.attach.some(t=>t!=="loading"&&!t.endsWith("~"))); /* send shows once the first attachment has finished uploading */
   const ink=dark?"#2f2f2f":"#fff";
   const extra=(M.thread||[]).map(x=>x.who==="s"?`<div class="m-s"><div>${esc(x.text)}${x.atts&&x.atts.length?`<div class="oos" data-oos="In-chat attachments: not part of BR-7147 (→ BR-7144)"><span class="oos-chip">📎 ${x.atts.length} attachment${x.atts.length>1?"s":""}</span></div>`:""}</div><div class="wl"></div></div>`:`<div class="m-t"><p>${esc(x.text)}</p><div class="act"><button ${el("speaker2","Read answer aloud")} aria-label="Read aloud">${I.speaker}</button></div></div>`).join("");
   const typing=q.typing;
@@ -304,8 +314,8 @@ function phoneHTML(st,live={},interactive=true){
       ${typing?`<div class="typing"><div class="ava">B</div><div class="dots"><span></span><span></span><span></span></div></div>`:reply}
     </div>`}
     ${(()=>{ const plus=`<button class="c-plus" ${el("plus","Add attachment (+)")} aria-label="Add attachment">${I.plus(inv?(dark?"#fff":"#2f2f2f"):(v==="pill"&&!dark?"#fff":ink))}</button>`;
-      const right=hasText?`<button class="c-right send ${q.typing?"inactive":""}" ${el("send","Send")} aria-label="Send" ${q.typing?'aria-disabled="true"':""}>${I.send}</button>`:`<button class="c-right" ${el("mic","Voice input (reserved)")} aria-label="Voice input">${I.mic}<span class="resv"></span></button>`;
-      const body=`<div class="c-body">${q.attach?`<div class="c-att">${q.attach.map((t,i)=>`<span class="att a-${t}"><span class="acard" data-open="${i}" role="button" aria-label="${ATT_NAME[t]||t}">${ATT[t]}</span><button class="rm" data-rm="${i}" ${el("att-rm-"+i,"Remove attachment "+(i+1))} aria-label="Remove attachment">×</button></span>`).join("")}</div>`:""}<textarea rows="1" placeholder="${quiz?"Something unclear?":disc?"Post a question":diary?"What went well today?":"Ask anything"}" aria-label="Message" ${el("field","Text field")} ${interactive?"":"tabindex=-1"}>${esc(q.text)}</textarea></div>`;
+      const right=canSend?`<button class="c-right send ${q.typing?"inactive":""}" ${el("send","Send")} aria-label="Send" ${q.typing?'aria-disabled="true"':""}>${I.send}</button>`:`<button class="c-right" ${el("mic","Voice input (reserved)")} aria-label="Voice input">${I.mic}<span class="resv"></span></button>`;
+      const body=`<div class="c-body">${q.attach?`<div class="c-att">${q.attach.map((t,i)=>`<span class="att ${attCls(t).split(" ").map((c,j)=>j?c:"a-"+c).join(" ")}"><span class="acard" data-open="${i}" role="button" aria-label="${(ATT_NAME[attBase(t)]||t)+(attCls(t).includes("a-up")?", uploading":"")}">${attHTML(t)}</span><button class="rm" data-rm="${i}" ${el("att-rm-"+i,"Remove attachment "+(i+1))} aria-label="Remove attachment">×</button></span>`).join("")}</div>`:""}<textarea rows="1" placeholder="${quiz?"Something unclear?":disc?"Post a question":diary?"What went well today?":"Ask anything"}" aria-label="Message" ${el("field","Text field")} ${interactive?"":"tabindex=-1"}>${esc(q.text)}</textarea></div>`;
       /* spec (Typing): on focus, + and mic move below the text, the field spans the message width and gets a border */
       /* Figma 12596:173965: while the text fits on one line, the field stays in one row between + and mic/send; it underlines what is typed (solid) on a dashed line. Only when it no longer fits do + and send move below. */
       const uline=`<span class="uline" aria-hidden="true"><i style="width:${Math.min(Math.ceil(textW(q.text||""))+4,inlineFieldW()+8)}px"></i></span>`;
@@ -471,7 +481,7 @@ document.getElementById("pwrap").addEventListener("click",e=>{
   if(e.target.dataset.dim){ if(M.picker){ const back=M.pickKind==="edit"||M.pickKind==="view"; M.picker=false; M.menu=!back; if(back) M.focused=true; rerenderKeepCaret(back); }
     else { const keep=inCmp(e)&&!!M.focused; M.menu=false; if(!keep){ M.focused=false; ta&&ta.blur(); } rerenderKeepCaret(keep); } syncSel(); return; }
   const op=e.target.closest("[data-open]");
-  if(op){ const t=M.atts[+op.dataset.open]; if(t==="loading") return; M.viewKbd=!!M.focused; ta&&ta.blur(); M.picker=true; M.pickKind=t==="doc"?"view":"edit"; rerenderKeepCaret(); syncSel(); return; }
+  if(op){ const t=M.atts[+op.dataset.open]; if(t==="loading"||t.endsWith("~")) return; M.viewKbd=!!M.focused; ta&&ta.blur(); M.picker=true; M.pickKind=t==="doc"?"view":"edit"; rerenderKeepCaret(); syncSel(); return; }
   const rmb=e.target.closest("[data-rm]");
   if(rmb){ M.atts.splice(+rmb.dataset.rm,1); rerenderKeepCaret(!!M.focused); syncSel(); return; }
   const t=e.target.closest("[data-el]");
@@ -486,8 +496,8 @@ document.getElementById("pwrap").addEventListener("click",e=>{
   else if(id==="pick-next"){ M.pickKind="docsel"; }
   else if(id==="pick-back"){ M.pickKind="doc"; }
   else if(id==="view-close"){ M.picker=false; M.focused=!!M.viewKbd; rerenderKeepCaret(M.focused); syncSel(); return; }
-  else if(id==="pick-add"){ M.picker=false; M.atts.push(M.pickType||"image"); M.focused=!!M.menuKbd; rerenderKeepCaret(M.focused); syncSel(); return; }
-  else if(id==="send"){ if(M.waiting) return; const txt=M.text.trim(); if(!txt&&!M.atts.length) return; M.thread.push({who:"s",text:txt,atts:[...M.atts]}); M.text=""; M.atts=[]; M.focused=false; M.fs=false; M.stacked=false; M.waiting=true; saveThread();
+  else if(id==="pick-add"){ M.picker=false; const up=(M.pickType||"image")+"~"; M.atts.push(up); setTimeout(()=>{ const k=M.atts.indexOf(up); if(k<0) return; M.atts[k]=attBase(up); rerenderKeepCaret(); syncSel(); },1800); M.focused=!!M.menuKbd; rerenderKeepCaret(M.focused); syncSel(); return; }
+  else if(id==="send"){ if(M.waiting) return; const txt=M.text.trim(); if(!txt&&!M.atts.some(t=>t!=="loading"&&!t.endsWith("~"))) return; M.thread.push({who:"s",text:txt,atts:M.atts.map(attBase)}); M.text=""; M.atts=[]; M.focused=false; M.fs=false; M.stacked=false; M.waiting=true; saveThread();
     rerenderKeepCaret(); syncSel(); setTimeout(()=>{ M.waiting=false; M.thread.push({who:"t",text:REPLIES[(M.thread.length/2|0)%REPLIES.length]}); saveThread(); renderStage(); syncSel(); },1400); return; }
   else if(id==="newchat"){ M.thread=[]; M.text=""; M.atts=[]; M.focused=false; saveThread(); }
   else return;
