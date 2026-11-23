@@ -165,16 +165,16 @@ const DOCS = {
     questions: ul("Column name: \"Student access\" or \"Visible to students\"?", "Hover toggle: does it also need a keyboard path beyond focus (e.g. row menu)?", "Solutions detection: file name only, or also content?")
   };
 const STATE_DOCS = {
-    "cm-rest": ul("Column \"Student access\" (#1) with info icon (#2)", ["Hidden files", "Show \"Hidden\" as text only (#3)", "Lock badge on the file icon (#4)"], "Visible files show nothing in the column"),
-    "cm-hover": ul(["Row hover or keyboard focus in the row", "Toggle appears in the column (#5)", "Visible file: \"Visible\" with eye icon"], "Click toggles the state, row stays hovered"),
+    "cm-rest": ul("Column \"Student access\" with info icon", ["Hidden files", "Show \"Hidden\" as text only", "Lock badge on the file icon"], "Visible files show nothing in the column"),
+    "cm-hover": ul(["Row hover or keyboard focus in the row", "Toggle appears in the column", "Visible file: \"Visible\" with eye icon"], "Click toggles the state, row stays hovered"),
     "cm-hover-h": ul(["Hidden file on hover", "Toggle shows \"Hidden\" with crossed-out eye", "Light grey, not dark (Hannes 20.11)"], "Click → visible, lock badge disappears"),
-    "cm-tip": ul("Tooltip on the info icon (#6)", ["Copy", "\"Brian still uses hidden material, but students can't open it when Brian cites it.\"", "\"Use this for solutions or teacher notes.\""]),
-    "cm-bulk": ul(["One or more rows selected", "Bulk bar above the table (#7)", "\"Hide from students\" (#8) / \"Show to students\" (#9) / Clear"], "After the action the selection clears"),
-    "up-detect": ul(["Uploaded file name looks like solutions", "\"Lösung\", \"Solution\", \"Answer key\", \"Musterlösung\""], ["Ask once (#10)", "\"Keep visible\" (#11) / \"Hide from students\" (#12)"], "Can be changed anytime in Course Materials"),
-    "kb-sync": ul(["Toggle on (#13)", "List read-only, all files ticked"], "Description (#14): \"All course materials are added and removed automatically, including material that is hidden from students.\"", "Hidden files keep the lock and a \"Hidden from students\" tag (#15)"),
+    "cm-tip": ul("Tooltip on the info icon", ["Copy", "\"Brian still uses hidden material, but students can't open it when Brian cites it.\"", "\"Use this for solutions or teacher notes.\""]),
+    "cm-bulk": ul(["One or more rows selected", "Bulk bar above the table", "\"Hide from students\" / \"Show to students\" / Clear"], "After the action the selection clears"),
+    "up-detect": ul(["Uploaded file name looks like solutions", "\"Lösung\", \"Solution\", \"Answer key\", \"Musterlösung\""], ["Ask once", "\"Keep visible\" / \"Hide from students\""], "Can be changed anytime in Course Materials"),
+    "kb-sync": ul(["Toggle on", "List read-only, all files ticked"], "Description: \"All course materials are added and removed automatically, including material that is hidden from students.\"", "Hidden files keep the lock and a \"Hidden from students\" tag"),
     "kb-custom": ul("Toggle off: list active, as in the 18.11 spec", "Hidden tag stays visible so the teacher knows students can't open those files"),
-    "st-vis": ul(["Visible citation chip (#16)", "Tap opens the PDF at the cited page", "Quote highlighted"]),
-    "st-hid": ul(["Hidden citation: grey chip \"Teacher material\" with lock (#17)", "No file name, no page"], ["Tap shows a note (#18)", "\"Your teacher keeps this material private. Brian can use it to help you, but you can't open it.\""], "Follow-up ticket (Student + Backend)")
+    "st-vis": ul(["Visible citation chip", "Tap opens the PDF at the cited page", "Quote highlighted"]),
+    "st-hid": ul(["Hidden citation: grey chip \"Teacher material\" with lock", "No file name, no page"], ["Tap shows a note", "\"Your teacher keeps this material private. Brian can use it to help you, but you can't open it.\""], "Follow-up ticket (Student + Backend)")
   };
 const MODES = [
   { id:"cm", name:"Course Materials", ctx:"cms", device:"desktop", figma:FIG("10491-24801"), states:[["cm-rest","Resting"],["cm-hover","Row hover (visible file)"],["cm-hover-h","Row hover (hidden file)"],["cm-tip","Info tooltip"],["cm-bulk","Rows selected"]] },
