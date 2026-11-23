@@ -247,6 +247,6 @@ document.getElementById("pwrap").addEventListener("click", e => {
 js += '\n/* ⌥Tab switcher (copy of _shared/wbswitch.js; artifacts cannot load it from GitHub) */\nwindow.WB_SWITCH = {current:"feature", ticket:"BR-7001", items:[{id:"feature", name:"Feature", sub:"States & spec", url:"https://claude.ai/artifact/M7ybx2SUitMz1F8t5c9cRo"}, {id:"motion", name:"Animation", sub:"Motion", url:PACK.motionUrl}]};\n' + open(os.path.join(HERE,'..','..','_shared','wbswitch.js')).read()
 open(OUT+'pack.js','w').write(js); open(OUT+'pack.css','w').write(pcss)
 _pj = OUT+'pack.json'; _P = json.load(open(_pj)) if os.path.exists(_pj) else {}   # keep links, transitions, motionPackage
-_P.update({"ticket":"BR-7001","title":"AI Tutor use cases","shell":"feature@1.1.1"}); _P.setdefault("notes","Screen code generated from the BR-7001 motion package (build.py). Specs from the Notion ticket; Claude's additions in blue. After the workbench was opened, the spec lives in the artifact's database.")
+_P.update({"ticket":"BR-7001","title":"AI Tutor use cases"}); _P.setdefault("shell","feature@1.1.1");   # the version lives only in pack.json; upgrades edit pack.json _P.setdefault("notes","Screen code generated from the BR-7001 motion package (build.py). Specs from the Notion ticket; Claude's additions in blue. After the workbench was opened, the spec lives in the artifact's database.")
 open(_pj,'w').write(json.dumps(_P,indent=2)+'\n')
 print('ok', len(js), len(pcss), labels)
