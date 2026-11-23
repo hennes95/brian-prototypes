@@ -15,7 +15,8 @@ It still names the stage after the phone (`phoneHTML`). Desktop support will cha
   - `lsKey`: localStorage key for the offline copy
   - `ui`: the screen, variant and touchpoint the workbench opens on
   - `protoStartKind`: the screen kind `#prototype` starts on
-- `DEFAULT`: the spec when the database is empty: `{ v:2, docs:{brief, rules, edges, questions}, modes:[{ id, name, status, figma, states:[{ id, name, kind, doc, links }] }] }`
+- `DEFAULT`: the spec when the database is empty: `{ v:2, docs:{brief, rules, edges, data, side, questions, ds}, modes:[{ id, name, status, figma, states:[{ id, name, kind, doc, links }] }] }` (`data` = effects on existing data, `side` = notifications, emails & tracking; shell 1.1.0+)
+- `PACK.links` (shell 1.1.0+): the ticket's link hub, shown read-only under Implementation and exported to the ticket: `[{ label, name, url }]`, e.g. Design, Copies, Feature Workbench, Animation Workbench, Phone prototype, Handoff (url empty until handover). Generate it from `pack.json` → `links`.
 - `VARIANTS`: `[{ id, name, figma? }]`, shown as the variant switch on the stage
 - `CONTEXTS`: `[{ id, name, ctx, figma?, note? }]`, the touchpoint chips in the header and the touchpoint blocks in the spec
 - `EL_ORDER`: element ids in the order they get their numbers (#1, #2 …)
@@ -43,3 +44,7 @@ UI updates: `renderLeft()`, `renderHeader()`, `renderMinimap()`, `markActive()`,
 ## Spec markup (shell 1.0.9+)
 - `<span class="ai">…</span>`: Claude's own suggestion (blue), accepted or declined one by one.
 - `<div class="imp" data-src="ticket · 19.11">…</div>`: text imported from a source Hannes wrote (Notion ticket, backup). One block per section, kept or dropped as a whole (same ✓ ✕ ↩ as suggestions from 1.0.10, always visible). Never blue.
+
+## Spec structure (shell 1.1.0+) = the Notion ticket
+Brief (Problem · Goal · Scope · Out of scope) → Solution (global rules, modes → states) → Edge cases → Side effects (effects on existing data; notifications, emails & tracking; touchpoints) → Open questions → Implementation (links, design system changes).
+The ticket preview, `tools/export_handoff.py` and the Notion ticket after handover use exactly these sections in this order.

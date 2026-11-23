@@ -1,5 +1,11 @@
 # Feature workbench shell: changelog
 
+## 1.1.0 (23.11.26)
+- The spec now has the same sections, in the same order, as the Notion ticket after handover (Hannes 23.11.): Brief → Solution → Edge cases → Side effects → Open questions → Implementation.
+- New: **Side effects** with "Effects on existing data" (`docs.data`) and "Notifications, emails & tracking" (`docs.side`); touchpoints moved here ("other screens affected").
+- New: **Implementation** with the ticket's links (read-only, from `PACK.links`) and the design system changes (moved from their own section).
+- Ticket preview uses the same order. Packs on older shells keep working; they show an empty Implementation link list until `PACK.links` is set.
+
 ## 1.0.13 (23.11.26)
 - Comment count on the collapsed comment button (and the toolbar's button badges) in dark text: the badge is yellow, so the white number was hard to read. No other changes.
 
