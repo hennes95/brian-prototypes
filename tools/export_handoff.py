@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 """Export a ticket's handoff package: packs/<ticket>/handoff/
-   python3 tools/export_handoff.py br-7001 <workbench-db.json>
+   python3 tools/export_handoff.py br-7001 <workbench-db.json> [<copies.md>]
 <workbench-db.json> = the artifact database document (workbench/<ticket>), read by Claude with ArtifactData.
-Writes HANDOFF.md, spec.md, states.json, decisions.draft.md (+ copies the motion package if pack.json names one).
+<copies.md> = the ticket's Copies page from Notion ("Copies BR-xxxx", all keys and languages), fetched by Claude and saved as markdown.
+Writes HANDOFF.md, spec.md, states.json, decisions.draft.md, copies.md (+ copies the motion package if pack.json names one).
 decisions.draft.md lists every declined proposal and resolved thread: Claude turns it into decisions.md
 (one line per thing removed or rejected) and deletes the draft. It also prints contradictions it can spot
 (e.g. the same setting with two values) so they get fixed in the workbench before handoff."""
 import json, re, html, sys, os, shutil, subprocess
-tk, dbp = sys.argv[1], sys.argv[2]
+tk, dbp = sys.argv[1], sys.argv[2]; cp = sys.argv[3] if len(sys.argv) > 3 else None
 root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 pk = os.path.join(root, 'packs', tk); out = os.path.join(pk, 'handoff'); os.makedirs(out, exist_ok=True)
 P = json.load(open(os.path.join(pk, 'pack.json'))); D = json.load(open(dbp))
@@ -48,11 +49,15 @@ for pid, th in (D.get('threads') or {}).items():
         for x in th.get('msgs',[]): dr.append(f"    - {'Hannes' if x['w']=='h' else 'Claude'}{' (why)' if x.get('why') else ''}: {x['t']}")
 open(os.path.join(out,'decisions.draft.md'),'w').write('\n'.join(dr)+'\n')
 
+if cp:
+    open(os.path.join(out,'copies.md'),'w').write(f"# {P['ticket']} · copies\n\n> Copy of the Notion Copies page{(' (' + P['links']['copies'] + ')') if P.get('links',{}).get('copies') else ''} at export. Use these keys and texts; never write UI text yourself.\n\n" + open(cp).read().strip() + "\n")
+else: print("CHECK: no copies.md: pass the ticket's Copies page (Notion) as 3rd argument, or confirm the ticket has no UI text")
 mp = P.get('motionPackage')
 if mp and os.path.exists(os.path.join(root, mp)): shutil.copy(os.path.join(root, mp), os.path.join(out, 'motion-package.md'))
-links = ' · '.join(f"[{n}]({L[k]})" for k, n in [('feature','Feature Workbench'),('animation','Animation Workbench'),('phone','Phone prototype'),('notion','Notion ticket')] if L.get(k))
+links = ' · '.join(f"[{n}]({L[k]})" for k, n in [('feature','Feature Workbench'),('animation','Animation Workbench'),('phone','Phone prototype'),('notion','Notion ticket'),('copies','Copies')] if L.get(k))
 read = ["1. `spec.md` — what the user sees and can do, per state (human-readable).", "2. `decisions.md` — what was removed or rejected. Don't add it back.", "3. `states.json` — states, transitions and which animation each transition uses."]
-if mp: read.append("4. `motion-package.md` — animation values, engine, screen layout (Flutter + React), test vectors. Only for animation work.")
+if cp: read.append("4. `copies.md` — every UI text with its key, in all languages. Binding.")
+if mp: read.append(f"{len(read)+1}. `motion-package.md` — animation values, engine, screen layout (Flutter + React), test vectors. Only for animation work.")
 open(os.path.join(out,'HANDOFF.md'),'w').write(f"""# {P['ticket']} · {t} — handoff
 
 **Source of truth:** `packs/{tk}/handoff/` at commit `{commit}`. The Notion ticket holds a copy of `spec.md` for reading; it is regenerated from here, never edited by hand.
@@ -61,7 +66,7 @@ open(os.path.join(out,'HANDOFF.md'),'w').write(f"""# {P['ticket']} · {t} — ha
 {chr(10).join(read)}
 
 ## Binding vs. reference
-- **Binding:** behaviour, states, transitions{', animation values, layout positions (±0.5 px)' if mp else ''}.
+- **Binding:** behaviour, states, transitions{', UI texts (copies.md)' if cp else ''}{', animation values, layout positions (±0.5 px)' if mp else ''}.
 - **Reference only:** prototype markup/CSS. Build with Brian's real components.
 
 ## Checks
