@@ -376,3 +376,4 @@ body:not(.proto) .oosa{outline:1px dashed #e0b400;outline-offset:4px;border-radi
 .cmp.attscroll.scr:not(.fs) .bar{display:block}
 /* the scrolling area runs up to the field's top edge, so scrolled content is cut by the pill shape, no blank band (Hannes 24.11) */
 .cmp.attscroll:not(.fs) .c-body{margin-top:-8px;padding-top:8px;box-sizing:border-box}
+.cmp.attscroll:not(.fs) .c-body{-webkit-overflow-scrolling:touch;overscroll-behavior:contain;touch-action:pan-y}

@@ -410,6 +410,10 @@ function growInput(){
     cmp.classList.toggle("over",over); cmp.classList.toggle("scr",scr);
     const atEnd=document.activeElement!==t||t.selectionEnd>=t.value.length; if(scr&&atEnd) body.scrollTop=body.scrollHeight;
     const bar=cmp.querySelector(".bar"); if(bar&&scr){ const sc=ui.scale||1, OFF=46, vis=body.clientHeight/body.scrollHeight, hh=Math.max(16,(body.clientHeight-OFF)*vis); bar.style.top=((body.getBoundingClientRect().top-cmp.getBoundingClientRect().top)/sc+OFF)+"px"; bar.style.height=hh+"px"; const posBar=()=>{ bar.style.transform=`translateY(${(body.scrollTop/(body.scrollHeight-body.clientHeight||1))*(body.clientHeight-OFF-hh)}px)`; }; posBar(); body.onscroll=posBar; }
+    /* iOS Safari doesn't hand a drag on the (focused) text area on to the scroll area around it: scroll it by hand */
+    if(!body._tw){ body._tw=1; let y0=null,s0=0; body.addEventListener("touchstart",e=>{ if(!body.closest(".attscroll.scr")||e.target.tagName!=="TEXTAREA"){ y0=null; return; } y0=e.touches[0].clientY; s0=body.scrollTop; },{passive:true});
+      body.addEventListener("touchmove",e=>{ if(y0==null) return; const dy=e.touches[0].clientY-y0; if(Math.abs(dy)<3) return; body.scrollTop=s0-dy; e.preventDefault(); },{passive:false});
+      body.addEventListener("touchend",()=>{ y0=null; },{passive:true}); }
     return; }
   if(body){ body.style.maxHeight=""; body.onscroll=null; } cmp?.classList.remove("scr");
   t.style.height="auto"; const cs=getComputedStyle(t); const lines=(t.scrollHeight-parseFloat(cs.paddingTop)-parseFloat(cs.paddingBottom))/LH; const over=lines>MAX+0.5;
