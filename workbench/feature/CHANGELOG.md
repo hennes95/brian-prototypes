@@ -1,5 +1,10 @@
 # Feature workbench shell: changelog
 
+## 1.0.10 (23.11.26)
+- Imported blocks are handled like Claude's suggestions: same ✓ ✕ ↩ controls in the margin, threads, read / unread, one shared counter (inbox).
+- Differences: the grey bar stays, the controls of imported blocks are always visible (not only on hover) and start with a "From …" label.
+- Removes 1.0.9's separate Keep / Drop bar and grey counter.
+
 ## 1.0.9 (23.11.26)
 - Imported blocks: text Claude brings in from a source Hannes wrote (e.g. the Notion ticket) is wrapped in `<div class="imp" data-src="ticket · 19.11">`.
   Shown as normal text with a grey bar in the margin and a "From …" label; one ✓ Keep (becomes plain text) / ✕ Drop per block.
