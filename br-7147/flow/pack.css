@@ -285,3 +285,7 @@ body:not(.proto) .oosa{outline:1px dashed #e0b400;outline-offset:4px;border-radi
 .v-pill.focused{border-radius:28px;padding:8px}
 .v-pill textarea{padding-left:0;padding-right:0}
 .v-pill .c-exp,.v-pill.fs .c-exp{top:8px;right:8px;color:#b1b1b1}
+/* Hannes 23.11: pill as far from the screen edges as from the keyboard below it (10px, all states so the width doesn't jump on focus);
+   text keeps lining up with the history text, so it gets more room inside the pill; buttons stay 8px in (corners stay concentric) */
+.v-pill{margin-left:10px;margin-right:10px}
+.v-pill.focused textarea,.v-pill.fs textarea{padding-left:6px;padding-right:6px}
