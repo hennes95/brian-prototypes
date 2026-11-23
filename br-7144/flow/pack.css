@@ -1,6 +1,6 @@
 /* BR-7144 pack styles: Brian Student app chat (Figma BR-7144 Design V1). Scoped to the prototype's own classes. */
 /* theme tokens per surface (phone and component cards) */
-.bx{--b-bg:#fff;--b-ink:#3a3a3a;--b-muted:#858585;background:var(--b-bg);color:var(--b-ink);font:500 16px/1.4 var(--b-font)}
+.bx{--b-bg:#fff;--b-ink:#3a3a3a;--b-muted:#858585;background:var(--b-bg);color:var(--b-ink);font:500 15px/1.4 var(--b-font)}  /* all chat text is body-md, 15px (R1) */
 .bx.dark{--b-bg:#3a3a3a;--b-ink:#fff;--b-muted:#b1b1b1}
 .bx b{font-weight:700}
 .bx button{font:inherit;color:inherit}
@@ -97,7 +97,7 @@ body.native .phone.dark .ci{padding-bottom:calc(12px + env(safe-area-inset-botto
 .tag{font:700 12px/1.4 var(--b-font);padding:8px;line-height:1}
 
 /* citations (Figma 12487:126) */
-.cite{display:flex;flex-direction:column;gap:12px;font-size:15px}
+.cite{display:flex;flex-direction:column;gap:12px}
 .cite p{margin:0}
 .cq{display:flex;flex-direction:column;gap:8px}
 .qrow{display:flex;gap:8px;align-items:stretch}
@@ -105,7 +105,7 @@ body.native .phone.dark .ci{padding-bottom:calc(12px + env(safe-area-inset-botto
 .src{color:var(--b-muted);text-decoration:underline;text-underline-offset:2px;cursor:pointer}
 .fns{display:flex;flex-direction:column;gap:4px;color:var(--b-muted)}
 .fn{display:flex;gap:8px}
-.fn span{font-size:14px}
+.fn span{font-size:inherit}
 
 /* Brian is generating */
 .bl{display:flex;align-items:center;gap:15px;padding:0 24px 16px}
