@@ -246,7 +246,10 @@ __REFPARAMS__
     else { txt.readOnly = true; txt.setAttribute('inputmode','none'); }
     let realDy = KB.inputDy, lastKb = 0, baseBottom = 0;   // REAL: offset (artboard px) that puts the input bar on top of the OS keyboard
     const inputDy = ()=>REAL ? realDy : KB.inputDy;
-    const placeInput = kb=>{ lastKb = kb; inputEl.style.transform = kb ? 'translateY('+(inputDy()*kb)+'px)' : ''; };
+    let kbOff = false;                            // REAL: the OS keyboard was closed while the chat is open (the model still says "up")
+    const placeInput = kb=>{ lastKb = kb; const e = REAL && kbOff ? 0 : kb; inputEl.style.transform = e ? 'translateY('+(inputDy()*e)+'px)' : ''; };
+    const slideInput = off=>{ if(kbOff===off) return; kbOff = off; inputEl.style.transition = 'transform .3s cubic-bezier(.2,.8,.2,1)'; placeInput(lastKb);
+      clearTimeout(slideInput.t); slideInput.t = setTimeout(()=>{ inputEl.style.transition = ''; }, 350); };
     if(REAL && window.visualViewport) visualViewport.addEventListener('resize', ()=>{
       const k = api.scale ? api.scale() : 1, vh = visualViewport.height;
       if(!baseBottom || document.activeElement!==txt) return;
@@ -324,9 +327,12 @@ __REFPARAMS__
     if(REAL){
       txt.addEventListener('input', ()=>{ typed = txt.value; showText(); });
       txt.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); api.onSend && api.onSend(typed); } });
-      txt.addEventListener('blur', ()=>{ if(phone.classList.contains('kbup')) api.onOutside && api.onOutside(); });   // keyboard closed (swipe down, ✓, app switch)
+      txt.addEventListener('blur', ()=>{ if(phone.classList.contains('kbup')) api.onOutside && api.onOutside();   // keyboard closed (swipe down, ✓, app switch)
+        else if(lastKb) slideInput(true); });                                                              // in the chat: the field goes back down with the keyboard
+      txt.addEventListener('focus', ()=>{ if(kbOff) slideInput(false); });
     }
-    phone.addEventListener('click', e=>{ if(!phone.classList.contains('kbup') || e.target.closest('#input,.kbd,#header')) return; if(REAL) txt.blur(); api.onOutside && api.onOutside(); });
+    phone.addEventListener('click', e=>{ if(REAL && document.activeElement===txt && !e.target.closest('#input')) txt.blur();   // tap outside closes the OS keyboard
+      if(!phone.classList.contains('kbup') || e.target.closest('#input,.kbd,#header')) return; if(REAL) txt.blur(); api.onOutside && api.onOutside(); });
     window.addEventListener('keydown', e=>{ if(REAL || !phone.classList.contains('kbup') || e.metaKey || e.ctrlKey || e.altKey) return;   // hardware keyboard types too
       if(e.key==='Enter'){ e.preventDefault(); api.onSend && api.onSend(typed); }
       else if(e.key==='Backspace'){ e.preventDefault(); press('del'); }
@@ -350,7 +356,7 @@ __CHAT__
       wobs.forEach(w=>{ w.style.transition='none'; w.style.setProperty('--hx','0px'); w.style.setProperty('--hy','0px'); w.style.setProperty('--hr','0deg'); });
       intro.classList.add('hide'); intro.style.transition='none';
       chat.classList.add('tl'); chat.innerHTML='';
-      if(model.kind==='focus' || model.kind==='blur'){ cs = ct = null; if(model.kind==='focus'){ typed = ''; layer = 'abc'; caps = false; shift = true; showText(); renderKb(); } }
+      if(model.kind==='focus' || model.kind==='blur'){ cs = ct = null; if(model.kind==='focus'){ typed = ''; layer = 'abc'; caps = false; shift = true; kbOff = false; inputEl.style.transition = ''; showText(); renderKb(); } }
       else { cs = mkStudent(model.kind==='send' ? model.text : DEFS[model.i].label); ct = mkTutor(); chat.appendChild(cs); chat.appendChild(ct); }
       blocks.forEach(b=>{ b.style.transition='none'; b.querySelector('.card').style.transition='none'; b.classList.remove('gone','pressed','tapped'); b.classList.add('blast'); clearMorph(b); });   // frames drive every value: no CSS transitions
     }
@@ -389,7 +395,7 @@ __CHAT__
     const t0 = st => st.fly && Math.abs(st.fly.x-FIELD.textLeft)<0.01 && Math.abs(st.fly.cy-(FIELD.textCy+KB.inputDy))<0.01;   // send: text still in the field
     function reset(){                            // instant reset to the home screen
       kbd.style.transform = 'translateY('+KB.h+'px)'; kbd.style.visibility = 'hidden'; placeInput(0); phone.classList.remove('kbup'); if(REAL && document.activeElement===txt) txt.blur(); fieldEl.classList.remove('focus','has');
-      typed = ''; layer = 'abc'; caps = false; shift = true; showText(); renderKb(); fly.style.opacity = '0';
+      typed = ''; layer = 'abc'; caps = false; shift = true; kbOff = false; inputEl.style.transition = ''; showText(); renderKb(); fly.style.opacity = '0';
       phone.style.transform=''; intro.style.transition=''; intro.style.opacity=''; chat.classList.remove('tl'); chat.innerHTML=''; cs = ct = null;
       blocks.forEach((b,j)=>{ clearBlock(b); setPose(b,DEFS[j].cx-W/2,DEFS[j].cy-H/2,DEFS[j].r); settle(j); });
       intro.classList.remove('hide'); phone.classList.remove('opening');
