@@ -95,7 +95,6 @@ function screen(stateId, variant, m){
        .replace('data-a7="newChat"', 'data-a7="newChat" data-act="plus" data-el="a7.plus" data-label="New chat"');
   if (mode === "focus" && stateId === "focus-typed") h = h.replace(/<input data-a7="txt"[^>]*>/, `<span class="a7-typed">${esc(m.typed || A7_TYPED)}<span class="a7-caret"></span></span>`);
   else if (mode === "focus") h = h.replace(/(<input data-a7="txt"[^>]*>)/, `<span class="a7-typed"><span class="a7-caret"></span></span>`);
-  if (stateId === "chat-block") h = h.replace("AI-Tutor</h1>", A7_THREADS[m.block == null ? 0 : m.block] + "</h1>");   /* R2: the thread is named after the use case (design) */
   if (stateId === "idle-tip"){ let n = 0; h = h.replace(/class="tab( active)?"/g, (m0, act) => (++n === 2 ? `class="tab a7-hl${act||""}" data-el="a7.tabhl" data-label="AI Tutor tab (highlighted)"` : m0)); }
   return h.replace(/<\/div>\s*$/, extra + "</div>");
 }
