@@ -48,11 +48,13 @@ async function initDb(){
   if(!db){ loadLocal(); setSync("local only"); return; }
   DB=db;
   try{
-    DOC=db.doc(PACK.dbDoc);
+    /* 1.0.14: DOC is only set once the stored spec is loaded. Before, a save during loading (e.g. new proposal ids
+       given to the pack's DEFAULT on first render) could flush DEFAULT over the stored spec when the load took >0.8 s. */
+    const doc=db.doc(PACK.dbDoc);
     const guard=setTimeout(()=>setSync("offline · local"),10000);
-    let d=unwrap(await DOC.get());
-    if(!valid(d)){ const old=PACK.legacyDbDoc?unwrap(await db.doc(PACK.legacyDbDoc).get()):null; d=typeof migrate==="function"?migrate(old):structuredClone(DEFAULT); S=d; flush(); }
-    else S=structuredClone(d);
+    let d=unwrap(await doc.get());
+    if(!valid(d)){ const old=PACK.legacyDbDoc?unwrap(await db.doc(PACK.legacyDbDoc).get()):null; d=typeof migrate==="function"?migrate(old):structuredClone(DEFAULT); S=d; DOC=doc; flush(); }
+    else { S=structuredClone(d); DOC=doc; }
     base=structuredClone(S);
     try{ await db.doc("history/pre-unified-doc").get().then(async x=>{ if(!unwrap(x)) await db.doc("history/pre-unified-doc").set({at:new Date().toISOString(),data:JSON.parse(JSON.stringify(d))}); }); }catch(e){}
     clearTimeout(guard); render(true); setSync("saved"); loadPreviews();
@@ -67,7 +69,7 @@ function loadLocal(){ try{ const d=JSON.parse(localStorage.getItem(PACK.lsKey)||
 function save(){ dirty=true; try{ localStorage.setItem(PACK.lsKey,JSON.stringify(S)); }catch(e){} if(!DOC) return; setSync("editing…"); clearTimeout(tmr); tmr=setTimeout(flush,800); }
 async function flush(){ tmr=null; if(!DOC) return; if(saving){ again=true; return; } saving=true; setSync("saving…");
   try{ const snap=structuredClone(S); let remote=null; try{ remote=unwrap(await DOC.get()); }catch(e){}
-    const merged=valid(remote)?merge3(base,snap,remote):snap; merged.updated=new Date().toISOString(); lastSaved=merged.updated;
+    const merged=valid(remote)?(base?merge3(base,snap,remote):remote):snap;   /* 1.0.14: without a base (spec not loaded yet) never overwrite a stored spec */ merged.updated=new Date().toISOString(); lastSaved=merged.updated;
     await DOC.set(JSON.parse(JSON.stringify(merged))); base=structuredClone(merged);
     const fromElsewhere=valid(remote)&&!jeq({...merged,updated:0},{...snap,updated:0});
     S=merge3(snap,S,merged); S.updated=merged.updated; dirty=false; setSync("saved");

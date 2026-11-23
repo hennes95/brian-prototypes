@@ -6,6 +6,10 @@
 - New: **Implementation** with the ticket's links (read-only, from `PACK.links`) and the design system changes (moved from their own section).
 - Ticket preview uses the same order. Packs on older shells keep working; they show an empty Implementation link list until `PACK.links` is set.
 
+## 1.0.14 (23.11.26)
+- Fix (data loss): a newly opened page could save the pack's default spec over the stored one. On load the page first renders the default, gives its proposals new ids and saves; if loading the stored spec took longer than the 0.8 s save delay, that default was written to the database. Every new copy of the page (republish, a preview card, another tab) could trigger it. Seen in BR-7144: the spec reset three times and thread replies ended up on proposal ids that no longer existed.
+- The database is now only connected once the stored spec is loaded, and a save without a loaded spec never overwrites a stored one.
+
 ## 1.0.13 (23.11.26)
 - Comment count on the collapsed comment button (and the toolbar's button badges) in dark text: the badge is yellow, so the white number was hard to read. No other changes.
 
