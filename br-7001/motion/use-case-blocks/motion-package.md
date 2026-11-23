@@ -1,6 +1,6 @@
 # bootstrap
 <!-- motion:rules -->
-Every animation starts with the user action: finger down for the tap lead (touch dot; a tapped block turns dark 60 ms after touch-down), then the motion plays. The motion is a pure function of time; randomness is seeded (mulberry32, fixed draw order). Page assembly: blocks first, text last. `Total duration` time-scales a whole animation (0 = natural length).
+Every animation starts with the user action: finger down for the tap lead (touch dot; a tapped block turns dark 60 ms after touch-down), then the motion plays. The motion is a pure function of time; randomness is seeded (mulberry32, fixed draw order). Page assembly: blocks first, text last. `Total duration` time-scales a whole animation (0 = natural length). No idle animation: the blocks never move on their own; the only wiggle is on hover (devices with a mouse), once when the pointer enters a block. (`buildIdle` is only a demo of that hover wiggle, not something that autoplays.)
 
 ### V1 · physical push
 The tapped block grows into the screen (×6.4) and pushes its neighbours away like a wall; the neighbours are pre-simulated at 1/120 s (push velocity, inertia, drag, spin, drift, contact momentum) and fade from `bFade`. Back: blocks fly back from where they are. Enter: text first, blocks after (`inLead`).
