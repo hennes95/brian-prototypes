@@ -1,0 +1,93 @@
+{
+  "ticket": "BR-7001",
+  "source": "packs/br-7001 @ 67adf0f",
+  "states": [
+    {
+      "id": "idle-rest",
+      "mode": "Empty state",
+      "name": "Use-case blocks",
+      "figma": "https://www.figma.com/design/GbI4xt40lr0Jmk3rkgrtM0/Student-App?node-id=12115-80"
+    },
+    {
+      "id": "idle-none",
+      "mode": "Empty state",
+      "name": "No activities yet",
+      "figma": "https://www.figma.com/design/GbI4xt40lr0Jmk3rkgrtM0/Student-App?node-id=12115-80"
+    },
+    {
+      "id": "idle-tip",
+      "mode": "Empty state",
+      "name": "Awareness tooltip",
+      "figma": "https://www.figma.com/design/GbI4xt40lr0Jmk3rkgrtM0/Student-App?node-id=12115-80"
+    },
+    {
+      "id": "focus-kb",
+      "mode": "Typing",
+      "name": "Field focused",
+      "figma": "https://www.figma.com/design/GbI4xt40lr0Jmk3rkgrtM0/Student-App?node-id=12783-20761"
+    },
+    {
+      "id": "focus-typed",
+      "mode": "Typing",
+      "name": "Typing",
+      "figma": "https://www.figma.com/design/GbI4xt40lr0Jmk3rkgrtM0/Student-App?node-id=12783-20761"
+    },
+    {
+      "id": "chat-block",
+      "mode": "Chat started",
+      "name": "From a block",
+      "figma": "https://www.figma.com/design/GbI4xt40lr0Jmk3rkgrtM0/Student-App?node-id=12319-65399"
+    },
+    {
+      "id": "chat-send",
+      "mode": "Chat started",
+      "name": "From the field",
+      "figma": "https://www.figma.com/design/GbI4xt40lr0Jmk3rkgrtM0/Student-App?node-id=12319-65399"
+    }
+  ],
+  "transitions": [
+    {
+      "from": "(tab opened)",
+      "trigger": "open AI Tutor tab",
+      "to": "idle-rest",
+      "motion": "enter"
+    },
+    {
+      "from": "idle-rest",
+      "trigger": "tap block",
+      "to": "chat-block",
+      "motion": "open"
+    },
+    {
+      "from": "idle-rest",
+      "trigger": "tap field",
+      "to": "focus-kb",
+      "motion": "focus"
+    },
+    {
+      "from": "focus-kb",
+      "trigger": "type",
+      "to": "focus-typed",
+      "motion": null
+    },
+    {
+      "from": "focus-kb",
+      "trigger": "tap outside | keyboard closes",
+      "to": "idle-rest",
+      "motion": "back (from focus)"
+    },
+    {
+      "from": "focus-typed",
+      "trigger": "send",
+      "to": "chat-send",
+      "motion": "send"
+    },
+    {
+      "from": "chat-block | chat-send",
+      "trigger": "tap + (new thread)",
+      "to": "idle-rest",
+      "motion": "back"
+    }
+  ],
+  "notes": {}
+}
