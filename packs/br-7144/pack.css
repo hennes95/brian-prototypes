@@ -53,7 +53,7 @@ body.native .phone.dark .ci{padding-bottom:calc(12px + env(safe-area-inset-botto
 .fld::before{border-color:#3a3a3a}
 
 /* assets (Figma Components 12495:98454) */
-.as{width:100%;display:flex;flex-direction:column;align-items:flex-end;gap:16px}
+.as{width:100%;display:flex;flex-direction:column;align-items:flex-end;gap:8px}  /* caption closer to the preview (Hannes 23.11) */
 .cap{font:500 12px/1.4 var(--b-font);color:var(--b-muted);white-space:nowrap}
 .th{display:block;width:100%}
 .th img{display:block;width:100%;height:100%;object-fit:cover}
@@ -76,14 +76,13 @@ body.native .phone.dark .ci{padding-bottom:calc(12px + env(safe-area-inset-botto
 @media (prefers-reduced-motion:reduce){.spin::after{animation:none}}
 /* two files side by side */
 .as-two{flex-direction:row;gap:8px;align-items:flex-start}
-.as-two .col{flex:1;min-width:0;display:flex;flex-direction:column;align-items:flex-end;gap:12px}
-.as-two .th-doc{height:auto}
-.as-two .th-draw{height:auto}
+.as-two .col{flex:1;min-width:0;display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+.as-two .th-doc,.as-two .th-draw{height:auto;aspect-ratio:320/188}  /* both boxes the same height (Hannes 23.11) */
 /* more than two: overlapping stack, count below, "+n" badge above 4 */
 .as-more .stack{display:flex;align-items:flex-start;position:relative;padding-right:3px}
-.as-more .st{width:135px;flex:none;margin-right:-80px;height:91px;aspect-ratio:auto}
-.as-more .st.last{margin-right:0;height:89px;padding:4px 4px 14px}
-.as-more .th-draw.st{height:auto;aspect-ratio:320/188;margin-top:8px}
+.as-more .st{width:135px;flex:none;margin-right:-80px;height:84px;aspect-ratio:auto}
+.as-more .st.last{margin-right:0;padding:4px 4px 12px}
+.as-more .st:nth-child(even){margin-top:10px}  /* all the same height, shifted against each other like a fanned-out pile (Hannes 23.11) */
 .more-n{position:absolute;right:0;bottom:-12px;width:44px;height:44px;box-sizing:border-box;display:grid;place-items:center;background:var(--b-ink);color:var(--b-bg);border:2px solid var(--b-bg);font:800 16px/1 var(--b-font);z-index:2}
 
 /* date badge */
