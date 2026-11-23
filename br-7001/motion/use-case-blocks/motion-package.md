@@ -235,16 +235,31 @@ Build V3 only. V1 and V2 above are explored alternatives; their values stay in t
     .card{animation:none}
     .block,.block.tapped.explode{transition-duration:.01s}
   }
-  /* V3 Focus / Send: system keyboard stand-in (the real app uses the OS keyboard) + text flying from the field */
-  .kbd{position:absolute;left:0;right:0;bottom:0;height:336px;background:#d1d3d9;padding:46px 3px 0;display:flex;flex-direction:column;gap:11px;z-index:6;transform:translateY(336px);visibility:hidden;will-change:transform}
-  .kbd .sug{position:absolute;left:0;right:0;top:0;height:44px;display:flex;align-items:center;justify-content:space-around;font:400 16px -apple-system,system-ui,sans-serif;color:#000;border-bottom:.5px solid rgba(0,0,0,.12)}
-  .kbd .row{display:flex;gap:6px;justify-content:center}
-  .kbd .row i{width:33px;height:42px;border-radius:5px;background:#fff;box-shadow:0 1px 0 rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;font:400 22px -apple-system,system-ui,sans-serif;color:#000;font-style:normal;cursor:pointer}
-  .kbd .row i.w{width:46px;background:#acb0ba}.kbd .row i.sp{width:190px}.kbd .row i.go{width:88px;background:#0a84ff;color:#fff;font-size:16px}
+  /* V3 Focus / Send: prototype keyboard (iOS light, German QWERTZ). The real app uses the OS keyboard; this one types for real. */
+  .kbd{position:absolute;left:0;right:0;bottom:0;height:336px;background:#353535;border-radius:38px 38px 0 0;box-shadow:inset 0 .5px 0 rgba(255,255,255,.18);padding:51px 6px 0;box-sizing:border-box;display:flex;flex-direction:column;gap:11px;z-index:6;transform:translateY(336px);visibility:hidden;will-change:transform;font-family:-apple-system,"SF Pro Text",system-ui,sans-serif;-webkit-user-select:none;user-select:none;touch-action:manipulation}
+  .kbd .sug{position:absolute;left:12px;right:12px;top:8px;height:30px;display:flex;align-items:center;font:400 16.5px -apple-system,system-ui,sans-serif;color:#a3a3a3}
+  .kbd .sug span{flex:1;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 6px}
+  .kbd .sug span+span{border-left:1px solid #474747}
+  .kbd .row{display:flex;gap:6px;justify-content:center;height:43px}
+  .kbd .row i{position:relative;flex:none;width:calc((100% - 60px) / 11);height:43px;border-radius:9px;background:#5b5b5b;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:400;color:#fff;font-style:normal;cursor:pointer}
+  .kbd.num .row:not(:last-child) i{width:calc((100% - 54px) / 10)}
+  .kbd .row i.w{width:45px;font-size:17px}
+  .kbd .row:last-child i.w{width:43px}
+  .kbd .row i.w svg{width:22px;height:22px}
+  .kbd .row .gap{flex:1}
+  .kbd .row i.sp{flex:1;width:auto}
+  .kbd .row i.sp::after{content:"DE EN";position:absolute;right:6px;bottom:4px;font:500 10px/1 -apple-system,system-ui,sans-serif;letter-spacing:-.2px;color:#8e8e8e;transform:scaleX(.8);transform-origin:100% 100%}
+  .kbd .row i.go{width:93px;background:#3478f6}
+  .kbd .row i.go svg{width:20px;height:20px}
+  .kbd .row i.dn{background:#7a7a7a}.kbd .row i.go.dn{background:#1f5fd6}
+  .kbd .row i.pop::after{content:attr(data-c);position:absolute;left:50%;bottom:calc(100% + 3px);transform:translateX(-50%);min-width:48px;height:54px;padding:0 4px;box-sizing:border-box;border-radius:10px;background:#6b6b6b;box-shadow:0 2px 8px rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;font-size:34px;font-weight:400;color:#fff;z-index:2}
+  .kbd .sys{position:absolute;left:0;right:0;bottom:26px;height:27px;display:flex;justify-content:space-between;padding:0 29px;color:#fff}
+  .kbd .sys svg{width:27px;height:27px}
   #input{z-index:7;will-change:transform}
   #field.focus{border-width:1.2px}
   #field.focus:not(.has) #txt::placeholder{color:transparent}
-  #field.focus:not(.has)::before{content:"";position:absolute;left:16px;top:11.5px;width:1.5px;height:17px;background:#0a84ff;animation:caret 1s steps(2) infinite}
+  #field .caret{position:absolute;left:16px;top:11.5px;width:1.5px;height:17px;background:#0a84ff;display:none;animation:caret 1s steps(2) infinite;pointer-events:none}
+  #field.focus .caret{display:block}
   #field{position:relative}
   @keyframes caret{50%{opacity:0}}
   .flytext{position:absolute;left:0;top:0;font:500 14px/1.4 var(--font);color:var(--dark);white-space:nowrap;pointer-events:none;opacity:0;z-index:8;will-change:transform}
@@ -962,36 +977,79 @@ root.MotionEngine = { id:'ai-tutor-blocks', create(ctx){
     phone.querySelector('#newChat').addEventListener('click',()=>api.onPlus());
     /* V3 field: system keyboard stand-in, flying text, simulated typing (any key types the sample prompt) */
     const inputEl = phone.querySelector('#input'), fieldEl = phone.querySelector('#field'), txt = phone.querySelector('#txt');
-    /* REAL (phone build on a touch screen): the field is a real input and the OS keyboard opens; the stand-in stays hidden.
-       Otherwise (workbench, desktop): stand-in keyboard + simulated typing, so animations can be replayed and scrubbed. */
-    const REAL = !!api.realKeyboard;
-    if(REAL){ txt.readOnly = false; txt.removeAttribute('inputmode'); txt.setAttribute('enterkeyhint','send'); }
-    else { txt.readOnly = true; txt.setAttribute('inputmode','none'); }
-    let kbH = KB.h, lastKb = 0;                   // keyboard height in artboard px (REAL: measured from the visual viewport)
-    const inputDy = ()=>REAL ? -(kbH-(KB.h+KB.inputDy)) : KB.inputDy;   // input bar sits on the keyboard (91 px from the bottom when closed)
-    const placeInput = kb=>{ lastKb = kb; inputEl.style.transform = kb ? 'translateY('+(inputDy()*kb)+'px)' : ''; };
-    if(REAL && window.visualViewport) visualViewport.addEventListener('resize', ()=>{
-      const k = api.scale ? api.scale() : 1, h = (window.innerHeight - visualViewport.height)/k; if(h > 150){ kbH = h; placeInput(lastKb); } });
-    const kbd = document.createElement('div'); kbd.className = 'kbd'; kbd.setAttribute('aria-hidden','true');
-    kbd.innerHTML = '<div class="sug"><span>„Explain“</span><span>the</span><span>I</span></div>' + ['qwertzuiopü','asdfghjklöä'].map(r=>'<div class="row">'+[...r].map(c=>'<i>'+c+'</i>').join('')+'</div>').join('')
-      + '<div class="row"><i class="w">⇧</i>'+[...'yxcvbnm'].map(c=>'<i>'+c+'</i>').join('')+'<i class="w">⌫</i></div><div class="row"><i class="w">123</i><i class="w">☺</i><i class="sp"></i><i class="go">↵</i></div>';
-    phone.appendChild(kbd); if(REAL) kbd.style.display = 'none';
+    txt.readOnly = true; txt.setAttribute('inputmode','none');
+    /* Prototype keyboard: iOS light, German QWERTZ, types for real (taps or a hardware keyboard). The app itself uses the OS keyboard. */
+    const kbd = document.createElement('div'); kbd.className = 'kbd'; kbd.setAttribute('aria-hidden','true'); phone.appendChild(kbd);
+    const caret = document.createElement('span'); caret.className = 'caret'; fieldEl.appendChild(caret);
     const fly = document.createElement('div'); fly.className = 'flytext'; phone.appendChild(fly);
-    let typed = '';
-    const typeNext = ()=>{ if(typed.length < SAMPLE.length){ typed = SAMPLE.slice(0, typed.length+1); txt.value = typed; fieldEl.classList.toggle('has', !!typed); } };
-    fieldEl.addEventListener('click', e=>{ e.stopPropagation(); if(e.target.closest('#send')) return; if(REAL) txt.focus(); api.onField && api.onField(); });
-    const sendBtn = phone.querySelector('#send');
-    sendBtn.addEventListener('pointerdown', e=>{ if(REAL) e.preventDefault(); });   // keep the real keyboard open when tapping send
-    sendBtn.addEventListener('click', e=>{ e.stopPropagation(); api.onSend && api.onSend(typed); });
-    if(REAL){
-      txt.addEventListener('input', ()=>{ typed = txt.value; fieldEl.classList.toggle('has', !!typed); });
-      txt.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); api.onSend && api.onSend(typed); } });
-      txt.addEventListener('blur', ()=>{ if(phone.classList.contains('kbup')) api.onOutside && api.onOutside(); });   // keyboard closed (swipe down, Done, app switch)
+    const SV = {
+      sh:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M12 4.5 4 12.5h4.5v6h7v-6H20z"/></svg>',
+      shOn:'<svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"><path d="M12 4.5 4 12.5h4.5v6h7v-6H20z"/></svg>',
+      del:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M8.5 5H21v14H8.5L2.5 12z"/><path d="m11.5 9 6 6m0-6-6 6" stroke-linecap="round"/></svg>',
+      emo:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.5" fill="currentColor"/><ellipse cx="9" cy="9.6" rx="1.2" ry="1.6" fill="#5b5b5b"/><ellipse cx="15" cy="9.6" rx="1.2" ry="1.6" fill="#5b5b5b"/><path d="M6.8 12.6h10.4c-.4 3-2.6 5-5.2 5s-4.8-2-5.2-5z" fill="#5b5b5b"/></svg>',
+      go:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20V5m-6.5 6.5L12 5l6.5 6.5"/></svg>',
+      globe:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.6 2.6 2.6 15.4 0 18M12 3c-2.6 2.6-2.6 15.4 0 18M5 7.5h14M5 16.5h14"/></svg>',
+      mic:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21M8.5 21h7"/></svg>'};
+    const LAYERS = { abc:[[...'qwertzuiopü'],[...'asdfghjklöä'],['⇧',...'yxcvbnm','⌫'],['123','☺',' ','↵']],
+                     num:[[...'1234567890'],['-','/',':',';','(',')','€','&','@','"'],['#+=','.',',','?','!',"'",'⌫'],['ABC','☺',' ','↵']],
+                     sym:[[...'[]{}#%^*+='],['_','\\','|','~','<','>','$','£','¥','•'],['123','.',',','?','!',"'",'⌫'],['ABC','☺',' ','↵']] };
+    let typed = '', layer = 'abc', shift = true, caps = false;
+    const autoShift = ()=>{ shift = typed==='' || /[.!?]\s$/.test(typed); };
+    const word = ()=>{ const m = typed.match(/(\S+)$/); return m ? m[1] : ''; };
+    function renderKb(){
+      const keys = LAYERS[layer], up = layer==='abc' && (shift || caps);
+      const key = k=>{
+        if(k==='⇧') return '<i class="w sh'+(up?' on':'')+'" data-a="shift">'+(up?SV.shOn:SV.sh)+'</i><span class="gap"></span>';
+        if(k==='⌫') return '<span class="gap"></span><i class="w" data-a="del">'+SV.del+'</i>';
+        if(k==='123' || k==='ABC' || k==='#+=') return (layer!=='abc' && k!=='ABC' ? '' : '')+'<i class="w" data-a="'+k+'">'+k+'</i>'+(keys[2][0]===k ? '<span class="gap"></span>' : '');
+        if(k==='☺') return '<i class="w" data-a="emo">'+SV.emo+'</i>';
+        if(k===' ') return '<i class="sp" data-a="space"></i>';
+        if(k==='↵') return '<i class="go" data-a="go">'+SV.go+'</i>';
+        const c = up ? k.toUpperCase() : k; return '<i data-k="'+c.replace(/"/g,'&quot;')+'" data-c="'+c.replace(/"/g,'&quot;')+'">'+c+'</i>';
+      };
+      const w = word(), sug = w ? ['„'+w+'“', w.length>2 ? w+'e' : 'die', 'ich'] : ['Ich','Hallo','Ja'];
+      kbd.classList.toggle('num', layer!=='abc');
+      kbd.innerHTML = '<div class="sug">'+sug.map(x=>'<span>'+x.replace(/</g,'&lt;')+'</span>').join('')+'</div>'
+        + keys.map(r=>'<div class="row">'+r.map(key).join('')+'</div>').join('')
+        + '<div class="sys"><span>'+SV.globe+'</span><span>'+SV.mic+'</span></div>';
     }
-    kbd.addEventListener('click', e=>{ e.stopPropagation(); if(e.target.closest('.go')){ api.onSend && api.onSend(typed); return; } if(phone.classList.contains('kbup')) typeNext(); });
-    phone.addEventListener('click', e=>{ if(!phone.classList.contains('kbup') || e.target.closest('#input,.kbd,#header')) return; if(REAL) txt.blur(); api.onOutside && api.onOutside(); });
-    window.addEventListener('keydown', e=>{ if(REAL || !phone.classList.contains('kbup') || e.metaKey || e.ctrlKey || e.altKey) return;
-      if(e.key==='Enter'){ e.preventDefault(); api.onSend && api.onSend(typed); } else if(e.key.length===1){ e.preventDefault(); e.stopPropagation(); typeNext(); } }, true);
+    const measure = document.createElement('canvas').getContext('2d');
+    function showText(){
+      txt.value = typed; fieldEl.classList.toggle('has', !!typed);
+      const cs = getComputedStyle(txt); measure.font = cs.fontWeight+' '+cs.fontSize+' '+cs.fontFamily;
+      const x0 = txt.offsetLeft + parseFloat(cs.paddingLeft||0), wMax = txt.clientWidth - parseFloat(cs.paddingLeft||0) - parseFloat(cs.paddingRight||0);
+      caret.style.left = (x0 + Math.min(measure.measureText(typed).width, wMax) + .5)+'px';
+      caret.style.animation = 'none'; void caret.offsetWidth; caret.style.animation = '';   // caret stays solid while typing
+    }
+    function press(a, ch){
+      if(ch!==undefined){ typed += ch; if(!caps) shift = false; if(layer!=='abc' && ch===' ') layer = 'abc'; }
+      else if(a==='space'){ typed += ' '; if(layer!=='abc') layer = 'abc'; autoShift(); }
+      else if(a==='del'){ typed = typed.slice(0,-1); autoShift(); }
+      else if(a==='shift'){ if(shift && !caps){ shift = false; } else shift = !shift; }
+      else if(a==='123'){ layer = 'num'; } else if(a==='ABC'){ layer = 'abc'; autoShift(); } else if(a==='#+='){ layer = 'sym'; }
+      else if(a==='go'){ api.onSend && api.onSend(typed); return; }
+      else return;
+      if(ch!==undefined && layer==='abc') autoShift(), shift = shift && /[.!?]\s$/.test(typed);
+      showText(); renderKb();
+    }
+    let lastShift = 0, held = null;
+    kbd.addEventListener('pointerdown', e=>{ const k = e.target.closest('i'); if(!k) return; e.preventDefault(); e.stopPropagation();
+      held = k; k.classList.add('dn'); if(k.dataset.k) k.classList.add('pop');
+      if(k.dataset.a==='shift'){ const now = performance.now(); if(now-lastShift<300){ caps = !caps; shift = caps; showText(); renderKb(); lastShift = 0; return; } lastShift = now; }
+      if(k.dataset.a==='del'){ press('del'); const rep = setTimeout(function again(){ if(held!==k) return; press('del'); k._rep = setTimeout(again,90); },450); k._rep = rep; } });
+    const release = e=>{ const k = held; held = null; if(!k) return; clearTimeout(k._rep); k.classList.remove('dn','pop');
+      if(e.type!=='pointerup') return; e.stopPropagation();
+      if(k.dataset.k) press(null, k.dataset.k); else if(k.dataset.a && k.dataset.a!=='del') press(k.dataset.a); };
+    kbd.addEventListener('pointerup', release); kbd.addEventListener('pointercancel', release); kbd.addEventListener('pointerleave', release);
+    kbd.addEventListener('click', e=>e.stopPropagation());
+    renderKb();
+    fieldEl.addEventListener('click', e=>{ e.stopPropagation(); if(e.target.closest('#send')) return; api.onField && api.onField(); });
+    phone.querySelector('#send').addEventListener('click', e=>{ e.stopPropagation(); api.onSend && api.onSend(typed); });
+    phone.addEventListener('click', e=>{ if(!phone.classList.contains('kbup') || e.target.closest('#input,.kbd,#header')) return; api.onOutside && api.onOutside(); });
+    window.addEventListener('keydown', e=>{ if(!phone.classList.contains('kbup') || e.metaKey || e.ctrlKey || e.altKey) return;   // hardware keyboard types too
+      if(e.key==='Enter'){ e.preventDefault(); api.onSend && api.onSend(typed); }
+      else if(e.key==='Backspace'){ e.preventDefault(); press('del'); }
+      else if(e.key.length===1){ e.preventDefault(); e.stopPropagation(); press(null, e.key); } }, true);
     const tab = phone.querySelector('.tab.active'); if(tab){ tab.style.cursor='pointer'; tab.addEventListener('click',()=>api.onTab()); }
 
 const HOVER = matchMedia('(hover:hover)').matches;   // touch screens fire mouseenter on tap: no hover wiggle there
@@ -1028,7 +1086,7 @@ const HOVER = matchMedia('(hover:hover)').matches;   // touch screens fire mouse
       wobs.forEach(w=>{ w.style.transition='none'; w.style.setProperty('--hx','0px'); w.style.setProperty('--hy','0px'); w.style.setProperty('--hr','0deg'); });
       intro.classList.add('hide'); intro.style.transition='none';
       chat.classList.add('tl'); chat.innerHTML='';
-      if(model.kind==='focus' || model.kind==='blur'){ cs = ct = null; if(model.kind==='focus'){ typed = ''; txt.value = ''; fieldEl.classList.remove('has'); } }
+      if(model.kind==='focus' || model.kind==='blur'){ cs = ct = null; if(model.kind==='focus'){ typed = ''; layer = 'abc'; caps = false; shift = true; showText(); renderKb(); } }
       else { cs = mkStudent(model.kind==='send' ? model.text : DEFS[model.i].label); ct = mkTutor(); chat.appendChild(cs); chat.appendChild(ct); }
       blocks.forEach(b=>{ b.style.transition='none'; b.querySelector('.card').style.transition='none'; b.classList.remove('gone','pressed','tapped'); b.classList.add('blast'); clearMorph(b); });   // frames drive every value: no CSS transitions
     }
@@ -1037,8 +1095,7 @@ const HOVER = matchMedia('(hover:hover)').matches;   // touch screens fire mouse
       intro.style.opacity = String(st.intro);
       const kb = st.kb || 0;
       kbd.style.transform = 'translateY('+((1-kb)*KB.h)+'px)'; kbd.style.visibility = kb>0.001 ? 'visible' : 'hidden';
-      placeInput(kb);
-      if(REAL && (model.kind==='back' || model.kind==='blur') && document.activeElement===txt) txt.blur();   // back: the real keyboard goes down too
+      inputEl.style.transform = kb ? 'translateY('+(KB.inputDy*kb)+'px)' : '';
       phone.classList.toggle('kbup', kb>0.5 && model.kind!=='send' && model.kind!=='back');
       fieldEl.classList.toggle('focus', !!st.focus);
       if(model.kind==='send'){ txt.value = st.fly && st.fly.o && t0(st) ? model.text : ''; fieldEl.classList.toggle('has', !!txt.value); }
@@ -1066,8 +1123,8 @@ const HOVER = matchMedia('(hover:hover)').matches;   // touch screens fire mouse
     function clearBlock(b){ b.classList.remove('tapped','pressed','explode','blast','gone'); b.style.transform=''; b.style.opacity=''; b.style.transition=''; b.querySelector('.card').style.transition=''; b.style.removeProperty('--k'); clearMorph(b); }
     const t0 = st => st.fly && Math.abs(st.fly.x-FIELD.textLeft)<0.01 && Math.abs(st.fly.cy-(FIELD.textCy+KB.inputDy))<0.01;   // send: text still in the field
     function reset(){                            // instant reset to the home screen
-      kbd.style.transform = 'translateY('+KB.h+'px)'; kbd.style.visibility = 'hidden'; placeInput(0); phone.classList.remove('kbup'); if(REAL && document.activeElement===txt) txt.blur(); fieldEl.classList.remove('focus','has');
-      typed = ''; txt.value = ''; fly.style.opacity = '0';
+      kbd.style.transform = 'translateY('+KB.h+'px)'; kbd.style.visibility = 'hidden'; inputEl.style.transform = ''; phone.classList.remove('kbup'); fieldEl.classList.remove('focus','has');
+      typed = ''; layer = 'abc'; caps = false; shift = true; showText(); renderKb(); fly.style.opacity = '0';
       phone.style.transform=''; intro.style.transition=''; intro.style.opacity=''; chat.classList.remove('tl'); chat.innerHTML=''; cs = ct = null;
       blocks.forEach((b,j)=>{ clearBlock(b); setPose(b,DEFS[j].cx-W/2,DEFS[j].cy-H/2,DEFS[j].r); settle(j); });
       intro.classList.remove('hide'); phone.classList.remove('opening');

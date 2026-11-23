@@ -3,16 +3,31 @@ O = open('source/orig.html').read(); L = O.split('\n')
 seg = lambda a,b: '\n'.join(L[a-1:b])
 # ---------- package pieces ----------
 tx2 = '  .card .tx2{position:absolute;left:calc(43px*var(--k,1));top:50%;margin-top:calc(-9.8px*var(--k,1));font:500 calc(14px*var(--k,1))/1.4 var(--font);color:var(--dark);white-space:nowrap;opacity:0;transform-origin:0 50%;pointer-events:none}\n  .card .tx{transform-origin:0 50%}'
-kbcss = """  /* V3 Focus / Send: system keyboard stand-in (the real app uses the OS keyboard) + text flying from the field */
-  .kbd{position:absolute;left:0;right:0;bottom:0;height:336px;background:#d1d3d9;padding:46px 3px 0;display:flex;flex-direction:column;gap:11px;z-index:6;transform:translateY(336px);visibility:hidden;will-change:transform}
-  .kbd .sug{position:absolute;left:0;right:0;top:0;height:44px;display:flex;align-items:center;justify-content:space-around;font:400 16px -apple-system,system-ui,sans-serif;color:#000;border-bottom:.5px solid rgba(0,0,0,.12)}
-  .kbd .row{display:flex;gap:6px;justify-content:center}
-  .kbd .row i{width:33px;height:42px;border-radius:5px;background:#fff;box-shadow:0 1px 0 rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;font:400 22px -apple-system,system-ui,sans-serif;color:#000;font-style:normal;cursor:pointer}
-  .kbd .row i.w{width:46px;background:#acb0ba}.kbd .row i.sp{width:190px}.kbd .row i.go{width:88px;background:#0a84ff;color:#fff;font-size:16px}
+kbcss = """  /* V3 Focus / Send: prototype keyboard (iOS light, German QWERTZ). The real app uses the OS keyboard; this one types for real. */
+  .kbd{position:absolute;left:0;right:0;bottom:0;height:336px;background:#353535;border-radius:38px 38px 0 0;box-shadow:inset 0 .5px 0 rgba(255,255,255,.18);padding:51px 6px 0;box-sizing:border-box;display:flex;flex-direction:column;gap:11px;z-index:6;transform:translateY(336px);visibility:hidden;will-change:transform;font-family:-apple-system,"SF Pro Text",system-ui,sans-serif;-webkit-user-select:none;user-select:none;touch-action:manipulation}
+  .kbd .sug{position:absolute;left:12px;right:12px;top:8px;height:30px;display:flex;align-items:center;font:400 16.5px -apple-system,system-ui,sans-serif;color:#a3a3a3}
+  .kbd .sug span{flex:1;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 6px}
+  .kbd .sug span+span{border-left:1px solid #474747}
+  .kbd .row{display:flex;gap:6px;justify-content:center;height:43px}
+  .kbd .row i{position:relative;flex:none;width:calc((100% - 60px) / 11);height:43px;border-radius:9px;background:#5b5b5b;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:400;color:#fff;font-style:normal;cursor:pointer}
+  .kbd.num .row:not(:last-child) i{width:calc((100% - 54px) / 10)}
+  .kbd .row i.w{width:45px;font-size:17px}
+  .kbd .row:last-child i.w{width:43px}
+  .kbd .row i.w svg{width:22px;height:22px}
+  .kbd .row .gap{flex:1}
+  .kbd .row i.sp{flex:1;width:auto}
+  .kbd .row i.sp::after{content:"DE EN";position:absolute;right:6px;bottom:4px;font:500 10px/1 -apple-system,system-ui,sans-serif;letter-spacing:-.2px;color:#8e8e8e;transform:scaleX(.8);transform-origin:100% 100%}
+  .kbd .row i.go{width:93px;background:#3478f6}
+  .kbd .row i.go svg{width:20px;height:20px}
+  .kbd .row i.dn{background:#7a7a7a}.kbd .row i.go.dn{background:#1f5fd6}
+  .kbd .row i.pop::after{content:attr(data-c);position:absolute;left:50%;bottom:calc(100% + 3px);transform:translateX(-50%);min-width:48px;height:54px;padding:0 4px;box-sizing:border-box;border-radius:10px;background:#6b6b6b;box-shadow:0 2px 8px rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;font-size:34px;font-weight:400;color:#fff;z-index:2}
+  .kbd .sys{position:absolute;left:0;right:0;bottom:26px;height:27px;display:flex;justify-content:space-between;padding:0 29px;color:#fff}
+  .kbd .sys svg{width:27px;height:27px}
   #input{z-index:7;will-change:transform}
   #field.focus{border-width:1.2px}
   #field.focus:not(.has) #txt::placeholder{color:transparent}
-  #field.focus:not(.has)::before{content:"";position:absolute;left:16px;top:11.5px;width:1.5px;height:17px;background:#0a84ff;animation:caret 1s steps(2) infinite}
+  #field .caret{position:absolute;left:16px;top:11.5px;width:1.5px;height:17px;background:#0a84ff;display:none;animation:caret 1s steps(2) infinite;pointer-events:none}
+  #field.focus .caret{display:block}
   #field{position:relative}
   @keyframes caret{50%{opacity:0}}
   .flytext{position:absolute;left:0;top:0;font:500 14px/1.4 var(--font);color:var(--dark);white-space:nowrap;pointer-events:none;opacity:0;z-index:8;will-change:transform}"""
