@@ -340,10 +340,10 @@ body:not(.proto) .oosa{outline:1px dashed #e0b400;outline-offset:4px;border-radi
 .p-head{transition:margin .22s ease,opacity .22s ease}
 .phone.headhidden .p-head{height:35px;margin-top:-43px;opacity:0;overflow:visible}
 .phone.cmphidden .cmp{display:flex;margin-bottom:calc(-1 * var(--cmpc,64px));opacity:0;pointer-events:none}
-.phone.hidanim .cmp{transition:margin .22s ease,opacity .22s ease}
-.phone.hidanim .p-tabs{transition:margin .22s ease}
+.cmp{transition:margin .22s ease,opacity .22s ease}  /* as BR-7144: .tb,.ci,.p-tabs always transition */
+.p-tabs{transition:margin .22s ease,opacity .22s ease}
 .p-tabs{z-index:3}
-@media (prefers-reduced-motion:reduce){.p-head,.phone.hidanim .cmp,.phone.hidanim .p-tabs{transition:opacity .15s}}
+@media (prefers-reduced-motion:reduce){.p-head,.cmp,.p-tabs{transition:opacity .15s}}
 .att.a-doc{margin-bottom:0}
 /* Hannes 24.11: placeholders always Mono-600 (Figma token), every variant and surface */
 .cmp textarea::placeholder,.v-pill textarea::placeholder,.phone.dark .cmp textarea::placeholder{color:#858585}
@@ -353,7 +353,7 @@ body:not(.proto) .oosa{outline:1px dashed #e0b400;outline-offset:4px;border-radi
 .v-pill.fs{border-bottom-left-radius:0;border-bottom-right-radius:0}
 /* Hannes 24.11: coming back, the field slides up from BEHIND the tab bar: the tab bar keeps its background and angled edge while it moves,
    the stroke fades out instead of popping */
-.phone.hidanim .p-tabs{background:var(--b-bg);clip-path:polygon(0 11.2px,100% .2px,100% 100%,0 100%)}
+.p-tabs{background:var(--b-bg);clip-path:polygon(0 11.2px,100% .2px,100% 100%,0 100%)}
 .p-tabs .tline{display:block;opacity:0;transition:opacity .22s ease}
 .phone.cmphidden .p-tabs .tline{opacity:1}
 /* attachment loading = BR-7144 ink dots inside the attachment's own shape (spec u-att edge case, 24.11) */

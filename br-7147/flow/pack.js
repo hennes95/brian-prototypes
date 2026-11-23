@@ -380,14 +380,15 @@ function renderStage(){
     const over=()=>{ const f=ch.firstElementChild; return ch.scrollTop>0||(!!f&&f.getBoundingClientRect().top<ch.getBoundingClientRect().top-1); };
     const updOver=()=>ph.classList.toggle("topover",over());
     /* R4: scrolling up hides top bar (and the field when empty/unfocused); scrolling down brings them back right away, not only at the bottom */
-    let lastTop=ch.scrollTop, lockUntil=0, hid=false;
-    const applyHid=()=>{ const typing=!!$("#pwrap .cmp.focused:not(.resting), #pwrap .cmp.focused-inline"); const cm=$("#pwrap .cmp"); if(cm&&!ph.classList.contains("cmphidden")) ph.style.setProperty("--cmpc",(cm.offsetHeight+parseFloat(getComputedStyle(cm).marginTop||0))+"px"); if(ph.classList.contains("headhidden")!==hid){ ph.classList.add("hidanim"); clearTimeout(ph._ha); ph._ha=setTimeout(()=>ph.classList.remove("hidanim"),400); } ph.classList.toggle("headhidden",hid); ph.classList.toggle("cmphidden",hid&&!typing&&!ui.live.menu&&!ui.live.picker); updOver(); };
-    const setHid=h=>{ if(h===hid) return; hid=h; lockUntil=performance.now()+350; applyHid(); };
-    ch.addEventListener("scroll",()=>{ const now=ch.scrollTop, d=now-lastTop; if(Math.abs(d)>=4||now<=0){ lastTop=now; if(performance.now()>=lockUntil){ const atBottom=now>=ch.scrollHeight-ch.clientHeight-12; if(atBottom) setHid(false); else if(d<0) setHid(true); else if(d>0) setHid(false); } } applyHid(); });
-    /* when the content fits once the bars are hidden there is nothing to scroll: a downward gesture still brings them back */
+    /* R4 = BR-7144 R5, ported 1:1 from BR-7144 wireChat (Hannes 24.11): same thresholds, same lock, toggles classes only (no layout reads while scrolling) */
+    let lastTop=ch.scrollTop, hid=false, lockUntil=0;
+    const typing=()=>!!$("#pwrap .cmp.focused:not(.resting), #pwrap .cmp.focused-inline")||ui.live.menu||ui.live.picker;
+    const setHid=h=>{ if(h===hid) return; hid=h; lockUntil=performance.now()+350;
+      const cm=$("#pwrap .cmp"); if(hid&&cm) ph.style.setProperty("--cmpc",(cm.offsetHeight+parseFloat(getComputedStyle(cm).marginTop||0))+"px");
+      ph.classList.toggle("headhidden",hid); ph.classList.toggle("cmphidden",hid&&!typing()); };
+    ch.addEventListener("scroll",()=>{ updOver(); const now=ch.scrollTop, d=now-lastTop; if(Math.abs(d)<4&&now>0) return; lastTop=now; if(performance.now()<lockUntil) return;
+      const atBottom=now>=ch.scrollHeight-ch.clientHeight-12; if(atBottom||d>0) setHid(false); else if(d<0) setHid(true); },{passive:true});
     ch.addEventListener("wheel",e=>{ if(hid&&e.deltaY>0) setHid(false); },{passive:true});
-    let ty=null; ch.addEventListener("touchstart",e=>{ ty=e.touches[0].clientY; },{passive:true});
-    ch.addEventListener("touchmove",e=>{ if(ty==null) return; const dy=e.touches[0].clientY-ty; if(hid&&dy<-6){ setHid(false); ty=e.touches[0].clientY; } else if(!hid&&dy>6&&ch.scrollTop<=0){ ty=e.touches[0].clientY; } },{passive:true});
     updOver(); requestAnimationFrame(updOver); setTimeout(updOver,300); }
 }
 function growInput(){
