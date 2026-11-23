@@ -1,8 +1,7 @@
 /* BR-7144 · Chat History Redesign: ticket pack for the feature workbench shell (see PACK-API.md).
    A component ticket: the stage is one long AI Tutor chat that holds every new component once.
    Each spec section (mode/state) has an anchor in that chat; showing a state scrolls the chat to it and highlights it.
-   A pack-only toggle on the stage ("Chat / Components") swaps the chat for a grid of the section's component variants
-   (light / dark, sent / loading). Nothing here needs the shell to change. */
+   Nothing here needs the shell to change. (The Chat / Components toggle was removed on 23.11: scrolling the spec shows every component.) */
 const PACK={
   id:"BR-7144", title:"Chat History Redesign",
   links:[ /* link hub (Implementation), from pack.json → links */
@@ -255,42 +254,6 @@ function phoneHTML(st,live={},interactive=true){
   </div>`;
 }
 
-/* ================= component view (pack only) ================= */
-let CV=false;
-const ROW=(label,html)=>({label,html});
-function specimens(kind){
-  const s=(a,text)=>studentHTML({t:"s",g:kind,asset:a,text});
-  const t=m=>tutorHTML(Object.assign({t:"t",g:kind},m));
-  switch(kind){
-    case "layout": return [ROW("Tutor message",t({p:[CHAT[0].p[0]]})),ROW("Student message",s(null,CHAT[1].text)),ROW("Student message · one line",s(null,"Yes, let's go."))];
-    case "dates": return [ROW("Date badge",`<div class="tagrow"><span class="tag">Today</span></div>`),ROW("Date badge · earlier day",`<div class="tagrow"><span class="tag">17.11.2026</span></div>`)];
-    case "asset-image": return [ROW("Image · sent",s({k:"image"},CHAT[1].text)),ROW("Image · loading",s({k:"image",loading:true},CHAT[1].text))];
-    case "asset-drawing": return [ROW("Drawing · sent",s({k:"drawing"},CHAT[3].text)),ROW("Drawing · loading",s({k:"drawing",loading:true},CHAT[3].text))];
-    case "asset-doc": return [ROW("Document · sent",s({k:"doc"},CHAT[7].text)),ROW("Document · loading",s({k:"doc",loading:true},CHAT[7].text))];
-    case "asset-multi": return [ROW("2 files",s({k:"two"})),ROW("4 files",s({k:"more",n:4},"Here they are.")),ROW("More than 4",s({k:"more",n:6},"Here they are.")),ROW("2 files · loading",s({k:"two",loading:true}))];
-    case "asset-loading": return [ROW("B∞ · image, no progress known (loops)",s({k:"image",loading:true})),ROW("B · image, upload half done (then snaps in)",s({k:"image",loading:2})),ROW("Drawing · loading",s({k:"drawing",loading:true})),ROW("Document · loading",s({k:"doc",loading:true})),ROW("Several · loading",s({k:"more",n:6,loading:true}))];
-    case "cite-direct": return [ROW("Direct · 1 citation",t({p:[],cite:CHAT[2].cite})),ROW("Direct · 2 citations",t({p:[],cite:CHAT[6].cite}))];
-    case "cite-indirect": return [ROW("Indirect · 1 citation",t({p:[],cite:{type:"indirect",t:[CHAT[9].cite.t[0]],src:[CHAT[9].cite.src[0]]}})),ROW("Indirect · 2 citations",t({p:[],cite:CHAT[9].cite}))];
-    case "loading": return [ROW("Brian is generating",brianHTML(kind))];
-    case "topbar": return [ROW("Top bar",null)];
-    default: return [];
-  }
-}
-function compView(kind){
-  KIND=kind; spkDone=true; wlDone=true;
-  const rows=specimens(kind);
-  if(!rows.length) return `<div class="cv"><div class="cv-empty"><b>No components in this section</b>It's about behaviour or layout: switch back to Chat.</div></div>`;
-  const cell=(r,dark)=>`<div class="cvc bx ${dark?"dark":""}">${r.html===null?topbarHTML(dark):r.html}</div>`;
-  return `<div class="cv"><div class="cv-g"><div class="cv-h"></div><div class="cv-h">AI Tutor · Chatbot</div><div class="cv-h">AI Dialog</div>${rows.map(r=>`<div class="cv-l">${esc(r.label)}</div>${cell(r,false)}${cell(r,true)}`).join("")}</div></div>`;
-}
-function cvToggle(){
-  let t=document.getElementById("cvtog");
-  if(!t){ t=document.createElement("div"); t.id="cvtog"; t.className="cvtog"; t.setAttribute("role","group"); t.setAttribute("aria-label","Stage view");
-    t.innerHTML=`<button data-cv="0">Chat</button><button data-cv="1">Components</button>`;
-    t.addEventListener("click",e=>{ const b=e.target.closest("[data-cv]"); if(!b) return; CV=b.dataset.cv==="1"; renderStage(); });
-    stageEl.appendChild(t); }
-  t.querySelectorAll("button").forEach(b=>b.classList.toggle("on",(b.dataset.cv==="1")===CV));
-}
 
 /* shell hook: this pack fetches nothing (assets are committed files). Defined so older shells don't throw after loading. */
 function loadPreviews(){}
@@ -300,8 +263,6 @@ const anchorOf=(ch,kind)=>[...ch.querySelectorAll("[data-g]")].filter(n=>n.datas
 function renderStage(){
   const W=document.getElementById("pwrap"); const st=curState(); if(!st){ W.innerHTML=""; return; }
   const proto=document.body.classList.contains("proto");
-  cvToggle();
-  if(CV&&!proto){ W.innerHTML=compView(st.kind); fit(); return; }
   W.innerHTML=`<svg class="lines" id="lines"></svg>${phoneHTML(st,ui.live,true)}`;
   markShortMsgs(); fit(); wireChat(st.kind,proto);
   placeBadges(); renderMinimap(); setTimeout(()=>{ try{ placeAgtDots(); updTpBadges(); }catch(e){} },30);
@@ -328,10 +289,6 @@ function markShortMsgs(){ document.querySelectorAll("#pwrap .sm .tx").forEach(d=
 function fit(){
   const st=document.getElementById("stage"), w=document.getElementById("pwrap");
   const nat=document.body.classList.contains("proto")&&innerWidth<=600; document.body.classList.toggle("native",nat); document.body.classList.toggle("ctx-dark",isDarkCtx(ui.context));
-  const cv=w.querySelector(".cv");
-  if(cv){ /* component view: a scroll box the size of the stage; the grid is zoomed to fit its width */
-    const W=st.clientWidth-48, H=st.clientHeight-72; cv.style.width=W+"px"; cv.style.height=H+"px"; w.style.transform="translate(-50%,-50%)"; ui.scale=1;
-    const g=cv.querySelector(".cv-g"); if(g){ g.style.zoom=1; const z=Math.min(1,(W-32)/g.scrollWidth); g.style.zoom=z; } return; }
   if(nat){ const vv=window.visualViewport; document.documentElement.style.setProperty("--vvh",(vv?vv.height:innerHeight)+"px"); document.documentElement.style.setProperty("--vvtop",(vv?vv.offsetTop:0)+"px"); w.style.transform="none"; ui.scale=1; return; }
   const pv=document.body.classList.contains("proto");
   const sc=pv? Math.min((st.clientHeight-40)/894,(st.clientWidth-40)/422,1.4) : Math.max(.3,Math.min((st.clientHeight-48)/874,(st.clientWidth-48)/402,1.2));
@@ -392,7 +349,7 @@ const pw=document.getElementById("pwrap");
 pw.addEventListener("click",e=>{
   if(e.target.closest(".badge")){ const id=e.target.closest(".badge").dataset.el; const it=document.querySelector(`#pwrap [data-el="${id}"]`); it&&it.scrollIntoView({block:"center",behavior:"smooth"}); return; }
   if(e.target.closest(".ia input, .ia-x")) return;
-  const att=e.target.closest(".as"); if(att&&!att.querySelector(".ld")&&!att.closest(".cv")){ openViewer(att,e.target); return; }
+  const att=e.target.closest(".as"); if(att&&!att.querySelector(".ld")){ openViewer(att,e.target); return; }
   const a=e.target.closest("[data-act]");
   if(a){ const k=a.dataset.act; if(k==="send"){ e.preventDefault(); send(); } else if(k==="plus") addPhoto(); else if(k==="newchat"){ THREAD=[]; WAITING=false; renderStage(); } return; }
   /* workbench: clicking a component jumps to its spec section */

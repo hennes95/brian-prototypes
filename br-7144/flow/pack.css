@@ -143,18 +143,6 @@ body:not(.proto) .phone .tagrow.hl{outline-offset:2px}
 .ph-note b{display:block;color:#3a3a3a}
 
 /* ============ component view (pack-only toggle on the stage) ============ */
-.cvtog{position:absolute;top:12px;left:16px;z-index:20;display:flex;gap:2px;padding:2px;border-radius:8px;background:#e9e8e4;font:500 12px var(--ui,system-ui)}
-.cvtog button{border:0;background:none;padding:5px 12px;border-radius:6px;color:#76766f;cursor:pointer;font:inherit}
-.cvtog button.on{background:#fff;color:#1d1d1b;box-shadow:0 1px 2px rgba(0,0,0,.08)}
-body.proto .cvtog,body.native .cvtog{display:none}
-.cv{overflow:auto;margin-top:24px;background:#fbfbfa;border:1px solid #e2e1dc;border-radius:12px;box-sizing:border-box}
-.cv-g{display:grid;grid-template-columns:150px 402px 402px;gap:16px 20px;padding:20px;align-items:start;width:max-content}
-.cv-h{font:600 11px var(--mono,monospace);color:#76766f;text-transform:uppercase;letter-spacing:.04em}
-.cv-l{font:500 12px var(--ui,system-ui);color:#1d1d1b;padding-top:14px}
-.cvc{width:402px;border-radius:6px;box-shadow:0 0 0 1px #e2e1dc;overflow:hidden;padding:4px 0}
-.cvc .tb{padding-top:4px}
-.cv-empty{display:flex;flex-direction:column;gap:4px;align-items:center;justify-content:center;height:100%;color:#76766f;font:14px var(--ui,system-ui);text-align:center}
-.cv-empty b{color:#1d1d1b}
 
 /* mocked parts carry data-mock (for agents and the handoff); no visible marker (Hannes 23.11) */
 
