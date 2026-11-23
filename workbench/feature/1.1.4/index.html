@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Feature Workbench</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Nunito+Sans:opsz,wght@6..12,500;6..12,700&display=swap" rel="stylesheet">
+<script type="importmap">{"imports":{"https://cdn.jsdelivr.net/npm/react@%5E19.3.0/+esm":"https://cdn.jsdelivr.net/npm/react@19.3.0/+esm"}}</script>
+<link rel="stylesheet" href="shell.css">
+<link rel="stylesheet" href="pack.css">
+</head>
+<body>
+<div class="app">
+  <header>
+    <button class="ib" id="tog-sb" title="Show / hide sidebar" aria-label="Toggle sidebar">☰</button>
+    <div class="tpchips" id="tpchips" role="group" aria-label="Touchpoint"></div>
+    <span class="sp"></span>
+    <span class="sync" id="sync">connecting…</span>
+    <div class="split" id="split"><a class="hbtn sp-main" id="b-proto" href="#" target="_blank" rel="noopener">Open prototype</a><button class="hbtn sp-dd" id="b-qr" aria-haspopup="true" aria-expanded="false" title="Open on your phone">▾</button>
+      <div class="qr-pop" id="qr-pop" hidden><div id="qr"></div><p>Scan to open the prototype on your phone</p><code id="qr-url"></code><button class="hbtn" id="qr-copy">Copy link</button></div></div>
+  </header>
+  <div class="main" id="main">
+    <aside id="left"></aside>
+    <section class="stage" id="stage">
+      <div class="pwrap" id="pwrap"></div>
+      <div class="badge-tip" id="tip"></div>
+      <button class="minimap" id="minimap" aria-label="Show all screens" title="All screens"></button>
+      <div class="varpill" id="varpill" role="group" aria-label="Design direction"></div>
+      <div class="overview" id="overview"></div>
+    </section>
+    <section class="doc" id="doc"></section>
+  </div>
+</div>
+<button class="cbtn" id="cbtn" title="Comment for Claude: click here, then click the screen or the spec (or Option+click either)">💬 Comment</button>
+<div id="measure" aria-hidden="true" style="position:absolute;left:-9999px;top:0;visibility:hidden"></div>
+<div class="modal" id="modal"><div class="card" id="mcard"></div></div>
+
+<script src="pack.js"></script>
+<script src="shell.js"></script>
+<script>
+/* Agentation (comments). Where agt.js sits next to the page (GitHub Pages, local), load that bundle.
+   Claude artifacts can't carry it and only allow scripts from a few CDNs, so there the same package
+   (agentation 3.1.2) loads from jsdelivr, with the glue the bundle had: mount the toolbar, forward notes as agt:* events.
+   useHashLocation: markers are kept per URL hash, and the shell sets the hash to variant + surface, so each combination shows its own comments. */
+/* yellow markers and highlight: Agentation keeps its settings in localStorage; force the colour before it mounts */
+try{ const k="feedback-toolbar-settings"; const v=JSON.parse(localStorage.getItem(k)||"{}"); v.annotationColorId="yellow"; localStorage.setItem(k,JSON.stringify(v)); }catch(e){}
+(function(){ const s=document.createElement("script"); s.src="agt.js";
+  s.onerror=()=>{ const m=document.createElement("script"); m.type="module"; m.textContent=`
+import * as React from "https://cdn.jsdelivr.net/npm/react@19.3.0/+esm";
+import { createRoot } from "https://cdn.jsdelivr.net/npm/react-dom@19.3.0/client/+esm";
+import { Agentation } from "https://cdn.jsdelivr.net/npm/agentation@3.1.2/+esm";
+const emit=(n,d)=>window.dispatchEvent(new CustomEvent("agt:"+n,{detail:d}));
+const el=document.createElement("div"); el.id="agt-root"; document.body.appendChild(el);
+createRoot(el).render(React.createElement(Agentation,{appName:document.title,copyToClipboard:true,useHashLocation:true,
+  identifyingAttributes:["data-el","data-label","data-sec","data-state","data-c"],
+  onAnnotationAdd:a=>emit("add",a),onAnnotationUpdate:a=>emit("update",a),onAnnotationDelete:a=>emit("delete",a),
+  onAnnotationsClear:a=>emit("clear",a),onSubmit:(out,list)=>emit("submit",{out,list})}));`;
+    document.body.appendChild(m); };
+  document.body.appendChild(s); })();
+</script>
+</body>
+</html>

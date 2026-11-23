@@ -39,10 +39,10 @@ if docs.get('rules'): spec += ['### Global rules', '', md(docs['rules']), '']
 for m in D['modes']:
     spec += ['### ' + m['name'] + (f" ([Figma]({m['figma']}))" if m.get('figma') else ''), '']
     for s_ in m['states']: spec += [f"#### {s_['name']} (`{s_['id']}`)", '', md(s_.get('doc','')) or '_(no spec)_', '']
-spec += ['## Edge cases', '', md(docs.get('edges','')) or '_none_', '']
-spec += ['## Side effects', '', '### Effects on existing data', '', md(docs.get('data','')) or '_not checked_', '', '### Notifications, emails & tracking', '', md(docs.get('side','')) or '_not checked_', '']
+spec += ['## Edge cases & touchpoints', '', md(docs.get('edges','')) or '_none_', '']
 tps = [k for k in docs if k.startswith('tp:') and md(docs[k])]
-if tps: spec += ['### Touchpoints (other screens affected)', ''] + sum([[f"#### {k[3:]}", '', md(docs[k]), ''] for k in tps], [])
+if tps: spec += ['### Touchpoints', ''] + sum([[f"#### {k[3:]}", '', md(docs[k]), ''] for k in tps], [])
+spec += ['## Side effects', '', '### Effects on existing data', '', md(docs.get('data','')) or '_not checked_', '', '### Notifications, emails & tracking', '', md(docs.get('side','')) or '_not checked_', '']
 oq = md(docs.get('questions',''))   # open questions are always checkboxes, so they can be ticked off when clear
 oq = re.sub(r'^(\s*)- (?!\[[ x]\] )', r'\1- [ ] ', oq, flags=re.M)
 spec += ['## Open questions', '', oq or '_none_', '']

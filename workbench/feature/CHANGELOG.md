@@ -1,5 +1,9 @@
 # Feature workbench shell: changelog
 
+## 1.1.4 (23.11.26)
+- Sections (Hannes 23.11.): Brief → Solution → **Edge cases & touchpoints** → **Side effects** (effects on existing data; notifications, emails & tracking) → Open questions → Implementation. Touchpoints are back with the edge cases; side effects stay their own section. Ticket preview and export use the same order.
+- Grouped proposals: blue lines that follow each other with no unchanged text in between are one proposal: one ✓ ✕ ↩, one dot, one thread (the first line's), accepted or declined together. The stored spec doesn't change. To keep a single line out, edit or delete it before accepting the group.
+
 ## 1.1.3 (23.11.26)
 - The save status at the top right shows the shell version ("saved · 1.1.3"), so a tab still running an older version is visible at a glance.
 
