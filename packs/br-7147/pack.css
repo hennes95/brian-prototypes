@@ -345,3 +345,9 @@ body:not(.proto) .oosa{outline:1px dashed #e0b400;outline-offset:4px;border-radi
 .p-tabs{z-index:3}
 @media (prefers-reduced-motion:reduce){.p-head,.phone.hidanim .cmp,.phone.hidanim .p-tabs{transition:opacity .15s}}
 .att.a-doc{margin-bottom:0}
+/* Hannes 24.11: placeholders always Mono-600 (Figma token), every variant and surface */
+.cmp textarea::placeholder,.v-pill textarea::placeholder,.phone.dark .cmp textarea::placeholder{color:#858585}
+/* Hannes 24.11: without the + (Discussion Room) the text keeps its inset and lines up with the history text */
+.v-pill.noplus textarea{padding-left:10px}
+/* Hannes 24.11: full screen: no rounded corners at the bottom, so the field sits flush on the keyboard */
+.v-pill.fs{border-bottom-left-radius:0;border-bottom-right-radius:0}
