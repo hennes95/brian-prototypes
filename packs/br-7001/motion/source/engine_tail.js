@@ -241,7 +241,8 @@ __REFPARAMS__
     /* REAL (phone build on a touch screen): the field is a real input and the OS keyboard opens (same approach as BR-7147);
        the input bar follows the visible area. Otherwise (workbench, desktop): the drawn keyboard, so animations replay and scrub. */
     const REAL = !!api.realKeyboard;
-    if(REAL){ txt.readOnly = false; txt.removeAttribute('inputmode'); txt.setAttribute('enterkeyhint','send'); }
+    if(REAL){ txt.readOnly = false; txt.removeAttribute('inputmode'); txt.setAttribute('enterkeyhint','send');
+      txt.style.caretColor = 'transparent'; }   // iOS draws its caret where the field was before it moved; the drawn caret follows the field
     else { txt.readOnly = true; txt.setAttribute('inputmode','none'); }
     let realDy = KB.inputDy, lastKb = 0, baseBottom = 0;   // REAL: offset (artboard px) that puts the input bar on top of the OS keyboard
     const inputDy = ()=>REAL ? realDy : KB.inputDy;
@@ -321,7 +322,7 @@ __REFPARAMS__
     sendBtn.addEventListener('pointerdown', e=>{ if(REAL) e.preventDefault(); });   // keep the OS keyboard open when tapping send
     sendBtn.addEventListener('click', e=>{ e.stopPropagation(); api.onSend && api.onSend(typed); });
     if(REAL){
-      txt.addEventListener('input', ()=>{ typed = txt.value; fieldEl.classList.toggle('has', !!typed); });
+      txt.addEventListener('input', ()=>{ typed = txt.value; showText(); });
       txt.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); api.onSend && api.onSend(typed); } });
       txt.addEventListener('blur', ()=>{ if(phone.classList.contains('kbup')) api.onOutside && api.onOutside(); });   // keyboard closed (swipe down, ✓, app switch)
     }

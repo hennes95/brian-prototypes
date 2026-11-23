@@ -430,6 +430,7 @@
       const home = navigator.standalone===true || matchMedia('(display-mode: standalone)').matches, sb = home ? (a.statusBar||0) : 0;
       const typing = REALKB && document.activeElement && document.activeElement.tagName==='INPUT';
       if(!typing || !protoK){ protoH = window.innerHeight; protoK = Math.min(window.innerWidth/a.w, protoH/(a.h-sb)); }   // keyboard up: keep the scale
+      if(REALKB && (window.scrollY || window.scrollX)) window.scrollTo(0,0);   // iOS scrolls the page to reveal the field: undo it (the field moves itself)
       const k = protoK, vv = window.visualViewport, pan = REALKB && vv ? (vv.pageTop || 0) : 0;
       $('stage').style.transform = 'translateY('+(-sb*k/2+pan)+'px) scale('+k+')'; return; }
     const s = Math.min((window.innerHeight-44-tlh-8)/a.h, ((window.innerWidth<=820?window.innerWidth:window.innerWidth-304)-16)/a.w, 1.6);
