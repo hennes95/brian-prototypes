@@ -290,7 +290,7 @@ function diaryBody(extra){
   <div class="y-act">4 activities <span>${I.caret}</span></div>
   ${extra||`<div class="y-empty oosa" data-oos="Chat history: as is, out of scope">${I.clip}<b>How was your learning day?</b><p>Note down how your learning went. If you record what worked and what didn’t, you’ll see over time what really helps you.</p></div>`}</div>`; }
 function phoneHTML(st,live={},interactive=true){
-  const M=interactive?ensureModel():seed(st.kind);
+  const M=interactive?ensureModel():seed(st.kind); if(interactive) syncThreadCtx(M);
   const q={text:M.text,focused:M.focused,inline:isInline(M),fs:M.focused&&!!M.fs,sheet:M.menu,picker:M.picker,pickKind:M.pickKind,attach:M.atts.length?M.atts:false,typing:M.waiting,note:M.note,reserved:M.reserved};
   if(!VARIANTS.some(x=>x.id===ui.variant)&&!(VARIANTS_ARCHIVED.some(x=>x.id===ui.variant)&&ui._showArchived)) ui.variant="pill";
   const ctx=ui.context, dark=isDarkCtx(ctx), quiz=ctx==="quiz", disc=ctx==="discussion", diary=ctx==="diary", v=ui.variant, inv=v==="inv", vcls=v==="pill-light"?"v-pill v-pill-light":inv?"v-open v-inv":v==="angled"?"v-open v-angled":"v-"+v;
@@ -339,8 +339,11 @@ function phoneHTML(st,live={},interactive=true){
 // default behaviour when an element has no explicit link yet
 const DEFAULT_TARGET={plus:"upload-sheet","opt-gallery":"upload-picker","opt-camera":"upload-picker","opt-doc":"upload-picker","opt-draw":"upload-picker","pick-add":"upload-attached","pick-cancel":"upload-sheet",send:"sending",field:"typing-empty","att-remove":"typing-empty"};
 
-function saveThread(){ if(!document.body.classList.contains("proto")) return; try{ localStorage.setItem("proto-br7147",JSON.stringify({thread:ui.live.thread||[]})); }catch(e){} }
-function restoreThread(){ if(!document.body.classList.contains("proto")) return; try{ const d=JSON.parse(localStorage.getItem("proto-br7147")||"null"); if(d&&Array.isArray(d.thread)) ui.live.thread=d.thread; }catch(e){} }
+/* each touchpoint keeps its own sent messages (Hannes 24.11: test messages from the AI Tutor showed up in the Dialog, Discussion room and Diary) */
+let THREADS={};
+function syncThreadCtx(M){ const c=ui.context||"tutor"; if(M._ctx===undefined){ M._ctx=c; if(THREADS[c]&&!M.thread.length) M.thread=THREADS[c]; return; } if(M._ctx===c) return; THREADS[M._ctx]=M.thread||[]; M.thread=THREADS[c]||[]; M._ctx=c; if(document.body.classList.contains("proto")){ M.text=""; M.atts=[]; M.focused=false; M.fs=false; M.stacked=false; M.waiting=false; M.menu=false; M.picker=false; } }
+function saveThread(){ if(!document.body.classList.contains("proto")) return; try{ THREADS[ui.live._ctx||ui.context||"tutor"]=ui.live.thread||[]; localStorage.setItem("proto-br7147",JSON.stringify({threads:THREADS})); }catch(e){} }
+function restoreThread(){ if(!document.body.classList.contains("proto")) return; try{ const d=JSON.parse(localStorage.getItem("proto-br7147")||"null"); if(d&&d.threads) THREADS=d.threads; else if(d&&Array.isArray(d.thread)) THREADS={tutor:d.thread}; const c=ui.context||"tutor"; ui.live.thread=THREADS[c]||[]; ui.live._ctx=c; }catch(e){} }
 function deriveKind(M){ if(M.picker) return "upload-picker"; if(M.fs&&M.focused) return "focus-mode"; if(M.menu) return "upload-sheet"; if(M.waiting) return "sending"; if(M.atts.length) return "upload-attached";
   if(M.focused){ if(!M.text.trim()) return "typing-empty"; const t=$("#pwrap textarea"); if(t&&t.scrollHeight>22.4*7+18) return "typing-overflow"; return "typing-filled"; } return "idle"; }
 function syncSel(){ const want=deriveKind(ui.live); const pick=k=>{ const inMode=curMode().states.find(s=>s.kind===k); return inMode?{m:curMode(),s:inMode}:flat().find(x=>x.s.kind===k); };
