@@ -252,8 +252,8 @@ async function loadPreviews(){
 /* Attachment visuals from BR-7144 at the small size (Hannes 23.11): photo with a white frame, canvas card, document page with fold;
    thin outline + hard shadow, straight (no tilt). Loading stays as it is. A file the student picked replaces the sample image. */
 let attDocN=0;
-function attDocSVG(src){ const id="adp"+(++attDocN), page="M0 0H291.1L316.5 24.8L317.1 178.8H0Z";
-  return `<svg class="docsvg" viewBox="0 0 321 183" preserveAspectRatio="none" role="img" aria-label="Document"><defs><clipPath id="${id}"><path d="${page}"/></clipPath></defs><g clip-path="url(#${id})"><rect width="321" height="183" fill="#fff"/><image href="${src}" width="317.1" height="178.8" preserveAspectRatio="xMidYMid slice"/><rect width="321" height="183" fill="#000" opacity=".03"/></g><path class="dln" d="${page}"/><path class="dsh" d="M294 3.3V27.7H319.2Z"/><path class="dfold" d="M291 .3V24.7H316.2Z"/></svg>`; }
+function attDocSVG(src){ const id="adp"+(++attDocN), page="M0 0H272L316.5 43.4L317.1 178.8H0Z"; /* fold ~75% bigger than BR-7144 at this small size (Hannes 24.11) */
+  return `<svg class="docsvg" viewBox="0 0 321 183" preserveAspectRatio="none" role="img" aria-label="Document"><defs><clipPath id="${id}"><path d="${page}"/></clipPath></defs><g clip-path="url(#${id})"><rect width="321" height="183" fill="#fff"/><image href="${src}" width="317.1" height="178.8" preserveAspectRatio="xMidYMid slice"/><rect width="321" height="183" fill="#000" opacity=".03"/></g><path class="dln" d="${page}"/><path class="dsh" d="M275 3.3V46.4H319.2Z"/><path class="dfold" d="M272 .3V43.4H316.2Z"/></svg>`; }
 const ATT={
  get image(){ return `<span class="pic"><img src="${PREV.photo||"assets/photo.png"}" alt=""></span>`; },
  loading:`<span class="pic"><span class="spin"></span></span>`,
