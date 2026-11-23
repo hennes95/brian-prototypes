@@ -1,6 +1,12 @@
 {
   "ticket": "BR-6891",
   "title": "Hidden course material",
-  "shell": "feature@1.0.3",
-  "notes": "Pinned. Desktop screens are drawn and scaled by the pack (fit) on shell 1.0.0."
+  "shell": "feature@1.1.7",
+  "notes": "Pinned. Desktop screens are drawn and scaled by the pack (fit).",
+  "links": {
+    "Ticket": "https://app.notion.com/p/3f7fca9f403c80d5a296cd7f343bf5c0",
+    "Design": "https://www.figma.com/design/c3ccOGwhciWpL7bF0fpF5G/Teacher-CMS?node-id=10500-25901",
+    "Feature Workbench": "https://claude.ai/artifact/5SGQrfZGKW3Fjw9tUKFWEo",
+    "Handoff": ""
+  }
 }

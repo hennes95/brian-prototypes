@@ -5,7 +5,8 @@ const PACK={
   protoUrl:"https://claude.ai/artifact/5SGQrfZGKW3Fjw9tUKFWEo",
   dbDoc:"workbench/br-6891-v2", legacyDbDoc:"workbench/br-6891", lsKey:"wb-br6891-v2",
   ui:{sel:{kind:"state",mode:"cm",state:"cm-rest"},variant:"v2",context:"cms"},
-  protoStartKind:"cm-rest"
+  protoStartKind:"cm-rest",
+  links:[{"label": "Ticket", "name": "BR-6891 · Hidden course material", "url": "https://app.notion.com/p/3f7fca9f403c80d5a296cd7f343bf5c0"}, {"label": "Design", "name": "Figma · BR-6891", "url": "https://www.figma.com/design/c3ccOGwhciWpL7bF0fpF5G/Teacher-CMS?node-id=10500-25901"}, {"label": "Feature Workbench", "name": "Feature Workbench", "url": "https://claude.ai/artifact/5SGQrfZGKW3Fjw9tUKFWEo"}, {"label": "Handoff", "name": "Handoff", "url": ""}]   /* link hub (Implementation), from pack.json → links */
 };
 
 const FIG = id => "https://www.figma.com/design/c3ccOGwhciWpL7bF0fpF5G/Teacher-CMS?node-id=" + id;
@@ -45,7 +46,7 @@ const IC = {
 const accessCell = (f, hidden, variant) => {
   const btn = `<button class="sa ${hidden?"hid":""}" data-act="sa" data-id="${f.id}" data-el="cm.access" data-label="Student access toggle" aria-pressed="${hidden}" aria-label="${hidden?"Show":"Hide"} ${esc(f.name)} ${hidden?"to":"from"} students">${hidden?IC.eyeOff(14):IC.eye(14)}${hidden?"Hidden":"Visible"}</button>`;
   if (variant === "v1") return btn;
-  return `<span class="sa-rest"${hidden?' data-el="cm.rest" data-label="Resting: Hidden as text"':""}>${hidden?"Hidden":""}</span>${btn}`;
+  return `<span class="sa-rest"${hidden?' data-el="cm.rest" data-label="Resting: hidden icon" role="img" aria-label="Hidden from students" title="Hidden from students"':""}>${hidden?IC.eyeOff(16):""}</span>${btn}`;
 };
 
 function teacherShell(inner, overlay){
@@ -165,7 +166,7 @@ const DOCS = {
     questions: ul("Column name: \"Student access\" or \"Visible to students\"?", "Hover toggle: does it also need a keyboard path beyond focus (e.g. row menu)?", "Solutions detection: file name only, or also content?")
   };
 const STATE_DOCS = {
-    "cm-rest": ul("Column \"Student access\" with info icon", ["Hidden files", "Show \"Hidden\" as text only", "Lock badge on the file icon"], "Visible files show nothing in the column"),
+    "cm-rest": ul("Column \"Student access\" with info icon", ["Hidden files", "Show only the crossed-out eye icon, no text", "Lock badge on the file icon"], "Visible files show nothing in the column"),
     "cm-hover": ul(["Row hover or keyboard focus in the row", "Toggle appears in the column", "Visible file: \"Visible\" with eye icon"], "Click toggles the state, row stays hovered"),
     "cm-hover-h": ul(["Hidden file on hover", "Toggle shows \"Hidden\" with crossed-out eye", "Light grey, not dark (Hannes 20.11)"], "Click → visible, lock badge disappears"),
     "cm-tip": ul("Tooltip on the info icon", ["Copy", "\"Brian still uses hidden material, but students can't open it when Brian cites it.\"", "\"Use this for solutions or teacher notes.\""]),

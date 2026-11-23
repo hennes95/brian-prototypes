@@ -1,5 +1,12 @@
 # Feature workbench shell: changelog
 
+## 1.1.7 (23.11.26)
+- Comments come from the database, not the browser (Hannes 23.11.): before Agentation reads the page, the shell writes the matching comments from the database into its storage. Markers show in any browser and don't expire after 7 days. New comments keep Agentation's full annotation (`raw`) for that.
+- Markers per variant + surface + screen (page address `#variant-surface-screen`), so a marker only shows on the screen it was placed on.
+- Yellow counter: one stop per comment. It switches to the comment's surface, variant and screen, scrolls the spec to that screen, highlights the element and opens the comment (with Mark as done) next to it.
+- Comments on the spec are stops too: the counter scrolls to the line, highlights it and opens the comment.
+- Comments made before 1.1.7 have no `raw`: no marker, but the counter still opens them.
+
 ## 1.1.6 (23.11.26)
 - Grouped proposals per bullet (Hannes 23.11.): a blue line and its blue child lines (nested under it) are one proposal; blue lines next to each other on the same level stay separate.
 
