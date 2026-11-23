@@ -1,5 +1,10 @@
 # Feature workbench shell: changelog
 
+## 1.0.11 (23.11.26)
+- Fix: thread replies were never sent inside Claude artifacts. The sandboxed frame blocks form submission, so Enter and Send did nothing (since 1.0.5).
+  The reply box is no longer a form; Enter and Send call the send function directly. Checked in a sandboxed frame like the artifact's.
+- An unsent reply is kept as a draft per thread, so a re-render can't wipe it.
+
 ## 1.0.10 (23.11.26)
 - Imported blocks are handled like Claude's suggestions: same ✓ ✕ ↩ controls in the margin, threads, read / unread, one shared counter (inbox).
 - Differences: the grey bar stays, the controls of imported blocks are always visible (not only on hover) and start with a "From …" label.
