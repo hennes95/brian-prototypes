@@ -71,7 +71,8 @@
         if(!opened || (model && (model.kind==='blur' || model.kind==='enter'))) playKind('focus',undefined,true); },
       onSend: text=>{ if(opened && model && model.kind==='focus' && text) playKind('send',{text},true); },
       onOutside: ()=>{ if(opened && model && model.kind==='focus') playKind('blur',{fromT:tNow},true); },
-      opened: ()=>opened, variant: ()=>variant });
+      opened: ()=>opened, variant: ()=>variant,
+      realKeyboard: REALKB, scale: ()=>protoK });
     buildTabs(); buildChips(); renderPanel(); checkVectors(); fit();
     playKind('enter');
   }
@@ -413,13 +414,24 @@
   });
 
   /* ================= FIT ================= */
+  /* Phone build on a touch screen: native keyboard, same approach as BR-7147: the page never scrolls, the screen stays pinned
+     to the visible area (iOS pans it when the keyboard opens), the scale is fixed (the keyboard must not shrink the screen),
+     and the scroll is reset after the keyboard closes. */
+  const REALKB = PROTO && matchMedia('(pointer:coarse)').matches;
+  let protoK = 0, protoH = 0;
+  if(REALKB){ document.documentElement.style.cssText += ';overflow:hidden;height:100%;overscroll-behavior:none';
+    document.body.style.cssText += ';overflow:hidden;height:100%;overscroll-behavior:none';
+    if(window.visualViewport){ visualViewport.addEventListener('resize', fit); visualViewport.addEventListener('scroll', fit); }
+    document.addEventListener('focusout', ()=>setTimeout(()=>{ window.scrollTo(0,0); fit(); },120)); }
   function fit(){
     const tl = $('tl'), tlh = tl.offsetHeight+24; document.body.style.setProperty('--tlh', tlh+'px');
     if(!pkg) return; const a = pkg.manifest.artboard;
     if(PROTO){ // on the home screen iOS draws the real status bar above the page, so the artboard's own status-bar strip is cropped
       const home = navigator.standalone===true || matchMedia('(display-mode: standalone)').matches, sb = home ? (a.statusBar||0) : 0;
-      const k = Math.min(window.innerWidth/a.w, window.innerHeight/(a.h-sb));
-      $('stage').style.transform = 'translateY('+(-sb*k/2)+'px) scale('+k+')'; return; }
+      const typing = REALKB && document.activeElement && document.activeElement.tagName==='INPUT';
+      if(!typing || !protoK){ protoH = window.innerHeight; protoK = Math.min(window.innerWidth/a.w, protoH/(a.h-sb)); }   // keyboard up: keep the scale
+      const k = protoK, vv = window.visualViewport, pan = REALKB && vv ? (vv.pageTop || 0) : 0;
+      $('stage').style.transform = 'translateY('+(-sb*k/2+pan)+'px) scale('+k+')'; return; }
     const s = Math.min((window.innerHeight-44-tlh-8)/a.h, ((window.innerWidth<=820?window.innerWidth:window.innerWidth-304)-16)/a.w, 1.6);
     $('stage').style.transform = 'scale('+s+')';
   }
