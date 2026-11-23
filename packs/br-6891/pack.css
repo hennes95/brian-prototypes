@@ -1,51 +1,72 @@
+@import url("https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800&family=Nunito+Sans:wght@500&display=swap");
 /* BR-6891 pack styles: Teacher CMS + Student app screens, scoped to .fx */
 .fx{color-scheme:light;font-family:'Nunito',system-ui,sans-serif;color:#3a3a3a;-webkit-font-smoothing:antialiased}
 .fx *{box-sizing:border-box}
 .fx button{font-family:inherit;cursor:pointer}
-.fx .t-app{width:100%;height:100%;background:#63c0ff;display:flex;gap:32px;padding:32px;position:relative}
-.fx .t-nav{width:216px;flex:0 0 auto;display:flex;flex-direction:column;gap:6px;color:#fff}
-.fx .t-logo{width:56px;height:56px;border-radius:28px;background:#fff;color:#157ec5;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:22px;margin-bottom:24px}
-.fx .t-nav a{display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:6px;color:#fff;text-decoration:none;font-weight:600;font-size:14px}
+/* Teacher CMS: after Figma 10500:26471 (Teacher UI Template + Course Materials Tab), 1720×1080 */
+.fx .t-app{width:100%;height:100%;background:#63c0ff;position:relative;overflow:hidden}
+.fx .t-side{position:absolute;left:0;top:0;width:296px;height:100%}
+.fx .t-nav{position:absolute;left:32px;top:40px;width:232px;display:flex;flex-direction:column;color:#fff}
+.fx .t-logo{display:block;width:67px;height:60px}
+.fx .t-collapse{margin:24px 0 0 15px;width:24px;height:24px;padding:0;border:0;background:none;color:#fff;display:flex}
+.fx .t-group{display:flex;flex-direction:column;gap:8px}
+.fx .t-collapse + .t-group{margin-top:48px}
+.fx .t-nav a{display:flex;align-items:center;gap:8px;height:48px;padding:12px 16px;border-radius:4px;color:#fff;text-decoration:none;font-weight:700;font-size:14px;line-height:20px}
 .fx .t-nav a.on{background:#fff;color:#3a3a3a}
-.fx .t-nav hr{border:0;height:1px;background:rgba(255,255,255,.6);margin:14px 0;width:100%}
-.fx .t-card{flex:1 1 auto;min-width:0;background:#fff;border-radius:24px;padding:28px 36px;overflow:hidden;display:flex;flex-direction:column;gap:22px}
-.fx .t-top{display:flex;justify-content:space-between;align-items:flex-start}
-.fx .t-school{font-size:14px;font-weight:600;color:#585858}
-.fx .t-h1{margin:2px 0 0;font-size:24px;font-weight:700}
-.fx .t-btn{display:inline-flex;align-items:center;gap:8px;padding:9px 13px;border:0;border-radius:4px;background:#63c0ff;color:#fff;font-size:14px;font-weight:700}
+.fx .t-nav a svg{flex:0 0 auto}
+.fx .t-nav hr{border:0;height:1px;background:#fff;margin:24px 0;width:100%}
+.fx .t-avatar{position:absolute;left:32px;bottom:40px;width:56px;height:56px;border-radius:28px}
+.fx .t-ask{position:absolute;right:0;top:0;width:116px;height:100%;color:#fff}
+.fx .t-ask svg{position:absolute;left:48px;top:52px}
+.fx .t-card{position:absolute;left:296px;top:40px;width:1308px;height:1002px;background:#fff;border-radius:24px;overflow:hidden;display:flex;flex-direction:column;padding-top:36px}
+.fx .t-top{display:flex;justify-content:space-between;align-items:flex-start;padding:0 40px}
+.fx .t-title{display:flex;flex-direction:column;gap:8px}
+.fx .t-school{font-size:16px;font-weight:800;line-height:22px;color:#b1b1b1}
+.fx .t-h1{margin:0;font-size:24px;font-weight:700;line-height:1.2;color:#3a3a3a}
+.fx .t-btn{display:inline-flex;align-items:center;gap:8px;padding:8px 16px;border:0;border-radius:4px;background:#63c0ff;color:#fff;font-size:14px;font-weight:700;line-height:20px}
+.fx .t-btn.sm{padding:4px 8px;margin-top:8px}
 .fx .t-btn.sec{background:#fff;color:#157ec5;border:1px solid #63c0ff}
-.fx .t-tabs{display:flex;gap:24px;border-bottom:1px solid #ddd}
-.fx .t-tabs span{padding:0 0 10px;color:#858585;font-weight:700;font-size:15px}
-.fx .t-tabs span.on{color:#3a3a3a;font-weight:800;border-bottom:3px solid #63c0ff;padding-bottom:7px}
-.fx .t-bulk{display:flex;align-items:center;gap:12px;padding:9px 14px;border-radius:8px;background:#c8e9ff}
-.fx .t-bulk b{font-size:14px}
+.fx .t-tabs{display:flex;gap:24px;margin:33px 40px 0;border-bottom:1px solid #ddd}
+.fx .t-tabs span{padding-bottom:12px;color:#b1b1b1;font-weight:800;font-size:16px;line-height:22px;border-bottom:2px solid transparent;margin-bottom:-1px}
+.fx .t-tabs span.on{color:#3a3a3a;border-bottom-color:#63c0ff}
+.fx .t-cm{flex:1;min-height:0;display:flex;flex-direction:column}
+.fx .t-bulk{display:flex;align-items:center;gap:12px;margin:16px 40px 0;padding:8px 12px 8px 16px;border-radius:8px;background:#c8e9ff;color:#3a3a3a}
+.fx .t-bulk b{font-size:14px;font-weight:700}
 .fx .t-bulk .x-sp{flex:1}
-.fx .t-bulk button{display:inline-flex;align-items:center;gap:7px;padding:7px 12px;border-radius:4px;font-size:13px;font-weight:700;border:1px solid #3a3a3a;background:#fff;color:#3a3a3a}
-.fx .t-bulk button.lnk{border:0;background:none;color:#157ec5}
-.fx table{width:100%;border-collapse:collapse;font-size:13px}
-.fx th{text-align:left;font-size:12px;font-weight:700;padding:0 12px 12px 0;position:relative;white-space:nowrap}
-.fx td{padding:9px 12px 9px 0;border-top:1px solid #eee;color:#585858;height:44px}
-.fx td.fn{color:#3a3a3a;font-weight:600}
-.fx td:not(.fn){white-space:nowrap}
-.fx tr.sel td{background:#f0f9ff}
-.fx input[type=checkbox]{width:16px;height:16px;accent-color:#63c0ff;margin:0;cursor:pointer}
-.fx .fi{position:relative;display:inline-flex;width:24px;height:24px;border-radius:4px;background:#c8e9ff;color:#157ec5;align-items:center;justify-content:center;vertical-align:middle;margin-right:10px}
-.fx .fi .lk{position:absolute;right:-6px;bottom:-6px;width:15px;height:15px;border-radius:8px;background:#3a3a3a;color:#fff;display:flex;align-items:center;justify-content:center;border:1.5px solid #fff}
-.fx .info{width:18px;height:18px;padding:0;border:0;border-radius:9px;background:#63c0ff;color:#fff;font-size:11px;font-weight:800;line-height:18px;vertical-align:-3px;margin-left:6px}
-.fx .tip{position:absolute;top:26px;left:-30px;z-index:3;width:290px;padding:12px 14px;border-radius:6px;background:#3a3a3a;color:#fff;font-size:13px;font-weight:500;line-height:1.45;white-space:normal;display:flex;flex-direction:column;gap:6px}
-.fx .tip i{color:#ddd}
-/* access cell: V1 = pill always; V2 = resting shows only "Hidden" as text, the toggle appears on row hover / focus */
-.fx .sa{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:14px;font-size:12px;font-weight:700;border:1px solid #ddd;background:#fff;color:#585858}
+.fx .t-bulk button{display:inline-flex;align-items:center;gap:8px;padding:4px 8px;border-radius:4px;font-size:14px;font-weight:700;line-height:20px;border:1px solid #63c0ff;background:#fff;color:#157ec5}
+.fx .t-bulk button.lnk{border-color:transparent;background:none}
+.fx .t-table{width:1228px;margin:24px 40px 0;border-collapse:separate;border-spacing:0;table-layout:fixed}
+.fx .t-table th{text-align:left;font-size:12px;font-weight:700;line-height:16px;color:#585858;padding:16px 12px;height:49px;white-space:nowrap}
+.fx .t-table td{padding:14px 12px;height:56px;font-size:14px;font-weight:500;line-height:20px;color:#585858;border-top:2px solid #fff;border-bottom:2px solid #fff}
+.fx .t-table .c-cb{padding:16px 0;width:16px}
+.fx .c-tx{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fx .c-fn{display:flex;align-items:center;gap:12px;min-width:0}
+.fx .c-doc{position:relative;flex:0 0 24px;width:24px;height:24px;display:flex}
+.fx .c-lock{position:absolute;right:-3px;bottom:-3px;width:12px;height:12px;border-radius:3px;background:#3a3a3a;border:1px solid #fff;display:flex;align-items:center;justify-content:center}
+.fx .c-sort{display:flex;justify-content:space-between;align-items:center;padding-right:12px}
+.fx .c-acc{display:flex;align-items:center;gap:4px;position:relative}
+.fx .c-dl{width:16px;height:16px;padding:0;border:0;background:none;color:#3a3a3a;display:flex}
+.fx .t-table tbody tr:hover td,.fx .t-table tr.hov td{background:rgba(200,233,255,.2)}
+.fx .t-table tr.sel td{background:rgba(200,233,255,.45)}
+.fx input[type=checkbox]{appearance:none;-webkit-appearance:none;width:16px;height:16px;margin:0;border:1px solid #ddd;border-radius:4px;background:#fff;cursor:pointer;display:block;position:relative}
+.fx input[type=checkbox]:checked{background:#63c0ff;border-color:#63c0ff}
+.fx input[type=checkbox]:checked::after{content:"";position:absolute;left:4.5px;top:1.5px;width:4px;height:8px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg)}
+.fx input[type=checkbox]:disabled{opacity:.5;cursor:default}
+.fx .info{width:12px;height:12px;padding:0;border:0;background:none;display:flex;border-radius:6px}
+.fx .tip{position:absolute;top:22px;left:calc(100% - 12px);z-index:3;width:248px;padding:6px 8px;border-radius:8px;background:#3a3a3a;border:2px solid #3a3a3a;color:#fff;font-family:'Nunito Sans','Nunito',sans-serif;font-size:12px;font-weight:500;line-height:1.4;white-space:normal;display:flex;flex-direction:column;gap:4px}
+.fx .t-foot{margin-top:auto;border-top:1px solid #ddd;padding:12px 40px}
+/* access cell: V1 = toggle always; V2 = resting shows only the crossed-out eye for hidden files, the toggle appears on row hover / focus */
+.fx .sa{display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 10px;border-radius:4px;font-size:12px;font-weight:700;border:1px solid #ddd;background:#fff;color:#585858}
 .fx .v1 .sa.hid{background:#3a3a3a;border-color:#3a3a3a;color:#fff}
-.fx .v2 .sa{min-width:92px}
+.fx .v2 .sa{min-width:88px;margin:-4px 0}
 .fx .v2 .sa.hid{background:#f2f2f2;border-color:#ddd;color:#3a3a3a}
-.fx .v2 .sa-rest{font-size:13px;font-weight:600;color:#585858;padding:5px 0}
+.fx .v2 .sa-rest{display:flex;align-items:center;height:20px;color:#585858}
 .fx .v2 .sa{display:none}
 .fx .v2 tr:hover .sa,.fx .v2 tr:focus-within .sa,.fx .v2 tr.hov .sa{display:inline-flex}
 .fx .v2 tr:hover .sa-rest,.fx .v2 tr:focus-within .sa-rest,.fx .v2 tr.hov .sa-rest{display:none}
-.fx .v2 tr.hov td{background:#f7fbfe}
-.fx .x-ib{width:32px;height:32px;border:0;background:none;color:#3a3a3a;display:inline-flex;align-items:center;justify-content:center}
-.fx .t-foot{margin-top:auto;border-top:1px solid #ddd;padding-top:16px}
+/* small file icon still used in the dialogs */
+.fx .fi{position:relative;display:inline-flex;width:24px;height:24px;border-radius:4px;background:#c8e9ff;color:#157ec5;align-items:center;justify-content:center;vertical-align:middle;margin-right:10px}
+.fx .fi .lk{position:absolute;right:-6px;bottom:-6px;width:15px;height:15px;border-radius:8px;background:#3a3a3a;color:#fff;display:flex;align-items:center;justify-content:center;border:1.5px solid #fff}
 /* dialogs */
 .fx .dim{position:absolute;inset:0;background:rgba(58,58,58,.45);display:flex;align-items:center;justify-content:center;z-index:5}
 .fx .dlg{background:#fff;border-radius:16px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.25)}
