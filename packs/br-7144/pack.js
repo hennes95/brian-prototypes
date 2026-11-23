@@ -149,7 +149,13 @@ let KIND="layout";      // the state being rendered: decides which elements carr
 const el=(id,label,group)=>group&&!group.split(" ").includes(KIND)?"":`data-el="${id}" data-label="${esc(label)}"`;
 const CAP={image:"line_sketch.jpg",drawing:"Canvas · created today",doc:"Worksheet · 3 pages"};
 const LOADCAP={image:"Image · loading…",drawing:"Drawing · loading…",doc:"Document · loading…"};
-const spin=`<span class="spin" aria-label="Uploading"></span>`;
+/* ⚠ MOCK — REPLACE: Brian's porthole loader (rings, rivets, sloshing liquid), drawn by hand from a screenshot of the app
+   (Hannes 23.11). Not the real asset: take the app's loader (brian-mobile-design-kit / Flutter) when building. */
+const MOCK_LOADER=`<svg class="porthole" viewBox="0 0 100 100" aria-hidden="true"><defs><clipPath id="phc"><circle cx="50" cy="50" r="33"/></clipPath></defs>
+ <g clip-path="url(#phc)"><path class="wv back" d="M0 56Q25 49 50 56T100 56T150 56T200 56V100H0Z"/><path class="wv front" d="M0 58Q25 64 50 58T100 58T150 58T200 58V100H0Z"/></g>
+ <circle cx="50" cy="50" r="45" class="rg"/><circle cx="50" cy="50" r="35.5" class="rg"/>
+ ${[0,1,2,3,4,5,6,7].map(i=>{const a=(i*45+20)*Math.PI/180;return `<circle cx="${(50+40.2*Math.cos(a)).toFixed(1)}" cy="${(50+40.2*Math.sin(a)).toFixed(1)}" r="2.3" class="rv"/>`;}).join("")}</svg>`;
+const spin=`<span class="loader mock" data-mock="Mock: loader drawn from a screenshot, replace with the app's asset" role="img" aria-label="Uploading">${MOCK_LOADER}</span>`;
 function thumb(k,loading,cls=""){
   if(k==="image") return `<span class="th th-img ${cls} ${loading?"ld":""}"><span class="ph">${loading?spin:`<img src="assets/photo.png" alt="Photo">`}</span></span>`;
   if(k==="drawing") return `<span class="th th-draw ${cls} ${loading?"ld":""}">${loading?spin:`<img src="assets/drawing.png" alt="Drawing">`}</span>`;

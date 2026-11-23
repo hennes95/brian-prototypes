@@ -9,5 +9,13 @@
     "phone": "https://hennes95.github.io/brian-prototypes/br-7144/flow/",
     "notion": "https://app.notion.com/p/407fca9f403c8006a1ffc36589b5fdee",
     "figma": "https://www.figma.com/design/GbI4xt40lr0Jmk3rkgrtM0/Student-App?node-id=12117-80"
-  }
+  },
+  "mocks": [
+    {
+      "what": "Porthole loader (attachment loading state)",
+      "where": "pack.js MOCK_LOADER, pack.css .porthole",
+      "why": "Drawn from a screenshot of the app; the real asset is in the app / brian-mobile-design-kit, not reachable yet",
+      "replace": "with the app's loader asset when building"
+    }
+  ]
 }
