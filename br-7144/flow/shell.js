@@ -169,8 +169,8 @@ function agtActive(){ const g=document.querySelector('[data-feedback-toolbar] [c
 function agtShow(){ if(!window.USE_AGT||agtActive()) return; document.dispatchEvent(new KeyboardEvent("keydown",{key:"F",code:"KeyF",ctrlKey:true,shiftKey:true,bubbles:true,cancelable:true})); }
 let cntCi=-1, cntAi=-1;
 function allComments(){ const scr=(S.pins||[]).map(p=>({kind:"screen",p})), doc=(S.docpins||[]).map(p=>({kind:"doc",p})), agt=(S.agt||[]).filter(a=>a.status!=="resolved").map(p=>({kind:"agt",p})); return [...doc,...scr,...agt]; }
-function updateCounters(){ const c=$("#cntC"), a=$("#cntA"); if(!c||!a) return; const nc=allComments().length+document.querySelectorAll("#edscroll mark.ask").length+thWaiting(), na=document.querySelectorAll("#edscroll span.ai").length;
-  c.textContent=nc; c.hidden=!nc; const ci=$("#cntI"); if(ci){ const ni=document.querySelectorAll("#edscroll .ed .imp").length; ci.textContent=ni; ci.hidden=!ni; ci.title=`${ni} imported block${ni>1?"s":""} to keep or drop: click for the next one`; } const nu=thUnread().length; a.textContent=nu||na; a.hidden=!na; a.classList.toggle("out",!nu); a.classList.toggle("unread",!!nu); a.title=nu?`${nu} unread proposal${nu>1?"s":""}: click for the next one`:`${na} open proposal${na>1?"s":""} (all read): click to step through`; try{ updTpBadges(); placeAgtDots(); }catch(e){} }
+function updateCounters(){ const c=$("#cntC"), a=$("#cntA"); if(!c||!a) return; const nc=allComments().length+document.querySelectorAll("#edscroll mark.ask").length+thWaiting(), na=document.querySelectorAll("#edscroll span.ai,#edscroll .ed .imp").length;
+  c.textContent=nc; c.hidden=!nc; const nu=thUnread().length; a.textContent=nu||na; a.hidden=!na; a.classList.toggle("out",!nu); a.classList.toggle("unread",!!nu); a.title=nu?`${nu} unread proposal${nu>1?"s":""}: click for the next one`:`${na} open proposal${na>1?"s":""} (all read): click to step through`; try{ updTpBadges(); placeAgtDots(); }catch(e){} }
 /* comments per touchpoint: yellow number on each chip + yellow dots on the phone, anchored to the commented element */
 function tpComments(ctx){ return [...(S.agt||[]).filter(a=>a.status!=="resolved"&&a.where==="phone"&&(a.ctx||"tutor")===ctx).map(p=>({kind:"agt",p})),...(S.pins||[]).filter(p=>(p.ctx||"tutor")===ctx).map(p=>({kind:"screen",p}))]; }
 function updTpBadges(){ const box=document.getElementById("tpchips"); if(!box) return; box.querySelectorAll("button[data-c]").forEach(b=>{ const t=CONTEXTS.find(c=>c.id===b.dataset.c); const n=t&&t.ctx?tpComments(t.ctx).length:0; let i=b.querySelector(".cb"); if(!n){ if(i) i.remove(); return; } if(!i){ i=document.createElement("i"); i.className="cb"; b.appendChild(i); } i.textContent=n; i.title=n+" open comment"+(n>1?"s":"")+" on this touchpoint"; }); }
@@ -192,7 +192,7 @@ document.addEventListener("click",e=>{ const d=e.target.closest&&e.target.closes
   const dn=e.target.closest&&e.target.closest("#agtpop button[data-done]"); if(dn){ const a=(S.agt||[]).find(x=>x.id===dn.dataset.done); if(a){ a.status="resolved"; save(); updateCounters(); } closeAgtPop(); return; }
   if(!(e.target.closest&&e.target.closest("#agtpop"))) closeAgtPop(); },true);
 document.addEventListener("keydown",e=>{ if(e.key==="Escape") closeAgtPop(); });
-window.addEventListener("resize",()=>{ try{ placeAgtDots(); placeImpCtl(); }catch(e){} });
+window.addEventListener("resize",()=>{ try{ placeAgtDots(); }catch(e){} });
 document.addEventListener("scroll",e=>{ if(e.target&&e.target.closest&&e.target.closest("#pwrap")) requestAnimationFrame(()=>{ try{ placeAgtDots(); }catch(x){} }); },true);
 function gotoTpComments(t){ const c=tpComments(t.ctx)[0]; ui.context=t.ctx; if(c&&c.kind==="agt"&&c.p.variant) ui.variant=c.p.variant; else if(c&&c.p.variant) ui.variant=c.p.variant; try{ sc.value=ui.context; sv.value=ui.variant; }catch(e){} const st=c&&c.p.state; if(st&&ui.sel.state!==st&&find(st)) go(st); else renderStage(); renderLeft&&renderLeft(); setTimeout(flashDots,200); }
 document.addEventListener("click",e=>{
@@ -201,8 +201,7 @@ document.addEventListener("click",e=>{
     else if(cntCi<tps.length+docs.length){ const p=docs[cntCi-tps.length]; const b=document.querySelector(`.dpin[data-dpin="${p.id}"]`); if(b){ b.scrollIntoView({block:"center",behavior:"smooth"}); b.classList.remove("flash"); void b.offsetWidth; b.classList.add("flash"); } }
     else { const m=asks[cntCi-tps.length-docs.length]; m.scrollIntoView({block:"center",behavior:"smooth"}); m.classList.add("flash"); }
     return; }
-  if(e.target.closest&&e.target.closest("#cntI")){ const bl=[...document.querySelectorAll("#edscroll .ed .imp")]; if(!bl.length) return; ui._ci=((ui._ci??-1)+1)%bl.length; bl[ui._ci].scrollIntoView({block:"center",behavior:"smooth"}); setTimeout(()=>placeImpCtl(),400); return; }
-  if(e.target.closest&&e.target.closest("#cntA")){ const un=thUnread(); const ai=un.length?un:[...document.querySelectorAll("#edscroll span.ai")]; if(!ai.length) return; cntAi=un.length?0:(cntAi+1)%ai.length; const sp=ai[cntAi]; sp.scrollIntoView({block:"center",behavior:"smooth"}); sp.classList.remove("flash"); void sp.offsetWidth; sp.classList.add("flash"); setTimeout(()=>openThread(sp),350); return; }
+  if(e.target.closest&&e.target.closest("#cntA")){ const un=thUnread(); const ai=un.length?un:[...document.querySelectorAll("#edscroll span.ai,#edscroll .ed .imp")]; if(!ai.length) return; cntAi=un.length?0:(cntAi+1)%ai.length; const sp=ai[cntAi]; sp.scrollIntoView({block:"center",behavior:"smooth"}); sp.classList.remove("flash"); void sp.offsetWidth; sp.classList.add("flash"); setTimeout(()=>openThread(sp),350); return; }
 },true);
 { const _rd2=renderDoc; renderDoc=function(...a){ const r=_rd2.apply(this,a); requestAnimationFrame(updateCounters); return r; }; }
 { const _rs=renderStage; renderStage=function(...a){ const r=_rs.apply(this,a); updateCounters(); return r; }; }
@@ -279,7 +278,7 @@ function renderDoc(force){
   let h=`<div class="doc-head"><div class="crumb">${esc(PACK.id)}</div><div class="doc-trow"><div class="doc-title">${esc(PACK.title)}</div><button class="hbtn" id="b-ticket" contenteditable="false">Preview</button></div></div>
     <nav class="jump" id="jump"><button data-jump="brief">Brief</button><button data-jump="solution">Solution</button><button data-jump="edges">Edge cases & touchpoints</button><button data-jump="ds">Design system changes</button><button data-jump="questions">Open questions</button></nav>
     <div class="tools"><button data-cmd="h2" title="Heading">H</button><button data-cmd="ol" title="Numbered list">1.</button><button data-cmd="ul" title="Bullet list">•</button><button data-cmd="indent" title="Indent (Tab)">→</button><button data-cmd="outdent" title="Outdent (Shift+Tab)">←</button><button data-cmd="bold" title="Bold"><b>B</b></button>
-      <span class="sp"></span><button class="cnt cy" id="cntC" title="Your comments for Claude (screen + spec): click to go to the next one">0</button><button class="cnt ci" id="cntI" title="Imported blocks to keep or drop" hidden>0</button><button class="cnt cb" id="cntA" title="Claude's additions (blue) to accept or decline: click to go to the next one">0</button></div>
+      <span class="sp"></span><button class="cnt cy" id="cntC" title="Your comments for Claude (screen + spec): click to go to the next one">0</button><button class="cnt cb" id="cntA" title="Claude's additions (blue) to accept or decline: click to go to the next one">0</button></div>
     <div class="edscroll" id="edscroll">`;
   h+=`<h2 class="grp-h" data-grp-h="brief">Brief</h2>`+blk("brief","Problem, goal & scope",S.docs.brief,"Problem · Goal · Success criteria · In scope · Out of scope","brief");
   h+=`<h2 class="grp-h" data-grp-h="solution">Solution</h2>`+blk("rules","Global rules",S.docs.rules,"Behavior that holds on every screen. One rule per line with an ID: R1, R2 …","solution");
@@ -301,15 +300,10 @@ function renderDoc(force){
 function markModes(){ document.querySelectorAll("[data-mdot]").forEach(d=>{ const m=mode(d.dataset.mdot); if(!m) return; const n=m.states.length, f=m.states.filter(x=>textOf(x.doc).trim()).length; d.className="mdot "+(f===0?"none":f===n?"all":"some"); d.title=`${f} of ${n} screens specced`; }); }
 function markEmpty(){ markModes(); document.querySelectorAll("#edscroll .dsec").forEach(sec=>{ const ed=sec.querySelector(".ed"); sec.classList.toggle("empty",!textOf(ed.innerHTML).trim()); }); }
 function placeAiCtl(){ const sc=$("#edscroll"); if(!sc) return; sc.querySelectorAll(".aictl").forEach(x=>x.remove()); const so=sc.getBoundingClientRect();
-  sc.querySelectorAll(".ed span.ai").forEach((sp,i)=>{ const rs=sp.getClientRects(); const r=rs[0]; if(!r) return; const edEl=sp.closest(".ed")||sp, col=edEl.getBoundingClientRect(), colRight=col.right-parseFloat(getComputedStyle(edEl).paddingRight||0); const c=document.createElement("div"); c.className="aictl"; const roomRight=colRight-so.left+16+96<=sc.clientWidth;
+  sc.querySelectorAll(".ed span.ai,.ed .imp").forEach((sp,i)=>{ const rs=sp.getClientRects(); const r=rs[0]; if(!r) return; const edEl=sp.closest(".ed")||sp, col=edEl.getBoundingClientRect(), colRight=col.right-parseFloat(getComputedStyle(edEl).paddingRight||0); const c=document.createElement("div"); c.className="aictl"; const roomRight=colRight-so.left+16+96<=sc.clientWidth;
     if(roomRight){ c.style.top=(r.top-so.top+sc.scrollTop-2)+"px"; c.style.left=(colRight-so.left+16)+"px"; }
     else { const rl=rs[rs.length-1], fits=rl.right-so.left+16<=sc.clientWidth-100; c.style.top=(fits?rl.top-so.top+sc.scrollTop-1:rl.bottom-so.top+sc.scrollTop+2)+"px"; c.style.left=(fits?rl.right-so.left+16:colRight-so.left-96)+"px"; } /* 1.0.5: no room after the last line: under it, right-aligned */ /* narrow pane: no margin, fall back to after the last line */
-    c.dataset.p=sp.dataset.p||""; const tt=sp.dataset.p&&thAll()[sp.dataset.p]; if(tt&&tt.msgs&&tt.msgs.length) c.classList.add("has"); c.innerHTML=`<button class="ok" title="Accept: make it your text" aria-label="Accept">✓</button><button class="no" title="Decline: remove it">✕</button>${thBtn(sp)}`; c._sp=sp; sc.appendChild(c); }); thIds(sc); thDots(sc);  placeImpCtl(sc); }
-/* 1.0.9: imported blocks (div.imp) = text Claude brought in from a source Hannes wrote (e.g. the Notion ticket).
-   Grey bar in the margin + "From <source>" label, one Keep / Drop per block. Keep = plain text, Drop = removed. Blue span.ai stays for Claude's own suggestions. */
-function placeImpCtl(sc){ sc=sc||$("#edscroll"); if(!sc) return; sc.querySelectorAll(".impctl").forEach(x=>x.remove()); const so=sc.getBoundingClientRect();
-  sc.querySelectorAll(".ed .imp").forEach(b=>{ const r=b.getBoundingClientRect(); if(!r.height) return; const c=document.createElement("div"); c.className="impctl"; c.style.top=(r.top-so.top+sc.scrollTop+2)+"px"; c.style.left=(r.left-so.left)+"px";
-    c.innerHTML=`<span class="src">From ${esc(b.dataset.src||"source")}</span><button class="keep" title="Keep: make it your text">✓ Keep</button><button class="drop" title="Drop: remove this block">✕ Drop</button>`; c._b=b; sc.appendChild(c); }); updateCounters(); }
+    const imp=sp.classList.contains("imp"); if(imp){ c.classList.add("impc"); c.style.top=(r.top-so.top+sc.scrollTop+2)+"px"; c.style.left=(r.left-so.left+sc.scrollLeft)+"px"; } c.dataset.p=sp.dataset.p||""; const tt=sp.dataset.p&&thAll()[sp.dataset.p]; if(tt&&tt.msgs&&tt.msgs.length) c.classList.add("has"); c.innerHTML=`${imp?`<span class="src" title="Imported from a source you wrote: keep it as your text or drop it">From ${esc(sp.dataset.src||"source")}</span>`:""}<button class="ok" title="${imp?"Keep: make it your text":"Accept: make it your text"}" aria-label="Accept">✓</button><button class="no" title="${imp?"Drop this block":"Decline: remove it"}">✕</button>${thBtn(sp)}`; c._sp=sp; sc.appendChild(c); }); thIds(sc); thDots(sc);  }
 function syncNames(){ document.querySelectorAll(".sec-name").forEach(i=>{ const f=find(i.dataset.state); if(f&&document.activeElement!==i&&i.value!==f.s.name) i.value=f.s.name; }); markActive(); }
 function markActive(){ const key=ui.sel.kind==="state"?"state:"+ui.sel.state:ui.sel.kind; let grp=null; document.querySelectorAll(".dsec").forEach(x=>{ const on=x.dataset.sec===key; x.classList.toggle("cur",on); if(on) grp=x.dataset.grp; }); if(ui.sel.kind==="state") grp="solution"; document.querySelectorAll("#jump button").forEach(b=>{ const on=b.dataset.jump===grp; b.classList.toggle("on",on); if(on){ const nav=b.parentElement, l=b.offsetLeft-nav.offsetLeft, r=l+b.offsetWidth; if(l<nav.scrollLeft||r>nav.scrollLeft+nav.clientWidth) nav.scrollTo({left:Math.max(0,l-40),behavior:"smooth"}); } }); }
 function scrollToSel(){ const key=ui.sel.kind==="state"?"state:"+ui.sel.state:ui.sel.kind; const sec=document.querySelector(`.dsec[data-sec="${CSS.escape(key)}"]`), sc=$("#edscroll"); if(!sec||!sc) return;
@@ -347,7 +341,7 @@ function insertAsk(){
   const r2=document.createRange(); r2.setStart(m.firstChild,1); r2.collapse(true); s.removeAllRanges(); s.addRange(r2); lastEd=ed;
 }
 function exitAsk(m){ const ed=m.closest(".ed"); const t=document.createTextNode(" "); m.after(t); const r=document.createRange(); r.setStart(t,1); r.collapse(true); const s=getSelection(); s.removeAllRanges(); s.addRange(r); edSave(ed); }
-function updateAcc(){ const b=$("#acc"); if(b) b.style.display=$("#edscroll span.ai")?"":"none"; }
+function updateAcc(){ const b=$("#acc"); if(b) b.style.display=$("#edscroll span.ai,#edscroll .ed .imp")?"":"none"; }
 function depth(node){ let d=0; while(node&&!(node.classList&&node.classList.contains("ed"))){ if(node.tagName==="LI") d++; node=node.parentNode; } return d; }
 function exec(cmd){
   const ed=curEd(); if(!ed) return; if(document.activeElement!==ed) ed.focus();
@@ -359,7 +353,7 @@ function exec(cmd){
   if(cmd==="outdent") document.execCommand("outdent");
   if(cmd==="ask"){ insertAsk(); return; }
   cleanSpans(ed);
-  if(cmd==="accept"){ document.querySelectorAll("#edscroll .ed").forEach(x=>{ if(x.querySelector("span.ai")){ x.querySelectorAll("span.ai").forEach(sp=>sp.replaceWith(...sp.childNodes)); edSave(x); } }); placeAiCtl(); return; }
+  if(cmd==="accept"){ document.querySelectorAll("#edscroll .ed").forEach(x=>{ if(x.querySelector("span.ai,.imp")){ x.querySelectorAll("span.ai,.imp").forEach(sp=>sp.replaceWith(...sp.childNodes)); edSave(x); } }); placeAiCtl(); return; }
   edSave(ed);
 }
 docEl.addEventListener("click",e=>{ const b=e.target.closest("[data-cmd]"); if(b){ e.preventDefault(); exec(b.dataset.cmd); return; }
@@ -368,9 +362,6 @@ docEl.addEventListener("click",e=>{ const b=e.target.closest("[data-cmd]"); if(b
   const ad=e.target.closest("[data-adds]"); if(ad){ const m=mode(ad.dataset.adds); const ns={id:uid("s-"),name:"New screen",kind:"custom",doc:"",links:{}}; m.states.push(ns); save(); go(ns.id); setTimeout(()=>{ const i=document.querySelector(`.sec-name[data-state="${ns.id}"]`); i?.focus(); i?.select(); },80); return; }
   if(e.target.closest("[data-addm]")){ const m={id:uid("m-"),name:"New mode",status:"open",figma:"",states:[{id:uid("s-"),name:"Default",kind:"custom",doc:"",links:{}}]}; S.modes.push(m); save(); go(m.states[0].id); setTimeout(()=>{ const i=document.querySelector(`.mode-name[data-mname="${m.id}"]`); i?.focus(); i?.select(); },80); return; }
   const dm=e.target.closest("[data-delm]"); if(dm){ const m=mode(dm.dataset.delm); if(!m) return; if(m.states.some(x=>textOf(x.doc).trim())){ dm.textContent="Has specs: delete its screens first"; return; } if(!dm.dataset.arm){ dm.dataset.arm=1; dm.textContent="Click again to delete"; return; } S.modes=S.modes.filter(x=>x!==m); save(); const f=flat()[0]; if(f) go(f.s.id); else render(true); return; }
-  const ic=e.target.closest(".impctl button"); if(ic){ const b=ic.parentElement._b, ed=b&&b.closest(".ed"); if(!ed) return;
-    if(ic.classList.contains("keep")) b.replaceWith(...b.childNodes); else b.remove();
-    edSave(ed); placeAiCtl(); return; }
   const ctl=e.target.closest(".aictl button"); if(ctl){ const sp=ctl.parentElement._sp, ed=sp&&sp.closest(".ed"); if(!ed) return;
     if(ctl.classList.contains("rp")){ openThread(sp); return; }
     thClose(); thDone(sp, ctl.classList.contains("ok") ? "accepted" : "declined");
@@ -413,10 +404,47 @@ docEl.addEventListener("keydown",e=>{
       edSave(ed); }
   }
 });
+/* 1.0.12: links in the spec. Paste a URL: selected text becomes the link, otherwise a link with a short readable name (Figma keeps its chip).
+   A typed URL becomes a link on Enter / Space. Click a link: popover with Open ↗ (plain <a>, artifacts block window.open) · Change · Remove. */
+const URL_RE=/^https?:\/\/[^\s<>"]+$/;
+function linkLabel(u){ try{ const x=new URL(u), h=x.hostname.replace(/^www\./,""), seg=x.pathname.split("/").filter(Boolean);
+    if(/(^|\.)notion\.(so|com|site)$/.test(h)){ const last=(seg[seg.length-1]||"").replace(/-?[0-9a-f]{32}$/i,""); const t=decodeURIComponent(last).replace(/-/g," ").trim(); return "Notion"+(t?": "+(t.length>40?t.slice(0,40)+"…":t):""); }
+    if(h==="hennes95.github.io") return "Phone prototype";
+    if(h==="claude.ai"&&seg[0]==="artifact") return "Artifact";
+    if(h==="github.com") return "GitHub: "+seg.slice(0,2).join("/");
+    return h+(seg[0]?"/"+seg[0]:""); }catch(_){ return u; } }
+function linkHTML(u){ if(/^https:\/\/(www\.)?figma\.com\//.test(u)){ const nid=(u.match(/node-id=([\d-]+)/)||[])[1]; return `<a class="fig" href="${esc(u)}" target="_blank" rel="noopener" contenteditable="false">Figma${nid?" "+nid:""} ↗</a>`; }
+  return `<a href="${esc(u)}" target="_blank" rel="noopener">${esc(linkLabel(u))}</a>`; }
 docEl.addEventListener("paste",e=>{ const ed=e.target.closest&&e.target.closest(".ed"); if(ed){ e.preventDefault(); const t=(e.clipboardData||window.clipboardData).getData("text/plain").trim();
-  if(/^https:\/\/(www\.)?figma\.com\/\S+$/.test(t)){ const nid=(t.match(/node-id=([\d-]+)/)||[])[1]; document.execCommand("insertHTML",false,`<a class="fig" href="${esc(t)}" target="_blank" rel="noopener" contenteditable="false">Figma${nid?" "+nid:""} ↗</a>&nbsp;`); edSave(ed); return; }
+  if(URL_RE.test(t)){ const sl=getSelection();
+    if(sl.rangeCount&&!sl.isCollapsed&&ed.contains(sl.anchorNode)&&sl.toString().trim()){ document.execCommand("createLink",false,t); ed.querySelectorAll(`a[href="${CSS.escape(t)}"]`).forEach(a=>{ a.target="_blank"; a.rel="noopener"; }); }
+    else document.execCommand("insertHTML",false,linkHTML(t)+"&nbsp;");
+    edSave(ed); return; }
   document.execCommand("insertText",false,t); } });
-docEl.addEventListener("click",e=>{ const a=e.target.closest("a.fig"); if(a){ e.preventDefault(); window.open(a.href,"_blank","noopener"); } });
+/* typed URL -> link on Enter / Space */
+docEl.addEventListener("keydown",e=>{ if(e.key!=="Enter"&&e.key!==" ") return; if(e.isComposing) return; const ed=e.target.closest&&e.target.closest(".ed"); if(!ed) return;
+  const sl=getSelection(); if(!sl.isCollapsed||!sl.anchorNode||sl.anchorNode.nodeType!==3) return; const n=sl.anchorNode; if(n.parentElement.closest("a")) return;
+  const before=n.textContent.slice(0,sl.anchorOffset), m=before.match(/(https?:\/\/[^\s<>"]+)$/); if(!m) return;
+  const r=document.createRange(); r.setStart(n,sl.anchorOffset-m[1].length); r.setEnd(n,sl.anchorOffset); r.deleteContents();
+  const w=document.createElement("span"); w.innerHTML=linkHTML(m[1]); const a=w.firstChild; r.insertNode(a);
+  const after=document.createTextNode(""); a.after(after); const r2=document.createRange(); r2.setStart(after,0); r2.collapse(true); sl.removeAllRanges(); sl.addRange(r2);
+  setTimeout(()=>edSave(ed),0); },true);
+/* link popover */
+function lpClose(){ document.querySelectorAll(".lpop").forEach(x=>x.remove()); }
+function lpOpen(a){ lpClose(); const sc=$("#edscroll"); if(!sc) return; const so=sc.getBoundingClientRect(), r=a.getBoundingClientRect(); const ed=a.closest(".ed");
+  const p=document.createElement("div"); p.className="lpop"; p.style.top=(r.top-so.top+sc.scrollTop-34)+"px"; p.style.left=(Math.max(0,r.left-so.left))+"px";
+  const show=()=>{ p.innerHTML=`<a href="${esc(a.href)}" target="_blank" rel="noopener" class="lp-open" title="${esc(a.href)}">Open ↗</a><button data-lp="edit">Change</button><button data-lp="rm">Remove</button>`; };
+  show(); sc.appendChild(p);
+  p.addEventListener("mousedown",ev=>{ if(!ev.target.closest("input")) ev.preventDefault(); });
+  p.addEventListener("click",ev=>{ ev.stopPropagation(); const b=ev.target.closest("[data-lp]"); if(ev.target.closest(".lp-open")){ setTimeout(lpClose,50); return; } if(!b) return; ev.preventDefault();
+    if(b.dataset.lp==="rm"){ if(a.classList.contains("fig")) a.remove(); else a.replaceWith(...a.childNodes); lpClose(); edSave(ed); return; }
+    if(b.dataset.lp==="edit"){ p.innerHTML=`<input type="url" value="${esc(a.href)}" aria-label="Link"><button data-lp="ok">Save</button>`; const inp=p.querySelector("input"); inp.focus(); inp.select();
+      const ok=()=>{ const v=inp.value.trim(); if(URL_RE.test(v)){ a.href=v; if(a.classList.contains("fig")){ const w=document.createElement("span"); w.innerHTML=linkHTML(v); a.replaceWith(w.firstChild); } edSave(ed); } lpClose(); };
+      inp.addEventListener("keydown",k=>{ k.stopPropagation(); if(k.key==="Enter"){ k.preventDefault(); ok(); } if(k.key==="Escape"){ k.preventDefault(); lpClose(); } });
+      p.querySelector('[data-lp="ok"]').addEventListener("click",x=>{ x.preventDefault(); x.stopPropagation(); ok(); }); } });
+}
+docEl.addEventListener("click",e=>{ const a=e.target.closest&&e.target.closest(".ed a[href]"); if(a){ e.preventDefault(); lpOpen(a); return; } if(!(e.target.closest&&e.target.closest(".lpop"))) lpClose(); });
+document.addEventListener("keydown",e=>{ if(e.key==="Escape") lpClose(); });
 /* Option+C removed: comments for Claude are placed with 💬 Comment / Option+click, in the spec and on the screen */
 
 /* attention: clicks in the prototype switch the doc to highlight mode; reading/typing in the doc switches back */
@@ -574,15 +602,15 @@ window.USE_AGT=true;
    Decline takes the input as an optional reason. Stored in S.threads[id] = {msgs:[{w:"h"|"c",t,at}], prev:[old texts], status}.
    A reply from Hannes sets wait=true (yellow, counts in the yellow counter) until Claude answers (Claude writes msgs w:"c", revises the span, wait=false). */
 function thAll(){ S.threads=S.threads||{}; return S.threads; }
-function thWaiting(){ const T=thAll(); return [...document.querySelectorAll("#edscroll span.ai[data-p]")].filter(sp=>T[sp.dataset.p]&&T[sp.dataset.p].wait).length; }
-function thIds(sc){ let changed=new Set(); sc.querySelectorAll(".ed span.ai").forEach(sp=>{ if(!sp.dataset.p){ sp.dataset.p=uid("p-"); changed.add(sp.closest(".ed")); } }); changed.forEach(ed=>{ if(ed){ const f=ed.dataset.state?find(ed.dataset.state):null; if(f) f.s.doc=ed.innerHTML; else if(ed.dataset.key) S.docs[ed.dataset.key]=ed.innerHTML; } }); if(changed.size) save(); }
+function thWaiting(){ const T=thAll(); return [...document.querySelectorAll("#edscroll span.ai[data-p],#edscroll .ed .imp[data-p]")].filter(sp=>T[sp.dataset.p]&&T[sp.dataset.p].wait).length; }
+function thIds(sc){ let changed=new Set(); sc.querySelectorAll(".ed span.ai,.ed .imp").forEach(sp=>{ if(!sp.dataset.p){ sp.dataset.p=uid("p-"); changed.add(sp.closest(".ed")); } }); changed.forEach(ed=>{ if(ed){ const f=ed.dataset.state?find(ed.dataset.state):null; if(f) f.s.doc=ed.innerHTML; else if(ed.dataset.key) S.docs[ed.dataset.key]=ed.innerHTML; } }); if(changed.size) save(); }
 function thBtn(sp){ const t=sp.dataset.p&&thAll()[sp.dataset.p], n=t?t.msgs.length:0; return `<button class="rp${n?(t.wait?" wait":(thIsUnread(sp)?" yours":" seen")):""}" title="${n?(t.wait?"Waiting for Claude":"Claude answered: your turn"):"Reply"}">${n?`<svg viewBox="0 0 12 12" width="11" height="11" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 2.5h8v5.5H5L2.5 10V2.5z"/></svg>${n}`:"↩"}</button>`; }
 function thDone(sp,status){ const t=sp&&sp.dataset.p&&thAll()[sp.dataset.p]; if(t){ t.status=status; t.wait=false; t.text=sp.textContent; t.at=new Date().toISOString(); } }
-function thClose(){ document.querySelectorAll(".aictl.cur").forEach(x=>x.classList.remove("cur")); document.querySelectorAll(".thpop").forEach(x=>x.remove()); document.querySelectorAll("span.ai.thcur").forEach(x=>x.classList.remove("thcur")); }
+function thClose(){ document.querySelectorAll(".aictl.cur").forEach(x=>x.classList.remove("cur")); document.querySelectorAll(".thpop").forEach(x=>x.remove()); document.querySelectorAll("span.ai.thcur,.imp.thcur").forEach(x=>x.classList.remove("thcur")); }
 const thEsc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 function openThread(sp){
   const sc=$("#edscroll"); if(!sc||!sp||!sp.isConnected) return; thIds(sc); thClose();
-  const all=[...sc.querySelectorAll(".ed span.ai")], i=all.indexOf(sp), id=sp.dataset.p, T=thAll(), t=T[id]||{msgs:[],prev:[]};
+  const all=[...sc.querySelectorAll(".ed span.ai,.ed .imp")], i=all.indexOf(sp), id=sp.dataset.p, T=thAll(), t=T[id]||{msgs:[],prev:[]};
   sp.classList.add("thcur"); thSeen(sp); sc.querySelectorAll(".aictl").forEach(c=>c.classList.toggle("cur",c._sp===sp));
   const ed=sp.closest(".ed"), so=sc.getBoundingClientRect(), col=ed.getBoundingClientRect(), rs=sp.getClientRects(), last=rs[rs.length-1];
   const pop=document.createElement("div"); pop.className="thpop"; pop.setAttribute("role","dialog"); pop.setAttribute("aria-label","Thread on this proposal");
@@ -593,20 +621,23 @@ function openThread(sp){
   pop.innerHTML=`<div class="ph"><span>Proposal ${i+1} of ${all.length}</span><span class="sp"></span><button data-th="up" title="Previous proposal">↑</button><button data-th="down" title="Next proposal">↓</button><button data-th="x" title="Close (Esc)">✕</button></div>`
     +(msgs||prev?`<div class="msgs">${msgs}${prev}</div>`:"")
     +`<div class="act"><button data-th="ok" class="acc">✓ Accept</button><button data-th="no">✕ Decline</button></div>`
-    +`<form class="inp"><textarea rows="1" placeholder="Reply, or why you decline (optional)… (Shift+Enter: new line)" aria-label="Reply"></textarea><button type="submit">Send</button></form>`;
+    +`<div class="inp"><textarea rows="1" placeholder="Reply, or why you decline (optional)… (Shift+Enter: new line)" aria-label="Reply"></textarea><button type="button" data-send>Send</button></div>`;
   sc.appendChild(pop);
   const inp=pop.querySelector("textarea");
   const grow=()=>{ inp.style.height="auto"; const lh=parseFloat(getComputedStyle(inp).lineHeight)||19.5, max=lh*7+16; inp.style.height=Math.min(inp.scrollHeight+2,max)+"px"; inp.style.overflowY=inp.scrollHeight+2>max?"auto":"hidden"; };
   inp.addEventListener("input",grow);
-  inp.addEventListener("keydown",e=>{ if(e.key==="Enter"&&!e.shiftKey&&!e.isComposing){ e.preventDefault(); pop.querySelector("form").requestSubmit(); } });
-  const step=d=>{ const a=[...sc.querySelectorAll(".ed span.ai")]; if(!a.length){ thClose(); return; } const j=(a.indexOf(sp)+d+a.length)%a.length; a[j].scrollIntoView({block:"center",behavior:"smooth"}); setTimeout(()=>openThread(a[j]),250); };
-  const finish=ok=>{ const why=inp.value.trim(); if(why){ T[id]=T[id]||{msgs:[],prev:[]}; T[id].msgs.push({w:"h",t:why,at:new Date().toISOString(),why:!ok}); }
+  ui._draft=ui._draft||{}; if(ui._draft[id]){ inp.value=ui._draft[id]; setTimeout(grow,0); }
+  inp.addEventListener("input",()=>{ ui._draft[id]=inp.value; });
+  const send=()=>{ const v=inp.value.trim(); if(!v) return; T[id]=T[id]||{msgs:[],prev:[]}; T[id].msgs.push({w:"h",t:v,at:new Date().toISOString()}); T[id].wait=true; T[id].text=sp.textContent; delete ui._draft[id]; save(); placeAiCtl(); updateCounters(); openThread(sp); };
+  inp.addEventListener("keydown",e=>{ if(e.key==="Enter"&&!e.shiftKey&&!e.isComposing){ e.preventDefault(); e.stopPropagation(); send(); } });
+  const step=d=>{ const a=[...sc.querySelectorAll(".ed span.ai,.ed .imp")]; if(!a.length){ thClose(); return; } const j=(a.indexOf(sp)+d+a.length)%a.length; a[j].scrollIntoView({block:"center",behavior:"smooth"}); setTimeout(()=>openThread(a[j]),250); };
+  const finish=ok=>{ const why=inp.value.trim(); delete ui._draft[id]; if(why){ T[id]=T[id]||{msgs:[],prev:[]}; T[id].msgs.push({w:"h",t:why,at:new Date().toISOString(),why:!ok}); }
     thDone(sp, ok?"accepted":"declined"); const ed2=sp.closest(".ed");
     if(ok) sp.replaceWith(...sp.childNodes); else { const li=sp.closest("li"); sp.remove(); if(li&&!textOf(li.innerHTML).trim()) li.remove(); }
-    edSave(ed2); placeAiCtl(); updateCounters(); const a=[...sc.querySelectorAll(".ed span.ai")]; thClose(); if(a.length){ const nx=a[Math.min(i,a.length-1)]; nx.scrollIntoView({block:"center",behavior:"smooth"}); setTimeout(()=>openThread(nx),250); } };
+    edSave(ed2); placeAiCtl(); updateCounters(); const a=[...sc.querySelectorAll(".ed span.ai,.ed .imp")]; thClose(); if(a.length){ const nx=a[Math.min(i,a.length-1)]; nx.scrollIntoView({block:"center",behavior:"smooth"}); setTimeout(()=>openThread(nx),250); } };
   pop.addEventListener("click",e=>{ const b=e.target.closest("[data-th]"); if(!b) return; e.preventDefault(); const k=b.dataset.th;
     if(k==="x") thClose(); else if(k==="up") step(-1); else if(k==="down") step(1); else if(k==="ok") finish(true); else if(k==="no") finish(false); });
-  pop.querySelector("form").addEventListener("submit",e=>{ e.preventDefault(); const v=inp.value.trim(); if(!v) return; T[id]=T[id]||{msgs:[],prev:[]}; T[id].msgs.push({w:"h",t:v,at:new Date().toISOString()}); T[id].wait=true; T[id].text=sp.textContent; save(); placeAiCtl(); updateCounters(); openThread(sp); });
+  pop.querySelector("[data-send]").addEventListener("click",e=>{ e.preventDefault(); send(); });
   pop.addEventListener("keydown",e=>{ if(e.key==="Escape"){ e.preventDefault(); thClose(); } else e.stopPropagation(); });
   const r=pop.getBoundingClientRect(); if(r.bottom>innerHeight-12) sc.scrollBy({top:r.bottom-innerHeight+24,behavior:"smooth"});
   setTimeout(()=>inp.focus({preventScroll:true}),60);
@@ -617,7 +648,7 @@ document.addEventListener("pointerdown",e=>{ const p=document.querySelector(".th
 /* 1.0.6: controls only for the proposal under the pointer (or with its thread open) */
 /* 1.0.8: a short grace period, so the pointer can travel from the proposal to its controls without them disappearing */
 let hovT=null;
-document.addEventListener("pointerover",e=>{ const sc=$("#edscroll"); if(!sc) return; const sp=e.target.closest&&e.target.closest("#edscroll span.ai"), ctl=e.target.closest&&e.target.closest(".aictl");
+document.addEventListener("pointerover",e=>{ const sc=$("#edscroll"); if(!sc) return; const sp=e.target.closest&&e.target.closest("#edscroll span.ai,#edscroll .ed .imp"), ctl=e.target.closest&&e.target.closest(".aictl");
   const target=sp||(ctl&&ctl._sp)||null; clearTimeout(hovT);
   const apply=()=>sc.querySelectorAll(".aictl").forEach(c=>c.classList.toggle("hov",!!target&&c._sp===target));
   if(target) apply(); else hovT=setTimeout(apply,450); });
@@ -629,10 +660,10 @@ document.addEventListener("pointerover",e=>{ const sc=$("#edscroll"); if(!sc) re
 function thSeenAll(){ S.seen=S.seen||{}; return S.seen; }
 function thLastClaude(id){ const t=thAll()[id]; if(!t||!t.msgs) return ""; const c=t.msgs.filter(m=>m.w==="c"); return c.length?c[c.length-1].at||"":""; }
 function thIsUnread(sp){ const id=sp&&sp.dataset.p; if(!id) return true; const seen=thSeenAll()[id]; if(!seen) return true; const lc=thLastClaude(id); return !!lc&&lc>seen; }
-function thUnread(){ return [...document.querySelectorAll("#edscroll .ed span.ai")].filter(thIsUnread); }
+function thUnread(){ return [...document.querySelectorAll("#edscroll .ed span.ai,#edscroll .ed .imp")].filter(thIsUnread); }
 function thSeen(sp){ const id=sp&&sp.dataset.p; if(!id||!thIsUnread(sp)) return; thSeenAll()[id]=new Date().toISOString(); save(); const sc=$("#edscroll"); if(sc){ thDots(sc); sc.querySelectorAll(".aictl").forEach(c=>{ if(c._sp===sp){ const b=c.querySelector(".rp.yours"); if(b){ b.classList.remove("yours"); b.classList.add("seen"); } } }); } updateCounters(); }
 function thDots(sc){ sc.querySelectorAll(".undot").forEach(x=>x.remove()); const so=sc.getBoundingClientRect();
   thUnread().forEach(sp=>{ const r=sp.getClientRects()[0]; if(!r) return; const ed=sp.closest(".ed"), lr=(ed||sp).getBoundingClientRect(); const d=document.createElement("i"); d.className="undot"; d.title="Not looked at yet";
     d.style.top=(r.top-so.top+sc.scrollTop+r.height/2-3.5)+"px"; d.style.left=(lr.left-so.left-16)+"px"; sc.appendChild(d); }); }
 let thHoverT=null;
-document.addEventListener("pointerover",e=>{ const sp=e.target.closest&&e.target.closest("#edscroll span.ai"); clearTimeout(thHoverT); if(sp&&thIsUnread(sp)) thHoverT=setTimeout(()=>thSeen(sp),1000); });
+document.addEventListener("pointerover",e=>{ const sp=e.target.closest&&e.target.closest("#edscroll span.ai,#edscroll .ed .imp"); clearTimeout(thHoverT); if(sp&&thIsUnread(sp)) thHoverT=setTimeout(()=>thSeen(sp),1000); });

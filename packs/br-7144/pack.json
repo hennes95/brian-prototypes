@@ -1,7 +1,7 @@
 {
   "ticket": "BR-7144",
   "title": "Chat History Redesign",
-  "shell": "feature@1.0.9",
+  "shell": "feature@1.0.12",
   "notes": "Component ticket. Stage = one AI Tutor chat holding every new component; each spec state has an anchor (data-g) that the chat scrolls to and highlights. Pack-only 'Chat / Components' toggle on the stage shows a grid of the section's variants (light / AI Dialog, sent / loading). Assets are Figma renders (get_screenshot) of the BR-7144 components. Spec from the Notion ticket (19.11.26) as imported blocks; Claude's additions in blue. After the workbench was opened, the spec lives in the artifact's database.",
   "links": {
     "feature": "https://claude.ai/artifact/Skf8xkECCMzwRcfMyD28Bm",

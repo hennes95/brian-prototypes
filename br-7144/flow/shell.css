@@ -278,11 +278,20 @@ span.ai.thcur{background:var(--accent-soft);border-radius:3px;box-shadow:0 0 0 3
 .aictl.has:not(.hov):not(.cur) .rp.seen{border-radius:6px}
 .aictl.has:not(.hov):not(.cur) .rp.seen{background:var(--panel)}
 
-/* 1.0.9: imported blocks (text from a source Hannes wrote, e.g. the Notion ticket) */
-.ed .imp{position:relative;padding:28px 0 2px;margin:8px 0 12px}
+/* 1.0.9 / 1.0.10: imported blocks (text from a source Hannes wrote, e.g. the Notion ticket): grey bar, same ✓ ✕ ↩ as Claude's suggestions, always visible */
+.ed .imp{position:relative;margin:8px 0 12px;padding-top:30px}
+#edscroll{overflow-x:hidden}
 .ed .imp::before{content:"";position:absolute;left:-16px;top:4px;bottom:4px;width:3px;background:var(--muted2)}
-.impctl{position:absolute;display:flex;align-items:center;gap:6px;z-index:3;font:500 11px var(--ui)}
-.impctl .src{padding:2px 8px;border-radius:6px;background:var(--line);color:var(--muted)}
-.impctl button{border:1px solid var(--line);background:var(--panel);border-radius:6px;padding:2px 8px;font:500 11px var(--ui);color:var(--muted);cursor:pointer}
-.impctl .keep:hover{color:var(--ok)} .impctl .drop:hover{color:#e03131}
-.tools .cnt.ci{background:var(--line);color:var(--muted);border-radius:12px}
+.ed .imp.thcur{background:var(--accent-soft);box-shadow:0 0 0 4px var(--accent-soft)}
+.aictl.impc{opacity:1!important;pointer-events:auto!important;border-color:var(--line)!important;background:var(--panel)!important;box-shadow:0 1px 3px rgba(0,0,0,.06)!important}
+.aictl.impc .ok,.aictl.impc .no{display:inline-block!important}
+.aictl .src{border-right:1px solid var(--line);padding:3px 8px;font:500 11px var(--ui);color:var(--muted);background:var(--line);white-space:nowrap}
+/* 1.0.12: links in the spec */
+.ed a[href]{cursor:pointer;color:var(--accent);text-decoration:none;border-bottom:1px solid color-mix(in srgb,var(--accent) 35%,transparent)}
+.ed a[href]:hover{border-bottom-color:var(--accent)}
+.ed a.fig{border-bottom:1px solid var(--line)}
+.lpop{position:absolute;z-index:6;display:flex;align-items:center;border:1px solid var(--line);border-radius:8px;background:var(--panel);box-shadow:0 2px 8px rgba(0,0,0,.12);overflow:hidden;font:500 12px var(--ui)}
+.lpop>a,.lpop>button{padding:5px 10px;border:0;background:none;color:var(--ink);cursor:pointer;text-decoration:none;font:inherit}
+.lpop>*+*{border-left:1px solid var(--line)}
+.lpop>a:hover,.lpop>button:hover{background:var(--bg)}
+.lpop input{width:300px;border:0;padding:5px 10px;font:12px var(--mono);background:var(--panel);color:var(--ink);outline:0}
