@@ -57,7 +57,7 @@ body.native .phone.dark .ci{padding-bottom:calc(12px + env(safe-area-inset-botto
 .cap{font:500 12px/1.4 var(--b-font);color:var(--b-muted);white-space:nowrap}
 .th{display:block;width:100%}
 .th img{display:block;width:100%;height:100%;object-fit:cover}
-.th-img{height:179px;background:#fff;padding:4px 4px 16px;box-sizing:border-box;transform:rotate(1deg);box-shadow:3px 3px 0 var(--b-ink)}
+.th-img{height:179px;background:#fff;padding:4px 4px 16px;box-sizing:border-box;box-shadow:3px 3px 0 var(--b-ink)}  /* straight, no tilt (Hannes 23.11) */
 .th-img .ph{display:grid;place-items:center;width:100%;height:100%;overflow:hidden}
 .th-img.ld .ph{background:#3a3a3a}
 /* drawing: the canvas render carries its own frame, so the box is exactly the picture (no extra outline); same hard shadow as the image (Hannes 23.11) */
@@ -65,9 +65,9 @@ body.native .phone.dark .ci{padding-bottom:calc(12px + env(safe-area-inset-botto
 .th-draw img{object-fit:fill}
 .th-draw.ld{height:184px;aspect-ratio:auto;box-shadow:none}
 .th-draw.ld{background:#3a3a3a;display:grid;place-items:center}
-.th-doc{aspect-ratio:323/188}
-.th-doc img{object-fit:contain}
-.th-doc .dshape{display:grid;place-items:center;width:98%;height:95%;margin:1% 0 0;background:#3a3a3a;transform:rotate(1deg);clip-path:polygon(0 0,91% 0,100% 14%,100% 100%,0 100%);box-shadow:3px 3px 0 var(--b-ink)}
+.th-doc{aspect-ratio:320/180;filter:drop-shadow(3px 3px 0 var(--b-ink))}  /* straight page, same shadow as the other attachments (Hannes 23.11) */
+.th-doc img{object-fit:fill;background:#fff;clip-path:polygon(0 0,91% 0,100% 16%,100% 100%,0 100%);box-shadow:inset 0 0 0 .75px var(--b-ink)}
+.th-doc .dshape{display:grid;place-items:center;width:100%;height:100%;background:#3a3a3a;clip-path:polygon(0 0,91% 0,100% 16%,100% 100%,0 100%)}
 .bx.dark .th-doc .dshape{outline:.75px solid #fff}
 .bx.dark .th-draw.ld{outline:.75px solid #fff;outline-offset:-.5px}
 .spin{width:28px;height:28px;border-radius:50%;border:2px solid #fff;position:relative;box-sizing:border-box;flex:none}
@@ -85,7 +85,7 @@ body.native .phone.dark .ci{padding-bottom:calc(12px + env(safe-area-inset-botto
 /* more than two: overlapping stack, count below, "+n" badge above 4 */
 .as-more .stack{display:flex;align-items:flex-start;position:relative;padding-right:3px}
 .as-more .st{width:135px;flex:none;margin-right:-80px;height:91px;aspect-ratio:auto}
-.as-more .st.last{margin-right:0;height:89px;padding:4px 4px 14px;transform:rotate(-1deg)}
+.as-more .st.last{margin-right:0;height:89px;padding:4px 4px 14px}
 .as-more .th-draw.st{height:auto;aspect-ratio:320/188;margin-top:8px}
 .as-more .th-draw.st.ld{height:89px;aspect-ratio:auto;outline:.75px solid #3a3a3a;outline-offset:-.5px}
 .as-more .th-doc.st .dshape{height:91px}

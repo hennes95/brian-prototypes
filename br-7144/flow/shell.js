@@ -39,7 +39,8 @@ function merge3(b,l,r){ if(!b) return structuredClone(l); const out=structuredCl
     else if(!jeq(l[k],b[k])) out[k]=structuredClone(l[k]); }
   return out; }
 const syncEl=document.getElementById("sync");
-const setSync=t=>syncEl.textContent=t;
+const SHELL_V="1.1.5"; /* shown next to the save status so a stale tab is visible */
+const setSync=t=>{ syncEl.textContent=t+" · "+SHELL_V; };
 function unwrap(s){ if(!s) return null; if(typeof s.data==="function") return s.data(); if(s.exists===false) return null; return s.data!==undefined?s.data:s; }
 const valid=d=>d&&d.v===2&&Array.isArray(d.modes)&&d.docs;
 async function initDb(){
@@ -48,8 +49,7 @@ async function initDb(){
   if(!db){ loadLocal(); setSync("local only"); return; }
   DB=db;
   try{
-    /* 1.0.14: DOC is only set once the stored spec is loaded. Before, a save during loading (e.g. new proposal ids
-       given to the pack's DEFAULT on first render) could flush DEFAULT over the stored spec when the load took >0.8 s. */
+    /* 1.1.1 (= 1.0.14): DOC is only set once the stored spec is loaded */
     const doc=db.doc(PACK.dbDoc);
     const guard=setTimeout(()=>setSync("offline · local"),10000);
     let d=unwrap(await doc.get());
@@ -63,13 +63,13 @@ async function initDb(){
       S=merge3(base,S,r); base=structuredClone(r);
       const a=document.activeElement; if((a&&a.closest&&a.closest(".ed,.sec-name"))||document.querySelector(".thpop")){ needRender=true; setSync("Claude updated · click outside to see it"); return; }
       render(true); setSync("saved"); }); }catch(e){}
-  }catch(e){ console.error("initDb",e); /* 1.0.15: once the stored spec is loaded, never swap it for the local copy (it can hold the pack default) */ if(base){ setSync("saved · live updates off (reload)"); } else { loadLocal(); setSync("offline · local"); } }
+  }catch(e){ console.error("initDb",e); if(base){ setSync("saved · live updates off (reload)"); } else { loadLocal(); setSync("offline · local"); } }
 }
 function loadLocal(){ try{ const d=JSON.parse(localStorage.getItem(PACK.lsKey)||"null"); if(valid(d)){ S=structuredClone(d); render(); } }catch(e){} }
 function save(){ dirty=true; try{ localStorage.setItem(PACK.lsKey,JSON.stringify(S)); }catch(e){} if(!DOC) return; setSync("editing…"); clearTimeout(tmr); tmr=setTimeout(flush,800); }
 async function flush(){ tmr=null; if(!DOC) return; if(saving){ again=true; return; } saving=true; setSync("saving…");
   try{ const snap=structuredClone(S); let remote=null; try{ remote=unwrap(await DOC.get()); }catch(e){}
-    const merged=valid(remote)?(base?merge3(base,snap,remote):remote):snap;   /* 1.0.14: without a base (spec not loaded yet) never overwrite a stored spec */ merged.updated=new Date().toISOString(); lastSaved=merged.updated;
+    const merged=valid(remote)?(base?merge3(base,snap,remote):remote):snap;   /* 1.1.1: without a base never overwrite a stored spec */ merged.updated=new Date().toISOString(); lastSaved=merged.updated;
     await DOC.set(JSON.parse(JSON.stringify(merged))); base=structuredClone(merged);
     const fromElsewhere=valid(remote)&&!jeq({...merged,updated:0},{...snap,updated:0});
     S=merge3(snap,S,merged); S.updated=merged.updated; dirty=false; setSync("saved");
@@ -96,7 +96,7 @@ function findImage(o,depth=0){ if(!o||depth>6) return null; if(typeof o==="strin
 
 /* ================= stable element numbers ================= */
 function elNum(id){ S.elnums=S.elnums||{}; if(!S.elnums[id]){ let i=EL_ORDER.indexOf(id); const used=new Set(Object.values(S.elnums)); let n=i>=0?i+1:Math.max(EL_ORDER.length,...used)+1; while(used.has(n)&&S.elnums[id]!==n) n++; S.elnums[id]=n; } return S.elnums[id]; }
-const allRefs=()=>{ let t=textOf(S.docs.brief)+" "+textOf(S.docs.rules)+" "+textOf(S.docs.edges||"")+" "+textOf(S.docs.questions); for(const {s} of flat()) t+=" "+textOf(s.doc); return new Set((t.match(/#\d+/g)||[]).map(x=>+x.slice(1))); };
+const allRefs=()=>{ let t=textOf(S.docs.brief)+" "+textOf(S.docs.rules)+" "+textOf(S.docs.edges||"")+" "+textOf(S.docs.data||"")+" "+textOf(S.docs.side||"")+" "+textOf(S.docs.questions); for(const {s} of flat()) t+=" "+textOf(s.doc); return new Set((t.match(/#\d+/g)||[]).map(x=>+x.slice(1))); };
 /* ================= coverage for every screen ================= */
 const covCache={};
 function countFor(st){
@@ -171,7 +171,7 @@ function agtActive(){ const g=document.querySelector('[data-feedback-toolbar] [c
 function agtShow(){ if(!window.USE_AGT||agtActive()) return; document.dispatchEvent(new KeyboardEvent("keydown",{key:"F",code:"KeyF",ctrlKey:true,shiftKey:true,bubbles:true,cancelable:true})); }
 let cntCi=-1, cntAi=-1;
 function allComments(){ const scr=(S.pins||[]).map(p=>({kind:"screen",p})), doc=(S.docpins||[]).map(p=>({kind:"doc",p})), agt=(S.agt||[]).filter(a=>a.status!=="resolved").map(p=>({kind:"agt",p})); return [...doc,...scr,...agt]; }
-function updateCounters(){ const c=$("#cntC"), a=$("#cntA"); if(!c||!a) return; const nc=allComments().length+document.querySelectorAll("#edscroll mark.ask").length+thWaiting(), na=document.querySelectorAll("#edscroll span.ai,#edscroll .ed .imp").length;
+function updateCounters(){ const c=$("#cntC"), a=$("#cntA"); if(!c||!a) return; const nc=allComments().length+document.querySelectorAll("#edscroll mark.ask").length+thWaiting(), na=prHeads().length;
   c.textContent=nc; c.hidden=!nc; const nu=thUnread().length; a.textContent=nu||na; a.hidden=!na; a.classList.toggle("out",!nu); a.classList.toggle("unread",!!nu); a.title=nu?`${nu} unread proposal${nu>1?"s":""}: click for the next one`:`${na} open proposal${na>1?"s":""} (all read): click to step through`; try{ updTpBadges(); placeAgtDots(); }catch(e){} }
 /* comments per touchpoint: yellow number on each chip + yellow dots on the phone, anchored to the commented element */
 function tpComments(ctx){ return [...(S.agt||[]).filter(a=>a.status!=="resolved"&&a.where==="phone"&&(a.ctx||"tutor")===ctx).map(p=>({kind:"agt",p})),...(S.pins||[]).filter(p=>(p.ctx||"tutor")===ctx).map(p=>({kind:"screen",p}))]; }
@@ -203,7 +203,7 @@ document.addEventListener("click",e=>{
     else if(cntCi<tps.length+docs.length){ const p=docs[cntCi-tps.length]; const b=document.querySelector(`.dpin[data-dpin="${p.id}"]`); if(b){ b.scrollIntoView({block:"center",behavior:"smooth"}); b.classList.remove("flash"); void b.offsetWidth; b.classList.add("flash"); } }
     else { const m=asks[cntCi-tps.length-docs.length]; m.scrollIntoView({block:"center",behavior:"smooth"}); m.classList.add("flash"); }
     return; }
-  if(e.target.closest&&e.target.closest("#cntA")){ const un=thUnread(); const ai=un.length?un:[...document.querySelectorAll("#edscroll span.ai,#edscroll .ed .imp")]; if(!ai.length) return; cntAi=un.length?0:(cntAi+1)%ai.length; const sp=ai[cntAi]; sp.scrollIntoView({block:"center",behavior:"smooth"}); sp.classList.remove("flash"); void sp.offsetWidth; sp.classList.add("flash"); setTimeout(()=>openThread(sp),350); return; }
+  if(e.target.closest&&e.target.closest("#cntA")){ const un=thUnread(); const ai=un.length?un:prHeads(); if(!ai.length) return; cntAi=un.length?0:(cntAi+1)%ai.length; const sp=ai[cntAi]; sp.scrollIntoView({block:"center",behavior:"smooth"}); sp.classList.remove("flash"); void sp.offsetWidth; sp.classList.add("flash"); setTimeout(()=>openThread(sp),350); return; }
 },true);
 { const _rd2=renderDoc; renderDoc=function(...a){ const r=_rd2.apply(this,a); requestAnimationFrame(updateCounters); return r; }; }
 { const _rs=renderStage; renderStage=function(...a){ const r=_rs.apply(this,a); updateCounters(); return r; }; }
@@ -278,7 +278,7 @@ function renderDoc(force){
   const D=document.getElementById("doc");
   const blk=(key,title,html,ph,grp,tag="h3")=>`<section class="dsec" data-sec="${key}" data-grp="${grp}"><${tag} class="sec-h">${title}</${tag}><div class="ed" contenteditable="true" data-key="${key}" data-ph="${esc(ph)}" spellcheck="true">${html||""}</div></section>`;
   let h=`<div class="doc-head"><div class="crumb">${esc(PACK.id)}</div><div class="doc-trow"><div class="doc-title">${esc(PACK.title)}</div><button class="hbtn" id="b-ticket" contenteditable="false">Preview</button></div></div>
-    <nav class="jump" id="jump"><button data-jump="brief">Brief</button><button data-jump="solution">Solution</button><button data-jump="edges">Edge cases & touchpoints</button><button data-jump="ds">Design system changes</button><button data-jump="questions">Open questions</button></nav>
+    <nav class="jump" id="jump"><button data-jump="brief">Brief</button><button data-jump="solution">Solution</button><button data-jump="edges">Edge cases & touchpoints</button><button data-jump="side">Side effects</button><button data-jump="impl">Implementation</button><button data-jump="questions">Open questions</button></nav>
     <div class="tools"><button data-cmd="h2" title="Heading">H</button><button data-cmd="ol" title="Numbered list">1.</button><button data-cmd="ul" title="Bullet list">•</button><button data-cmd="indent" title="Indent (Tab)">→</button><button data-cmd="outdent" title="Outdent (Shift+Tab)">←</button><button data-cmd="bold" title="Bold"><b>B</b></button>
       <span class="sp"></span><button class="cnt cy" id="cntC" title="Your comments for Claude (screen + spec): click to go to the next one">0</button><button class="cnt cb" id="cntA" title="Claude's additions (blue) to accept or decline: click to go to the next one">0</button></div>
     <div class="edscroll" id="edscroll">`;
@@ -291,18 +291,23 @@ function renderDoc(force){
     h+=`<button class="addscr" data-adds="${m.id}">+ screen</button>`;
   }
   h+=`<button class="addmode" data-addm="1">+ mode</button>`;
-  h+=`<h2 class="grp-h" data-grp-h="edges">Edge cases & touchpoints</h2>`+blk("edges","Across screens",S.docs.edges,"Effects on existing data · Edge cases across screens · Side effects (emails, notifications, tracking). Write “none” if checked.","edges")
-    +`<h3 class="tp-group">Touchpoints</h3>`+CONTEXTS.map(t=>`<section class="dsec tp-sec" data-sec="tp:${t.id}" data-grp="edges"><h3 class="sec-h">${esc(t.name)}${t.figma?` <a class="tp-fig" href="${t.figma}" target="_blank" rel="noopener">Figma ↗</a>`:""}${t.note?` <span class="tp-nb">${esc(t.note)}</span>`:""}</h3><div class="ed" contenteditable="true" data-key="tp:${t.id}" data-ph="What differs here: background, what sits below the field, placement, copy. Only the screens that differ." spellcheck="true">${S.docs["tp:"+t.id]||""}</div></section>`).join("");
-  h+=`<h2 class="grp-h" data-grp-h="ds">Design system changes</h2>`+blk("ds","Components",S.docs.ds,"One line per component: name · new or changed · what changed · Figma link","ds");
+  /* 1.1.4: touchpoints back with the edge cases (Hannes 23.11); side effects stay their own section */
+  h+=`<h2 class="grp-h" data-grp-h="edges">Edge cases & touchpoints</h2>`+blk("edges","Across screens",S.docs.edges,"Edge cases across screens: empty, loading, error, limits, other platforms. Write “none” if checked.","edges")
+    +(CONTEXTS.length?`<h3 class="tp-group">Touchpoints</h3>`+CONTEXTS.map(t=>`<section class="dsec tp-sec" data-sec="tp:${t.id}" data-grp="edges"><h3 class="sec-h">${esc(t.name)}${t.figma?` <a class="tp-fig" href="${t.figma}" target="_blank" rel="noopener">Figma ↗</a>`:""}${t.note?` <span class="tp-nb">${esc(t.note)}</span>`:""}</h3><div class="ed" contenteditable="true" data-key="tp:${t.id}" data-ph="What differs here: background, what sits below the field, placement, copy. Only the screens that differ." spellcheck="true">${S.docs["tp:"+t.id]||""}</div></section>`).join(""):"");
+  h+=`<h2 class="grp-h" data-grp-h="side">Side effects</h2>`+blk("data","Effects on existing data",S.docs.data,"How existing data is affected (threads, settings, progress, analytics …) and how it's handled. Write “none” if checked.","side")
+    +blk("side","Notifications, emails & tracking",S.docs.side,"New or changed notifications, emails, tracking events. Write “none” if checked.","side");
+  h+=`<h2 class="grp-h" data-grp-h="impl">Implementation</h2>`+`<section class="dsec" data-sec="links" data-grp="impl"><h3 class="sec-h">Links</h3><ul class="impl-links">${(PACK.links||[]).map(l=>`<li><span class="il-k">${esc(l.label)}</span>${l.url?`<a href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.name||l.url)} ↗</a>`:`<span class="il-none">${esc(l.name||"added at handover")}</span>`}</li>`).join("")||`<li class="il-none">No links in the pack yet (pack.json → links)</li>`}</ul></section>`
+    +blk("ds","Design system changes",S.docs.ds,"One line per component: name · new or changed · what changed · Figma link","impl");
+  /* 1.1.5: open questions always last (Hannes 23.11) */
   h+=`<h2 class="grp-h" data-grp-h="questions">Open questions</h2>`+blk("questions","Undecided",S.docs.questions,"What is unclear? Which decisions are still open?","questions");
   h+=`<div style="height:40vh"></div></div>`;
   D.innerHTML=`<div class="resizer" id="resizer" title="Drag to resize"></div>`+h; $("#edscroll").scrollTop=keep;
   updateCovMeta(); updateAcc(); markActive(); markEmpty(); placeAiCtl();
 }
 function markModes(){ document.querySelectorAll("[data-mdot]").forEach(d=>{ const m=mode(d.dataset.mdot); if(!m) return; const n=m.states.length, f=m.states.filter(x=>textOf(x.doc).trim()).length; d.className="mdot "+(f===0?"none":f===n?"all":"some"); d.title=`${f} of ${n} screens specced`; }); }
-function markEmpty(){ markModes(); document.querySelectorAll("#edscroll .dsec").forEach(sec=>{ const ed=sec.querySelector(".ed"); sec.classList.toggle("empty",!textOf(ed.innerHTML).trim()); }); }
+function markEmpty(){ markModes(); document.querySelectorAll("#edscroll .dsec").forEach(sec=>{ const ed=sec.querySelector(".ed"); if(!ed) return; sec.classList.toggle("empty",!textOf(ed.innerHTML).trim()); }); }
 function placeAiCtl(){ const sc=$("#edscroll"); if(!sc) return; sc.querySelectorAll(".aictl").forEach(x=>x.remove()); const so=sc.getBoundingClientRect();
-  sc.querySelectorAll(".ed span.ai,.ed .imp").forEach((sp,i)=>{ const rs=sp.getClientRects(); const r=rs[0]; if(!r) return; const edEl=sp.closest(".ed")||sp, col=edEl.getBoundingClientRect(), colRight=col.right-parseFloat(getComputedStyle(edEl).paddingRight||0); const c=document.createElement("div"); c.className="aictl"; const roomRight=colRight-so.left+16+96<=sc.clientWidth;
+  thIds(sc); prHeads(sc).forEach((sp,i)=>{ const rs=sp.getClientRects(); const r=rs[0]; if(!r) return; const edEl=sp.closest(".ed")||sp, col=edEl.getBoundingClientRect(), colRight=col.right-parseFloat(getComputedStyle(edEl).paddingRight||0); const c=document.createElement("div"); c.className="aictl"; const roomRight=colRight-so.left+16+96<=sc.clientWidth;
     if(roomRight){ c.style.top=(r.top-so.top+sc.scrollTop-2)+"px"; c.style.left=(colRight-so.left+16)+"px"; }
     else { const rl=rs[rs.length-1], fits=rl.right-so.left+16<=sc.clientWidth-100; c.style.top=(fits?rl.top-so.top+sc.scrollTop-1:rl.bottom-so.top+sc.scrollTop+2)+"px"; c.style.left=(fits?rl.right-so.left+16:colRight-so.left-96)+"px"; } /* 1.0.5: no room after the last line: under it, right-aligned */ /* narrow pane: no margin, fall back to after the last line */
     const imp=sp.classList.contains("imp"); if(imp){ c.classList.add("impc"); c.style.top=(r.top-so.top+sc.scrollTop+2)+"px"; c.style.left=(r.left-so.left+sc.scrollLeft)+"px"; } c.dataset.p=sp.dataset.p||""; const tt=sp.dataset.p&&thAll()[sp.dataset.p]; if(tt&&tt.msgs&&tt.msgs.length) c.classList.add("has"); c.innerHTML=`${imp?`<span class="src" title="Imported from a source you wrote: keep it as your text or drop it">From ${esc(sp.dataset.src||"source")}</span>`:""}<button class="ok" title="${imp?"Keep: make it your text":"Accept: make it your text"}" aria-label="Accept">✓</button><button class="no" title="${imp?"Drop this block":"Decline: remove it"}">✕</button>${thBtn(sp)}`; c._sp=sp; sc.appendChild(c); }); thIds(sc); thDots(sc);  }
@@ -366,10 +371,7 @@ docEl.addEventListener("click",e=>{ const b=e.target.closest("[data-cmd]"); if(b
   const dm=e.target.closest("[data-delm]"); if(dm){ const m=mode(dm.dataset.delm); if(!m) return; if(m.states.some(x=>textOf(x.doc).trim())){ dm.textContent="Has specs: delete its screens first"; return; } if(!dm.dataset.arm){ dm.dataset.arm=1; dm.textContent="Click again to delete"; return; } S.modes=S.modes.filter(x=>x!==m); save(); const f=flat()[0]; if(f) go(f.s.id); else render(true); return; }
   const ctl=e.target.closest(".aictl button"); if(ctl){ const sp=ctl.parentElement._sp, ed=sp&&sp.closest(".ed"); if(!ed) return;
     if(ctl.classList.contains("rp")){ openThread(sp); return; }
-    thClose(); thDone(sp, ctl.classList.contains("ok") ? "accepted" : "declined");
-    if(ctl.classList.contains("ok")) sp.replaceWith(...sp.childNodes);
-    else { const li=sp.closest("li"); sp.remove(); if(li&&!textOf(li.innerHTML).trim()) li.remove(); }
-    edSave(ed); placeAiCtl(); return; }
+    thClose(); edSave(prApply(sp, ctl.classList.contains("ok"))); placeAiCtl(); return; }
 });
 docEl.addEventListener("mousedown",e=>{ if(e.target.closest("[data-cmd]")) e.preventDefault(); });
 function cleanSpans(ed){ const sl=getSelection(); const an=sl.anchorNode, ao=sl.anchorOffset; let hit=false;
@@ -515,14 +517,17 @@ function md(html){
   }); return o; };
   return walk(d,0).replace(/\n{3,}/g,"\n\n").trim();
 }
-function ticketMd(){
-  let o=`# Problem, goal & scope\n${md(S.docs.brief)}\n\n# Proposed solution\n## Global rules\n${md(S.docs.rules)}\n`;
+function ticketMd(){   /* same sections and order as the workbench (and the Notion ticket after handover) */
+  let o=`# Brief\n${md(S.docs.brief)}\n\n# Solution\n## Global rules\n${md(S.docs.rules)}\n`;
   for(const m of S.modes){ o+=`\n## ${m.name}${m.figma?` ([Figma](${m.figma}))`:""}\n`; for(const s of m.states) o+=`\n### ${s.name}\n${md(s.doc)||"_no spec yet_"}\n`; }
-  o+=`\n# Edge cases & touchpoints\n${md(S.docs.edges||"")||"_none yet_"}\n\n## Touchpoints\n${CONTEXTS.map(t=>`### ${t.name}${t.note?` (${t.note})`:""}\nFigma: ${t.figma||"–"}\n${md(S.docs["tp:"+t.id]||"")||"_not specced yet_"}`).join("\n\n")}\n\n# Design system changes\n${md(S.docs.ds||"")||"_none_"}\n\n# Open questions\n${md(S.docs.questions)}\n`; return o;
+  o+=`\n# Edge cases & touchpoints\n${md(S.docs.edges||"")||"_none yet_"}\n`;
+  if(CONTEXTS.length) o+=`\n## Touchpoints\n${CONTEXTS.map(t=>`### ${t.name}${t.note?` (${t.note})`:""}\nFigma: ${t.figma||"–"}\n${md(S.docs["tp:"+t.id]||"")||"_not specced yet_"}`).join("\n\n")}\n`;
+  o+=`\n# Side effects\n## Effects on existing data\n${md(S.docs.data||"")||"_not checked yet_"}\n\n## Notifications, emails & tracking\n${md(S.docs.side||"")||"_not checked yet_"}\n`;
+  o+=`\n# Implementation\n${(PACK.links||[]).map(l=>`- ${l.label}: ${l.url?`[${l.name||l.url}](${l.url})`:(l.name||"added at handover")}`).join("\n")}\n\n## Design system changes\n${md(S.docs.ds||"")||"_none_"}\n\n# Open questions\n${md(S.docs.questions)}\n`; return o;
 }
 const modal=document.getElementById("modal"), card=document.getElementById("mcard");
 document.addEventListener("click",e=>{ if(!(e.target.closest&&e.target.closest("#b-ticket"))) return;
-  card.innerHTML=`<h2>Ticket preview</h2><p class="meta">Assembled from the workbench: Brief → Global rules → Specs per screen → Open questions.</p><pre class="md">${esc(ticketMd())}</pre><div class="row-end"><button class="hbtn" id="cp">Copy markdown</button><button class="hbtn pri" id="cl">Close</button></div>`;
+  card.innerHTML=`<h2>Ticket preview</h2><p class="meta">Same sections as the Notion ticket after handover: Brief → Solution → Edge cases & touchpoints → Side effects → Implementation → Open questions.</p><pre class="md">${esc(ticketMd())}</pre><div class="row-end"><button class="hbtn" id="cp">Copy markdown</button><button class="hbtn pri" id="cl">Close</button></div>`;
   modal.classList.add("show");
 });
 card.addEventListener("click",async e=>{ if(e.target.id==="cl") modal.classList.remove("show"); if(e.target.id==="cp"){ try{ await navigator.clipboard.writeText(ticketMd()); e.target.textContent="Copied"; }catch(err){ e.target.textContent="Copy blocked: select the text"; } } });
@@ -603,25 +608,39 @@ window.USE_AGT=true;
    full column width: messages, the revised proposal with its previous versions, Accept / Decline and the only input.
    Decline takes the input as an optional reason. Stored in S.threads[id] = {msgs:[{w:"h"|"c",t,at}], prev:[old texts], status}.
    A reply from Hannes sets wait=true (yellow, counts in the yellow counter) until Claude answers (Claude writes msgs w:"c", revises the span, wait=false). */
+/* 1.1.4: proposal groups. Blue lines that follow each other with no unchanged (white) text in between are one proposal:
+   one ✓ ✕ ↩, one dot, one thread (the first line's id), accepted or declined together. Nothing changes in the stored spec. */
+function prGroups(sc){ sc=sc||$("#edscroll"); const out=[]; if(!sc) return out; let cur=null, prev=null;
+  sc.querySelectorAll(".ed span.ai,.ed .imp").forEach(sp=>{
+    if(cur&&sp.classList.contains("ai")&&prev.classList.contains("ai")&&prev.closest(".ed")===sp.closest(".ed")&&!prev.contains(sp)&&!sp.contains(prev)){
+      const r=document.createRange(); r.setStartAfter(prev); r.setEndBefore(sp); if(!r.toString().replace(/\u200b/g,"").trim()){ cur.push(sp); prev=sp; return; } }
+    cur=[sp]; out.push(cur); prev=sp; });
+  out.forEach(g=>g.forEach(x=>{ x._grp=g; })); return out; }
+function prHeads(sc){ return prGroups(sc).map(g=>g[0]); }
+function prGrp(sp){ prGroups(); return (sp&&sp._grp&&sp._grp.includes(sp))?sp._grp:[sp]; }
+function prText(sp){ return prGrp(sp).map(x=>x.textContent).join(" · "); }
+function prApply(sp,ok){ const g=prGrp(sp), ed=g[0].closest(".ed"); g.forEach(x=>thDone(x, ok?"accepted":"declined"));
+  [...g].reverse().forEach(x=>{ if(ok) x.replaceWith(...x.childNodes); else { const li=x.closest("li"); x.remove(); if(li&&!textOf(li.innerHTML).trim()&&!li.querySelector("span.ai,.imp")) li.remove(); } });
+  if(!ok) ed.querySelectorAll("ul,ol").forEach(l=>{ if(!l.children.length) l.remove(); });
+  return ed; }
 function thAll(){ S.threads=S.threads||{}; return S.threads; }
-function thWaiting(){ const T=thAll(); return [...document.querySelectorAll("#edscroll span.ai[data-p],#edscroll .ed .imp[data-p]")].filter(sp=>T[sp.dataset.p]&&T[sp.dataset.p].wait).length; }
+function thWaiting(){ const T=thAll(); return prHeads().filter(sp=>sp.dataset.p&&T[sp.dataset.p]&&T[sp.dataset.p].wait).length; }
 function thIds(sc){ let changed=new Set(); sc.querySelectorAll(".ed span.ai,.ed .imp").forEach(sp=>{ if(!sp.dataset.p){ sp.dataset.p=uid("p-"); changed.add(sp.closest(".ed")); } }); changed.forEach(ed=>{ if(ed){ const f=ed.dataset.state?find(ed.dataset.state):null; if(f) f.s.doc=ed.innerHTML; else if(ed.dataset.key) S.docs[ed.dataset.key]=ed.innerHTML; } }); if(changed.size) save(); }
 function thBtn(sp){ const t=sp.dataset.p&&thAll()[sp.dataset.p], n=t?t.msgs.length:0; return `<button class="rp${n?(t.wait?" wait":(thIsUnread(sp)?" yours":" seen")):""}" title="${n?(t.wait?"Waiting for Claude":"Claude answered: your turn"):"Reply"}">${n?`<svg viewBox="0 0 12 12" width="11" height="11" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 2.5h8v5.5H5L2.5 10V2.5z"/></svg>${n}`:"↩"}</button>`; }
 function thDone(sp,status){ const t=sp&&sp.dataset.p&&thAll()[sp.dataset.p]; if(t){ t.status=status; t.wait=false; t.text=sp.textContent; t.at=new Date().toISOString(); } }
-/* 1.0.16: a redraw that waited for the popover runs once it is closed (and nobody is typing) */
 function thLateRender(){ const a=document.activeElement; if(needRender&&!tmr&&!saving&&!document.querySelector(".thpop")&&!(a&&a.closest&&a.closest(".ed,.sec-name"))){ needRender=false; render(true); setSync("saved"); } }
 function thClose(){ document.querySelectorAll(".aictl.cur").forEach(x=>x.classList.remove("cur")); document.querySelectorAll(".thpop").forEach(x=>x.remove()); document.querySelectorAll("span.ai.thcur,.imp.thcur").forEach(x=>x.classList.remove("thcur"));  setTimeout(thLateRender,300); }
 const thEsc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 function openThread(sp){
-  const sc=$("#edscroll"); if(!sc||!sp||!sp.isConnected) return; thIds(sc); thClose();
-  const all=[...sc.querySelectorAll(".ed span.ai,.ed .imp")], i=all.indexOf(sp), id=sp.dataset.p, T=thAll(), t=T[id]||{msgs:[],prev:[]};
-  sp.classList.add("thcur"); sc.querySelectorAll(".aictl").forEach(c=>c.classList.toggle("cur",c._sp===sp));
-  const ed=sp.closest(".ed"), so=sc.getBoundingClientRect(), col=ed.getBoundingClientRect(), rs=sp.getClientRects(), last=rs[rs.length-1];
+  const sc=$("#edscroll"); if(!sc||!sp||!sp.isConnected) return; thIds(sc); thClose(); sp=prGrp(sp)[0]; const grp=prGrp(sp);
+  const all=prHeads(sc), i=all.indexOf(sp), id=sp.dataset.p, T=thAll(), t=T[id]||{msgs:[],prev:[]};
+  grp.forEach(x=>x.classList.add("thcur")); sc.querySelectorAll(".aictl").forEach(c=>c.classList.toggle("cur",c._sp===sp));
+  const ed=sp.closest(".ed"), so=sc.getBoundingClientRect(), col=ed.getBoundingClientRect(), rs=sp.getClientRects(), lrs=grp[grp.length-1].getClientRects(), last=lrs[lrs.length-1];
   const pop=document.createElement("div"); pop.className="thpop"; pop.setAttribute("role","dialog"); pop.setAttribute("aria-label","Thread on this proposal");
   pop.style.top=(last.bottom-so.top+sc.scrollTop+8)+"px"; pop.style.left=(col.left-so.left)+"px"; pop.style.width=Math.min(col.width,560)+"px";
   pop.style.setProperty("--ax",Math.max(14,Math.min((rs[0].left-col.left)+12,Math.min(col.width,560)-24))+"px");
   const msgs=(t.msgs||[]).map(m=>`<div class="m"><span class="who${m.w==="c"?" c":""}">${m.w==="c"?"Claude":"You"}</span>${thEsc(m.t)}</div>`).join("");
-  const prev=(t.prev&&t.prev.length)?`<div class="m prop"><span class="who">Revised proposal</span>${thEsc(sp.textContent)}${t.prev.map(x=>`<s>${thEsc(x)}</s>`).join("")}</div>`:"";
+  const prev=(t.prev&&t.prev.length)?`<div class="m prop"><span class="who">Revised proposal</span>${thEsc(prText(sp))}${t.prev.map(x=>`<s>${thEsc(x)}</s>`).join("")}</div>`:"";
   pop.innerHTML=`<div class="ph"><span>Proposal ${i+1} of ${all.length}</span><span class="sp"></span><button data-th="up" title="Previous proposal">↑</button><button data-th="down" title="Next proposal">↓</button><button data-th="x" title="Close (Esc)">✕</button></div>`
     +(msgs||prev?`<div class="msgs">${msgs}${prev}</div>`:"")
     +`<div class="act"><button data-th="ok" class="acc">✓ Accept</button><button data-th="no">✕ Decline</button></div>`
@@ -632,15 +651,13 @@ function openThread(sp){
   inp.addEventListener("input",grow);
   ui._draft=ui._draft||{}; if(ui._draft[id]){ inp.value=ui._draft[id]; setTimeout(grow,0); }
   inp.addEventListener("input",()=>{ ui._draft[id]=inp.value; });
-  /* 1.0.16: a thread counts as read only once Hannes starts typing a reply (or sends / accepts / declines), not when it opens */
   inp.addEventListener("input",()=>{ if(inp.value.trim()) thSeen(sp); });
-  const send=()=>{ const v=inp.value.trim(); if(!v) return; const T=thAll(); T[id]=T[id]||{msgs:[],prev:[]}; T[id].msgs.push({w:"h",t:v,at:new Date().toISOString()}); T[id].wait=true; T[id].text=sp.textContent; delete ui._draft[id]; thSeen(sp); save(); placeAiCtl(); updateCounters(); openThread(sp); };
+  const send=()=>{ const v=inp.value.trim(); if(!v) return; const T=thAll(); T[id]=T[id]||{msgs:[],prev:[]}; T[id].msgs.push({w:"h",t:v,at:new Date().toISOString()}); T[id].wait=true; T[id].text=prText(sp); delete ui._draft[id]; thSeen(sp); save(); placeAiCtl(); updateCounters(); openThread(sp); };
   inp.addEventListener("keydown",e=>{ if(e.key==="Enter"&&!e.shiftKey&&!e.isComposing){ e.preventDefault(); e.stopPropagation(); send(); } });
-  const step=d=>{ const a=[...sc.querySelectorAll(".ed span.ai,.ed .imp")]; if(!a.length){ thClose(); return; } const j=(a.indexOf(sp)+d+a.length)%a.length; a[j].scrollIntoView({block:"center",behavior:"smooth"}); setTimeout(()=>openThread(a[j]),250); };
+  const step=d=>{ const a=prHeads(sc); if(!a.length){ thClose(); return; } const j=(a.indexOf(sp)+d+a.length)%a.length; a[j].scrollIntoView({block:"center",behavior:"smooth"}); setTimeout(()=>openThread(a[j]),250); };
   const finish=ok=>{ const why=inp.value.trim(); delete ui._draft[id]; const T=thAll(); if(why){ T[id]=T[id]||{msgs:[],prev:[]}; T[id].msgs.push({w:"h",t:why,at:new Date().toISOString(),why:!ok}); }
-    thDone(sp, ok?"accepted":"declined"); const ed2=sp.closest(".ed");
-    if(ok) sp.replaceWith(...sp.childNodes); else { const li=sp.closest("li"); sp.remove(); if(li&&!textOf(li.innerHTML).trim()) li.remove(); }
-    edSave(ed2); placeAiCtl(); updateCounters(); const a=[...sc.querySelectorAll(".ed span.ai,.ed .imp")]; thClose(); if(a.length){ const nx=a[Math.min(i,a.length-1)]; nx.scrollIntoView({block:"center",behavior:"smooth"}); setTimeout(()=>openThread(nx),250); } };
+    const ed2=prApply(sp,ok);
+    edSave(ed2); placeAiCtl(); updateCounters(); const a=prHeads(sc); thClose(); if(a.length){ const nx=a[Math.min(i,a.length-1)]; nx.scrollIntoView({block:"center",behavior:"smooth"}); setTimeout(()=>openThread(nx),250); } };
   pop.addEventListener("click",e=>{ const b=e.target.closest("[data-th]"); if(!b) return; e.preventDefault(); const k=b.dataset.th;
     if(k==="x") thClose(); else if(k==="up") step(-1); else if(k==="down") step(1); else if(k==="ok") finish(true); else if(k==="no") finish(false); });
   pop.querySelector("[data-send]").addEventListener("click",e=>{ e.preventDefault(); send(); });
@@ -655,7 +672,7 @@ document.addEventListener("pointerdown",e=>{ const p=document.querySelector(".th
 /* 1.0.8: a short grace period, so the pointer can travel from the proposal to its controls without them disappearing */
 let hovT=null;
 document.addEventListener("pointerover",e=>{ const sc=$("#edscroll"); if(!sc) return; const sp=e.target.closest&&e.target.closest("#edscroll span.ai,#edscroll .ed .imp"), ctl=e.target.closest&&e.target.closest(".aictl");
-  const target=sp||(ctl&&ctl._sp)||null; clearTimeout(hovT);
+  const target=(sp&&prGrp(sp)[0])||(ctl&&ctl._sp)||null; clearTimeout(hovT);
   const apply=()=>sc.querySelectorAll(".aictl").forEach(c=>c.classList.toggle("hov",!!target&&c._sp===target));
   if(target) apply(); else hovT=setTimeout(apply,450); });
 
@@ -666,10 +683,10 @@ document.addEventListener("pointerover",e=>{ const sc=$("#edscroll"); if(!sc) re
 function thSeenAll(){ S.seen=S.seen||{}; return S.seen; }
 function thLastClaude(id){ const t=thAll()[id]; if(!t||!t.msgs) return ""; const c=t.msgs.filter(m=>m.w==="c"); return c.length?c[c.length-1].at||"":""; }
 function thIsUnread(sp){ const id=sp&&sp.dataset.p; if(!id) return true; const seen=thSeenAll()[id]; if(!seen) return true; const lc=thLastClaude(id); return !!lc&&lc>seen; }
-function thUnread(){ return [...document.querySelectorAll("#edscroll .ed span.ai,#edscroll .ed .imp")].filter(thIsUnread); }
+function thUnread(){ return prHeads().filter(thIsUnread); }
 function thSeen(sp){ const id=sp&&sp.dataset.p; if(!id||!thIsUnread(sp)) return; thSeenAll()[id]=new Date().toISOString(); save(); const sc=$("#edscroll"); if(sc){ thDots(sc); sc.querySelectorAll(".aictl").forEach(c=>{ if(c._sp===sp){ const b=c.querySelector(".rp.yours"); if(b){ b.classList.remove("yours"); b.classList.add("seen"); } } }); } updateCounters(); }
 function thDots(sc){ sc.querySelectorAll(".undot").forEach(x=>x.remove()); const so=sc.getBoundingClientRect();
   thUnread().forEach(sp=>{ const r=sp.getClientRects()[0]; if(!r) return; const ed=sp.closest(".ed"), lr=(ed||sp).getBoundingClientRect(); const d=document.createElement("i"); d.className="undot"; d.title="Not looked at yet";
     d.style.top=(r.top-so.top+sc.scrollTop+r.height/2-3.5)+"px"; d.style.left=(lr.left-so.left-16)+"px"; sc.appendChild(d); }); }
 let thHoverT=null;
-/* 1.0.16: hovering no longer marks a proposal as read */
+/* 1.1.1: hovering no longer marks a proposal as read */

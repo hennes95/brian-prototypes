@@ -5,6 +5,13 @@
    (light / dark, sent / loading). Nothing here needs the shell to change. */
 const PACK={
   id:"BR-7144", title:"Chat History Redesign",
+  links:[ /* link hub (Implementation), from pack.json → links */
+    {label:"Design", name:"Figma · BR-7144", url:"https://www.figma.com/design/GbI4xt40lr0Jmk3rkgrtM0/Student-App?node-id=12117-80"},
+    {label:"Copies", name:"none yet", url:""},
+    {label:"Feature Workbench", name:"Feature Workbench", url:"https://claude.ai/artifact/Skf8xkECCMzwRcfMyD28Bm"},
+    {label:"Animation Workbench", name:"none yet", url:""},
+    {label:"Prototype", name:"Phone prototype", url:"https://hennes95.github.io/brian-prototypes/br-7144/flow/"},
+    {label:"Handoff", name:"added at handover", url:""}],
   protoUrl:"https://hennes95.github.io/brian-prototypes/br-7144/flow/",
   dbDoc:"workbench/br-7144", lsKey:"wb-br7144",
   ui:{sel:{kind:"state",mode:"layout",state:"layout-msgs"},variant:"v1",context:"tutor"},
@@ -25,7 +32,8 @@ const DEFAULT = {
    +`<h2>Out of scope</h2>`+imp(`<ul><li>Teacher chat redesign &amp; AI teaching assistant UI (this ticket is student-side only)</li><li>Improve citations and quotes<ul><li>Open split screen / window in window</li><li>Discern online from material source</li><li>Make it more recognizable</li><li>Potentially pictures instead of citations</li></ul></li><li>Improve analysis/review at the end of AI Dialogs (add animation)</li><li>Refine Brian Student UI (align on a direction with Ralph)</li><li>Scrolling back (top bar and input field fold away) → <a href="https://app.notion.com/p/407fca9f403c8035be80e140aeb3aaa7" target="_blank">BR-7147</a> (R4)</li></ul>`)
    +`<h2>Related tickets</h2><h3>Initiative</h3><ul><li><a href="https://app.notion.com/p/3fdfca9f403c8027ad2ec54768ad785b" target="_blank">BR-6975 FE: Improve the Chat</a> (parent)<ul><li>Batch 1<ul><li>BR-7144 Chat History Redesign (this ticket)</li><li><a href="https://app.notion.com/p/407fca9f403c8035be80e140aeb3aaa7" target="_blank">BR-7147 Redesign Input Field</a></li><li><a href="https://app.notion.com/p/407fca9f403c80f6a71ac61ca32b9280" target="_blank">BR-7148 Add tool calls to loading state</a> · done</li></ul></li><li>Batch 2 (no tickets yet)<ul><li>Thread management</li><li>STT</li><li>S2S in the AI Tutor</li><li>Add dialog UI</li><li>Image support in chat</li></ul></li></ul></li></ul>`,
   rules: "",
-  edges: imp(`<ul><li>Existing data: re-render all chat histories with the new UI once this goes live (no new asset types or rules, so nothing more to specify)</li><li>Error states for messages and assets: reuse the current logic, no new design</li></ul>`),
+  edges: imp(`<ul><li>Error states for messages and assets: reuse the current logic, no new design</li></ul>`),
+  data: imp(`<ul><li>Re-render all chat histories with the new UI once this goes live (no new asset types or rules, so nothing more to specify)</li></ul>`), side:"",
   "tp:tutor": `<ul><li>${ai("Light chat with tab bar; date badges shown (prototype default)")}</li></ul>`,
   "tp:dialog": `<ul><li>${ai("Dark chat, opens full screen with ✕, no tab bar; no date badges (badges only in Chatbot and AI Tutor)")}</li></ul>`,
   "tp:chatbot": `<ul><li>Dark, like the AI Dialog<ul><li>Date badges are shown (badges only in Chatbot and AI Tutor)</li></ul></li></ul>`,
@@ -46,7 +54,7 @@ const DEFAULT = {
    {id:"as-image",name:"Image",kind:"asset-image",links:{},doc:
     imp(`<ul><li>Chat assets now contain previews for documents, images and drawings</li><li>Each chat asset has<ul><li>Loading state</li><li>Sent state</li><li>Design for phone, tablet and desktop</li><li>Design for the white and dark chat UI (AI Dialog &amp; Chatbot/Tutor)</li></ul></li></ul>`)
     +`<ul><li>${ai("Attachments sit on top of the student's text, in the same message; text is optional (Figma note)")}</li></ul>`},
-   {id:"as-drawing",name:"Drawing",kind:"asset-drawing",links:{},doc:""},
+   {id:"as-drawing",name:"Canvas",kind:"asset-drawing",links:{},doc:""},
    {id:"as-doc",name:"Document",kind:"asset-doc",links:{},doc:""},
    {id:"as-multi",name:"Several files",kind:"asset-multi",links:{},doc:""},
    {id:"as-loading",name:"Loading",kind:"asset-loading",links:{},doc:""}]},
@@ -144,8 +152,8 @@ const REPLIES=["Good thinking. What happens to the line if b gets bigger?","Nice
 /* ================= render helpers ================= */
 let KIND="layout";      // the state being rendered: decides which elements carry data-el (badges) and which get highlighted
 const el=(id,label,group)=>group&&!group.split(" ").includes(KIND)?"":`data-el="${id}" data-label="${esc(label)}"`;
-const CAP={image:"line_sketch.jpg",drawing:"Canvas · created today",doc:"Worksheet · 3 pages"};
-const LOADCAP={image:"Image · loading…",drawing:"Drawing · loading…",doc:"Document · loading…"};
+const CAP={image:"line_sketch.jpg",drawing:"Canvas",doc:"Worksheet · 3 pages"};   /* "Drawing" is called "Canvas", no date (Hannes 23.11) */
+const LOADCAP={image:"Image · loading…",drawing:"Canvas · loading…",doc:"Document · loading…"};
 /* ⚠ MOCK — REPLACE: Brian's porthole loader (rings, rivets, sloshing liquid), drawn by hand from a screenshot of the app
    (Hannes 23.11). Not the real asset: take the app's loader (brian-mobile-design-kit / Flutter) when building. */
 const MOCK_LOADER=`<svg class="porthole" viewBox="0 0 100 100" aria-hidden="true"><defs><clipPath id="phc"><circle cx="50" cy="50" r="33"/></clipPath></defs>
@@ -155,12 +163,12 @@ const MOCK_LOADER=`<svg class="porthole" viewBox="0 0 100 100" aria-hidden="true
 const spin=`<span class="loader mock" data-mock="Mock: loader drawn from a screenshot, replace with the app's asset" role="img" aria-label="Uploading">${MOCK_LOADER}</span>`;
 function thumb(k,loading,cls=""){
   if(k==="image") return `<span class="th th-img ${cls} ${loading?"ld":""}"><span class="ph">${loading?spin:`<img src="assets/photo.png" alt="Photo">`}</span></span>`;
-  if(k==="drawing") return `<span class="th th-draw ${cls} ${loading?"ld":""}">${loading?spin:`<img src="assets/drawing.png" alt="Drawing">`}</span>`;
+  if(k==="drawing") return `<span class="th th-draw ${cls} ${loading?"ld":""}">${loading?spin:`<img src="assets/drawing.png" alt="Canvas">`}</span>`;
   return `<span class="th th-doc ${cls} ${loading?"ld":""}">${loading?`<span class="dshape">${spin}</span>`:`<img src="assets/document.png" alt="Document">`}</span>`;
 }
 function assetHTML(a,g){
   const id=a.loading?"att-loading":a.k==="two"||a.k==="more"?"att-multi":"att-"+a.k;
-  const label=a.loading?"Attachment, loading":{image:"Image attachment",drawing:"Drawing attachment",doc:"Document attachment",two:"Two attachments",more:"Several attachments"}[a.k];
+  const label=a.loading?"Attachment, loading":{image:"Image attachment",drawing:"Canvas attachment",doc:"Document attachment",two:"Two attachments",more:"Several attachments"}[a.k];
   const at=el(id,label,g);
   if(a.k==="two") return `<div class="as as-two" ${at}><div class="col">${thumb("doc",a.loading)}<span class="cap">${a.loading?LOADCAP.doc:CAP.doc}</span></div><div class="col">${thumb("drawing",a.loading)}<span class="cap">${a.loading?LOADCAP.drawing:CAP.drawing}</span></div></div>`;
   if(a.k==="more"){ const n=a.n||4; return `<div class="as as-more" ${at}><div class="stack">${thumb("doc",a.loading,"st")}${thumb("drawing",a.loading,"st")}${thumb("doc",a.loading,"st")}${thumb("image",a.loading,"st last")}${n>4?`<span class="more-n">+${n-4}</span>`:""}</div><span class="cap">${n} attachments</span></div>`; }

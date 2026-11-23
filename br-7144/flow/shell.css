@@ -297,3 +297,9 @@ span.ai.thcur{background:var(--accent-soft);border-radius:3px;box-shadow:0 0 0 3
 .lpop input{width:300px;border:0;padding:5px 10px;font:12px var(--mono);background:var(--panel);color:var(--ink);outline:0}
 /* 1.0.13: Agentation count badges are yellow (marker colour), so their number is dark, not white */
 [class*="styles-module__badge___"],[class*="styles-module__buttonBadge___"]{color:#1d1d1b!important}
+
+/* 1.1.0: Implementation links (read-only, from PACK.links) */
+.impl-links{list-style:none;margin:4px 0 0;padding:0;display:grid;gap:4px}
+.impl-links li{display:grid;grid-template-columns:120px 1fr;gap:10px;align-items:baseline}
+.impl-links .il-k{color:var(--muted,#888);font-size:.92em}
+.impl-links .il-none{color:var(--muted,#888);font-style:italic}
