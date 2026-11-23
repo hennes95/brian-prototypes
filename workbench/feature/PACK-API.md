@@ -39,3 +39,7 @@ UI updates: `renderLeft()`, `renderHeader()`, `renderMinimap()`, `markActive()`,
 ## Rules
 - The shell never contains anything about a ticket. A new exploration or variant only changes the pack.
 - Pack CSS is scoped to the prototype's own classes; it must not restyle shell elements.
+
+## Spec markup (shell 1.0.9+)
+- `<span class="ai">…</span>`: Claude's own suggestion (blue), accepted or declined one by one.
+- `<div class="imp" data-src="ticket · 19.11">…</div>`: text imported from a source Hannes wrote (Notion ticket, backup). One block per section, kept or dropped as a whole. Never blue.

@@ -15,6 +15,8 @@ P = json.load(open(os.path.join(pk, 'pack.json'))); D = json.load(open(dbp))
 commit = subprocess.run(['git','-C',root,'rev-parse','--short','HEAD'],capture_output=True,text=True).stdout.strip()
 
 def md(h):
+    if h and 'class="imp"' in h: print('CHECK: imported block not kept or dropped yet (grey bar in the workbench)')
+    h = re.sub(r'<div class="imp"[^>]*>(.*?)</div>', r'\1', h or '', flags=re.S)
     h = re.sub(r'<span class="ai"[^>]*>(.*?)</span>', r'\1 *(open proposal)*', h or '', flags=re.S)
     h = re.sub(r'<a [^>]*href="([^"]+)"[^>]*>(.*?)</a>', r'[\2](\1)', h)
     h = re.sub(r'</?b>', '**', h); h = re.sub(r'<h4>(.*?)</h4>', r'\n\n#### \1\n\n', h)

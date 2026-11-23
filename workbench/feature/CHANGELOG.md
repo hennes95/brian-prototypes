@@ -1,5 +1,11 @@
 # Feature workbench shell: changelog
 
+## 1.0.9 (23.11.26)
+- Imported blocks: text Claude brings in from a source Hannes wrote (e.g. the Notion ticket) is wrapped in `<div class="imp" data-src="ticket · 19.11">`.
+  Shown as normal text with a grey bar in the margin and a "From …" label; one ✓ Keep (becomes plain text) / ✕ Drop per block.
+- Blue (`span.ai`) stays for Claude's own suggestions only.
+- Grey counter in the toolbar: number of imported blocks left; click steps through them.
+
 ## 1.0.8 (23.11.26)
 - Controls stay visible for ~0.45 s after the pointer leaves the proposal, so you can reach ↩ / the thread count.
 - The thread count's outline follows the controls' shape (no speech-bubble corner).
