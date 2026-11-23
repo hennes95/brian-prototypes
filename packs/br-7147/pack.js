@@ -249,14 +249,18 @@ async function loadPreviews(){
   }
   if(Object.keys(out).length){ PREV=out; renderStage(); try{ await DB.doc("assets/previews").set(out); }catch(e){} }
 }
+/* Attachment visuals from BR-7144 at the small size (Hannes 23.11): photo with a white frame, canvas card, document page with fold;
+   thin outline + hard shadow, straight (no tilt). Loading stays as it is. A file the student picked replaces the sample image. */
+let attDocN=0;
+function attDocSVG(src){ const id="adp"+(++attDocN), page="M0 0H291.1L316.5 24.8L317.1 178.8H0Z";
+  return `<svg class="docsvg" viewBox="0 0 321 183" preserveAspectRatio="none" role="img" aria-label="Document"><defs><clipPath id="${id}"><path d="${page}"/></clipPath></defs><g clip-path="url(#${id})"><rect width="321" height="183" fill="#fff"/><image href="${src}" width="317.1" height="178.8" preserveAspectRatio="xMidYMid slice"/><rect width="321" height="183" fill="#000" opacity=".03"/></g><path class="dln" d="${page}"/><path class="dsh" d="M294 3.3V27.7H319.2Z"/><path class="dfold" d="M291 .3V24.7H316.2Z"/></svg>`; }
 const ATT={
- get image(){ return PREV.photo?`<span class="pic" style="background:url(${PREV.photo}) center/cover"></span>`:`<span class="pic"></span>`; },
+ get image(){ return `<span class="pic"><img src="${PREV.photo||"assets/photo.png"}" alt=""></span>`; },
  loading:`<span class="pic"><span class="spin"></span></span>`,
- get drawing(){ return PREV.drawing?`<img src="${PREV.drawing}" alt="" style="display:block;width:100%;height:100%;object-fit:cover">`:this._drawing; },
- _drawing:`<svg viewBox="0 0 122 72"><text x="18" y="34" font-family="'Bradley Hand','Segoe Script','Comic Sans MS',cursive" font-size="21" fill="#2b2b2b">4×4 = 16</text><path d="M24 52c20-4 52-8 74-10-22 6-48 9-66 14 22-2 40-3 54-6" fill="none" stroke="#2b2b2b" stroke-width="1.6" stroke-linecap="round"/></svg>`,
- get doc(){ return PREV.doc?`<svg viewBox="0 0 122 72"><defs><clipPath id="dcp"><path d="M2 2h108l10 10v60H2z"/></clipPath></defs><path d="M2 2h108l10 10v60H2z" fill="#fff"/><image href="${PREV.doc}" x="2" y="2" width="118" height="70" preserveAspectRatio="xMidYMid slice" clip-path="url(#dcp)"/><path d="M2 2h108l10 10v60H2z" fill="none" stroke="#3a3a3a" stroke-width=".75"/><path d="M110 2v10h10" fill="#fff" stroke="#3a3a3a" stroke-width=".75"/></svg>`:this._doc; },
- _doc:`<svg viewBox="0 0 122 72"><path d="M2 2h108l10 10v60H2z" transform="translate(2 2)" fill="#3a3a3a"/><path d="M2 2h108l10 10v60H2z" fill="#f7f7f7" stroke="#3a3a3a" stroke-width=".75"/><path d="M110 2v10h10" fill="#fff" stroke="#3a3a3a" stroke-width=".75"/><g stroke="#9a9a9a" stroke-width=".75"><path d="M12 16h40M12 21h48M12 26h34M66 34h40M66 39h44M66 44h30M12 50h44M12 55h38"/></g><path d="M14 30c10-12 26-6 18 8s-20 16-6 22" fill="none" stroke="#8a8a8a" stroke-width="2.4"/><path d="M76 12c14 0 20 18 6 22 16 4 12 26-4 24" fill="none" stroke="#8a8a8a" stroke-width="2.4"/></svg>`
+ get drawing(){ return `<img class="drw" src="${PREV.drawing||"assets/drawing.png"}" alt="">`; },
+ get doc(){ return attDocSVG(PREV.doc||"assets/document.png"); }
 };
+
 const el=(id,label)=>`data-el="${id}" data-label="${esc(label)}"`;
 function seed(kind){ const p=preset(kind); return {_m:1,text:p.text||"",focused:!!p.focused,menu:!!p.sheet,picker:false||!!p.picker,atts:Array.isArray(p.attach)?[...p.attach]:[],waiting:!!p.typing,thread:[],note:p.note,reserved:!!p.reserved,fs:!!p.fs}; }
 function ensureModel(){ if(!ui.live||!ui.live._m){ const st=curState(); ui.live=seed(st?st.kind:"idle"); restoreThread(); } return ui.live; }

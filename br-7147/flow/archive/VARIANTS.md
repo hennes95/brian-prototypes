@@ -29,4 +29,5 @@ Screenshots in this folder: AI Tutor tab, idle and typing (`<id>-idle-rest.png`,
 - Hannes 23.11: the pill will be the final design
 - Effects on the spec
   - No line under the field (removed from the spec on 23.11)
-  - The "angled top line" in Focus mode and the Quiz touchpoint comes from the Inverted variant (open question on 23.11)
+  - No angled top line in Focus mode and the Quiz touchpoint (came from Inverted; removed from the spec on 23.11)
+  - The tab bar keeps its angled top edge: it shows when the field folds away while scrolling up
