@@ -389,7 +389,7 @@ root.MotionEngine = { id:'ai-tutor-blocks', create(ctx){
   /* ---- user action first: finger down -> release -> then the animation plays ---- */
   const PLUS_PT = [367,92], TAB_PT = [202,829], PRESS_AT = 60;
   function withTap(m,pt,block,vr,kd){
-    const L = P('tap'+({open:'Open',back:'Back',enter:'Enter',focus:'Focus',blur:'Blur',send:'Send'}[kd]),vr), base = m.at;
+    const L = P('tap'+({open:'Open',back:'Back',enter:'Enter',focus:'Focus',blur:'Back',send:'Send'}[kd]),vr), base = m.at;
     m.tapLead = L; m.dur += L; m.motionEnd += L; m.tapPt = pt; m.tapBlock = block;
     m.at = t=>{
       const st = base(Math.max(0,t-L)), age = t-L;
@@ -426,7 +426,7 @@ root.MotionEngine = { id:'ai-tutor-blocks', create(ctx){
     return m;
   }
   function timeScale(m,kd,vr){            // total-duration slider: time-scale the whole motion to a target length (0 = natural)
-    const D = P({open:'durOpen',back:'durBack',enter:'durEnter',focus:'durFocus',blur:'durBlur',send:'durSend'}[kd],vr); if(!D || !m || !(m.motionEnd>0)) return m;
+    const D = P({open:'durOpen',back:'durBack',enter:'durEnter',focus:'durFocus',blur:'durBack',send:'durSend'}[kd],vr); if(!D || !m || !(m.motionEnd>0)) return m;
     const f = D/m.motionEnd, base = m.at;
     m.at = t=>base(t/f); m.dur *= f; m.motionEnd = D; return m;
   }
@@ -437,7 +437,8 @@ root.MotionEngine = { id:'ai-tutor-blocks', create(ctx){
       if(kd==='focus') return withTap(timeScale(buildFocus(vr,e.seed),'focus',vr),FIELD.fieldPt,-1,vr,'focus');
       if(kd==='send') return withTap(timeScale(buildSend(vr,e.seed,e.text),'send',vr),[FIELD.sendPt[0],FIELD.sendPt[1]+KB.inputDy],-1,vr,'send');
       const f = ks[vr].focus || {seed:1}, fm = buildFocus(vr,f.seed);
-      return withTap(timeScale(buildBlur(vr,e.seed,{model:fm,t:Math.min(e.fromT,fm.dur)}),'blur',vr),[200,300],-1,vr,'blur'); }
+      const bm = buildIn('back',e.seed,{model:fm,t:Math.min(e.fromT,fm.dur)},vr); bm.kind = 'blur';   // Back out IS Back, started from the Focus state
+      return withTap(timeScale(bm,'blur',vr),[200,300],-1,vr,'blur'); }
     if(kd==='open') return withTap(timeScale(build(vr,e.i,e.seed),'open',vr),[DEFS[e.i].cx,DEFS[e.i].cy],e.i,vr,'open');
     if(kd==='back'){ const o = ks[vr].open, sd = ks[vr].send; if(e.from==='send' && sd && vr==='D'){ const sm = buildSend(vr,sd.seed,sd.text); return withTap(timeScale(buildIn('back',e.seed,{model:sm,t:Math.min(e.fromT,sm.dur)},vr),'back',vr),PLUS_PT,-1,vr,'back'); } if(!o) return null; const om = build(vr,o.i,o.seed); return withTap(timeScale(buildIn('back',e.seed,{model:om,t:Math.min(e.fromT,om.dur)},vr),'back',vr),PLUS_PT,-1,vr,'back'); }
     return withTap(timeScale(buildIn('enter',e.seed,null,vr),'enter',vr),TAB_PT,-1,vr,'enter');
@@ -502,10 +503,6 @@ root.MotionEngine = { id:'ai-tutor-blocks', create(ctx){
     T('gGravity3','Gravity',400,7000,50,3500,' px/s²','How fast the blocks fall','Acceleration of the falling blocks.','Floaty.','Heavy drop.','The falling blocks.'),
     T('gSpin3','Spin',0,700,5,200,' °/s','How fast the blocks rotate while falling','Each block gets its own speed and direction.','No tumbling.','Wild tumbling.','The falling blocks.'),
     T('gDrift3','Sideways drift',0,500,5,220,' px/s','Random sideways speed','Each block drifts left or right by a random amount.','Straight down.','Scattered.','The falling blocks.'),
-    T('durBlur3','Back out: total duration',0,3000,10,0,' ms','Stretch or squeeze the whole Back out animation','Total length after the tap. Time-scales the whole animation.','0 = natural length.','Slow motion.','The whole Back out animation.'),
-    T('tapBlur3','Tap: press duration',100,800,10,150,' ms','How long the finger is down','Shared press time for every interaction.','Quick tap.','Long press.','The start of Back out.'),
-    T('blocksAtBlur3','Blocks start after',0,800,10,80,' ms','When the blocks start to rise, after the keyboard starts going down','The keyboard goes down right after the tap; the blocks rise this much later.','Together with the keyboard.','After the keyboard is gone.','The blocks during Back out.'),
-    T('staggerBlur3','Stagger',0,300,5,45,' ms','Delay between blocks (bottom first)','Delay between one block and the next one starting to rise.','All at once.','One after another.','The order in which the blocks land.'),
     T('durSend3','Send: total duration',0,3000,10,0,' ms','Stretch or squeeze the whole Send animation','Total length after the tap. Time-scales the whole animation.','0 = natural length.','Slow motion.','The whole Send animation.'),
     T('tapSend3','Tap: press duration',100,800,10,150,' ms','How long the finger is down','Shared press time for every interaction.','Quick tap.','Long press.','The start of Send.'),
     T('sMetaAt3','Avatar + name in at',0,150,1,72,' %','When avatar and “Student - 10:32” appear','Share of the flight after which avatar and name fade in around the landing text.','Before landing.','After landing.','The student message.'),
@@ -514,8 +511,8 @@ root.MotionEngine = { id:'ai-tutor-blocks', create(ctx){
     T('sTutorDelay3','Brian after landing',0,1500,10,350,' ms','When Brian’s message appears','Delay after the flight before Brian’s message fades in.','Right away.','Late.','The chat after landing.')
   ];
   FS_T.forEach(t=>{ CAT.D.push(t); ALL[t.k] = t; DEF[t.k] = t.def; });
-  DEF.blurSpring3 = {visualDuration:.6,bounce:.18}; DEF.sendYSpring = {visualDuration:.55,bounce:.12}; DEF.sendXSpring = {visualDuration:.62,bounce:.06};
-  ['blurSpring3','sendYSpring','sendXSpring'].concat(FS_T.map(t=>t.k)).forEach(k=>{ if(V[k]===undefined) V[k] = JSON.parse(JSON.stringify(DEF[k])); });   // values set before these existed
+  DEF.sendYSpring = {visualDuration:.55,bounce:.12}; DEF.sendXSpring = {visualDuration:.62,bounce:.06};
+  ['sendYSpring','sendXSpring'].concat(FS_T.map(t=>t.k)).forEach(k=>{ if(V[k]===undefined) V[k] = JSON.parse(JSON.stringify(DEF[k])); });   // values set before these existed
   const kbEase = (()=>{ const e = springEase(KB.curve), d = springMs(KB.curve)*1.6; return t=>t>=d ? 1 : e(t); })();
   const KB_END = springMs(KB.curve)*1.6;
   const atRest = d=>({cx:d.cx,cy:d.cy,r:d.r,s:1,o:1}), gone = d=>({cx:d.cx,cy:1100,r:d.r,s:1,o:0});
@@ -534,19 +531,6 @@ root.MotionEngine = { id:'ai-tutor-blocks', create(ctx){
     m.at = t=>({ blocks: ns.map(n=>{ const u = Math.max(0,(t-n.dly)/1000), q = n.ts*(1-Math.exp(-u/n.ts));
         return {cx:n.d.cx+n.vx*q*1.6, cy:n.d.cy+n.vy*u+.5*g*u*u, r:n.d.r+n.w*(u-q)+7*n.sg*Math.sin(u*18)*Math.exp(-u*7), s:1, o:1}; }),
       intro:1, shake:[0,0], stu:0, tut:0, done:false, kb:kbEase(t), field:0, focus:1 });
-    return m;
-  }
-  function buildBlur(vr,seed,from){
-    const st0 = from ? from.model.at(from.t) : null, kb0 = st0 && st0.kb!==undefined ? st0.kb : 1;
-    const sp = springEase(V.blurSpring3), D = springMs(V.blurSpring3)*1.6, ease = p=>p>=D ? 1 : sp(p);
-    const m = {variant:vr,seed,kind:'blur',tapped:-1,i:0};
-    const items = DEFS.map((d,j)=>{ const b0 = st0 ? st0.blocks[j] : gone(d), out = !st0 || b0.cy>900;
-      return {d, dly:V.blocksAtBlur3 + V.staggerBlur3*(DEFS.length-1-j), sx:out?d.cx:b0.cx, sy:out?960+j*12:b0.cy, sr:out?d.r:b0.r}; });
-    const motion = Math.max(KB_END, ...items.map(it=>it.dly+D));
-    m.motionEnd = motion+60; m.dur = m.motionEnd+150;
-    m.at = t=>({ blocks: items.map(it=>{ const pe = ease(t-it.dly);
-        return {cx:it.sx+(it.d.cx-it.sx)*pe, cy:it.sy+(it.d.cy-it.sy)*pe, r:it.sr+(it.d.r-it.sr)*pe, s:1, o:1}; }),
-      intro:1, shake:[0,0], stu:0, tut:0, done:false, kb:kb0*(1-kbEase(t)), field:0, focus:t<60?1:0 });
     return m;
   }
   function buildSend(vr,seed,text){
@@ -568,9 +552,9 @@ root.MotionEngine = { id:'ai-tutor-blocks', create(ctx){
   const SPR_ALL = {moveSpring:'Open: block morph (spring)', flyYSpring:'Open: flight up (Y spring)', flyXSpring:'Open: flight left (X spring), differs from Y = arc',
     backSpring1:'Back: blocks (spring)', backSpring2:'Back: blocks (spring)', backSpring3:'Back: blocks (spring)',
     enterSpring1:'Enter: blocks (spring)', enterSpring2:'Enter: blocks (spring)', enterSpring3:'Enter: blocks (spring)',
-    blurSpring3:'Back out: blocks (spring)', sendYSpring:'Send: text up (Y spring)', sendXSpring:'Send: text left (X spring), differs from Y = arc'};
+    sendYSpring:'Send: text up (Y spring)', sendXSpring:'Send: text left (X spring), differs from Y = arc'};
   const KEYS = {back:['durBack','tapBack','staggerBack','randBack','chatOutBack','blocksAtBack','introAtBack','introInBack'], enter:['durEnter','tapEnter','staggerEnter','inLead','textEnter','randEnter','wiggle'],
-    focus:['durFocus','tapFocus','blocksAtFocus','gRipple','gKick','gGravity','gSpin','gDrift'], blur:['durBlur','tapBlur','blocksAtBlur','staggerBlur'],
+    focus:['durFocus','tapFocus','blocksAtFocus','gRipple','gKick','gGravity','gSpin','gDrift'], blur:['durBack','tapBack','staggerBack','randBack','blocksAtBack','introAtBack','introInBack'],
     send:['durSend','tapSend','sMetaAt','sMetaFade','sMetaRise','sTutorDelay']};
   const labOf = t => t.label + (t.unit.trim()?' ('+t.unit.trim()+')':'');
   function panel(vr,kind){
@@ -578,7 +562,7 @@ root.MotionEngine = { id:'ai-tutor-blocks', create(ctx){
       ? (vr==='D' ? (/^[fd][A-Z]/.test(t.k) || ['tapOpen3','loading3','durOpen3'].includes(t.k))
                   : (/^[bc][A-Z]/.test(t.k) || ['wind','shake','tapOpen','loading','durOpen'].includes(t.k.slice(0,-1))))
       : (KEYS[kind]||KEYS.enter).includes(t.k.slice(0,-1));
-    const showSpr = k => kind==='send' ? (k==='sendYSpring'||k==='sendXSpring') : kind==='open' ? (vr==='C' ? k==='moveSpring' : vr==='D' ? (k==='flyYSpring'||k==='flyXSpring') : false) : k===(kind+'Spring'+SUF[vr]);
+    const showSpr = k => kind==='blur' ? k===('backSpring'+SUF[vr]) : kind==='send' ? (k==='sendYSpring'||k==='sendXSpring') : kind==='open' ? (vr==='C' ? k==='moveSpring' : vr==='D' ? (k==='flyYSpring'||k==='flyXSpring') : false) : k===(kind+'Spring'+SUF[vr]);
     const TW = CAT[vr].filter(showTw).sort((a,b)=>(/^dur/.test(b.k)?1:0)-(/^dur/.test(a.k)?1:0));   // total duration first
     return {tweaks:TW.map(t=>({k:t.k,label:labOf(t),def:t.def,min:t.min,max:t.max,step:t.step,unit:t.unit.trim(),what:t.what,role:roleOf(vr,kind,t.k)})),
             springs:Object.keys(SPR_ALL).filter(showSpr).map(k=>({k,label:SPR_ALL[k],def:DEF[k]}))};
@@ -586,7 +570,7 @@ root.MotionEngine = { id:'ai-tutor-blocks', create(ctx){
 
   /* ================= TIMELINE: which dials are "when" dials, as clips (engine ms after the tap, before total-duration scaling) =================
      Each draggable edge maps linearly to one dial: value = (t - base) / per. Locked clips follow from curves / physics. */
-  const KN = {open:'Open',back:'Back',enter:'Enter',focus:'Focus',blur:'Blur',send:'Send'};
+  const KN = {open:'Open',back:'Back',enter:'Enter',focus:'Focus',blur:'Back',send:'Send'};   // Back out uses Back's dials
   const V3ONLY = {focus:1,blur:1,send:1};
   const visMs = c => (c.visualDuration!==undefined ? c.visualDuration : .8)*1000;
   function naturalEnd(vr,kd){                 // motion end without total-duration scaling, after the tap
@@ -601,9 +585,9 @@ root.MotionEngine = { id:'ai-tutor-blocks', create(ctx){
     if(kd==='focus'){
       lock('Keyboard slides up',0,KB_END,'system');
       L.push({lane:'Blocks break away',a:V.blocksAtFocus3,b:end,note:'physics · bottom first',start:{k:'blocksAtFocus3',base:0,per:1}});
-    } else if(kd==='blur'){
-      lock('Keyboard goes down',0,KB_END,'system');
-      L.push({lane:'Blocks rise',a:V.blocksAtBlur3,b:end,note:'spring · stagger',start:{k:'blocksAtBlur3',base:0,per:1}});
+    } else if(kd==='blur'){                     // Back out = the Back animation applied from the Focus state (same dials), plus the keyboard
+      const tb = timeline(vr,'back'); tb.lanes = [{lane:'Keyboard goes down',a:0,b:KB_END,note:'system',locked:true}].concat(tb.lanes.filter(l=>!/chat/i.test(l.lane)));
+      tb.total = Object.assign({}, tb.total, {natural:end}); return tb;
     } else if(kd==='send'){
       const F = Math.max(visMs(V.sendXSpring), visMs(V.sendYSpring)), tut = F+V.sTutorDelay3;
       lock('Text flies up',0,F,'X / Y springs'); lock('Intro fades',0,450,'');

@@ -15,7 +15,8 @@ const A7_BLOCKS = ["<div class=\"block\" style=\"--x: 84.94999999999999px; --y: 
 const A7_POSES = ["--x: 84.94999999999999px; --y: 409.9px; --r: -2deg;", "--x: 64.94999999999999px; --y: 465.4px; --r: 0deg;", "--x: 84.94999999999999px; --y: 521.4px; --r: 2deg;", "--x: 103.94999999999999px; --y: 576.9px; --r: -4deg;", "--x: 84.94999999999999px; --y: 633px; --r: -2deg;"];
 const A7_LABELS = ["Create a study plan", "Practice my hardest topics", "Show my knowledge gaps", "Explain a topic", "Create a mock exam"];
 const A7_CHAT = "<div class=\"msg student\" style=\"opacity: 1; transform: none;\"><div class=\"avatar\" style=\"opacity: 1; transform: translateY(0px);\"><svg viewBox=\"0 0 32 32\" width=\"32\" height=\"32\" fill=\"none\" stroke=\"#3a3a3a\" stroke-width=\"1.1\" stroke-linecap=\"round\"><circle cx=\"16\" cy=\"13\" r=\"5\"></circle><path d=\"M8 28c0-5 3.6-8 8-8s8 3 8 8\"></path><path d=\"M10.5 9.5c1-3.6 10-3.6 11 0M9 10h14\"></path></svg></div><div style=\"flex:1;min-width:0\"><div class=\"meta\" style=\"opacity: 1; transform: translateY(0px);\">Student - 10:32</div><div class=\"body\" style=\"opacity: 1;\">__MSG__</div></div></div><div class=\"msg tutor\" style=\"opacity: 1; transform: translateY(0px);\"><div class=\"avatar\"><svg viewBox=\"0 0 32 32\" width=\"32\" height=\"32\" fill=\"none\" stroke=\"#fff\" stroke-width=\"1.2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"8\" y=\"10\" width=\"16\" height=\"13\" rx=\"2.5\" transform=\"rotate(-6 16 16)\"></rect><circle cx=\"13\" cy=\"16\" r=\"1.3\" fill=\"#fff\"></circle><circle cx=\"19\" cy=\"15.4\" r=\"1.3\" fill=\"#fff\"></circle><path d=\"M16 9l-.4-3.2M13 20.4h6\"></path><circle cx=\"15.5\" cy=\"5\" r=\"1.2\"></circle></svg></div><div style=\"flex:1;min-width:0\"><div class=\"meta\">Brian - 10:32</div><div class=\"body\"><div class=\"dots\"><i></i><i></i><i></i></div><div class=\"reply\">Placeholder \u2013 the streamed answer would appear here.</div></div></div></div>";
-const A7_SCOPE = [0,2,3];                 /* build scope: study plan, knowledge gaps, explain a topic */
+const A7_SCOPE = [0,2,3];
+const A7_THREADS = ["Create study plan","Practice hard topics","Show knowledge gaps","Explain a topic","Create mock exam"];   /* thread names (Figma dev notice) */                 /* build scope: study plan, knowledge gaps, explain a topic */
 const A7_TYPED = "Explain photosynthesis";
 const MOTION = (chip, txt) => `<a href="${PACK.motionUrl}" target="_blank" rel="noopener">${txt || "Motion: " + chip} ↗</a>`;   /* ⌥Tab also switches to the Animation Workbench */
 
@@ -94,6 +95,7 @@ function screen(stateId, variant, m){
        .replace('data-a7="newChat"', 'data-a7="newChat" data-act="plus" data-el="a7.plus" data-label="New chat"');
   if (mode === "focus" && stateId === "focus-typed") h = h.replace(/<input data-a7="txt"[^>]*>/, `<span class="a7-typed">${esc(m.typed || A7_TYPED)}<span class="a7-caret"></span></span>`);
   else if (mode === "focus") h = h.replace(/(<input data-a7="txt"[^>]*>)/, `<span class="a7-typed"><span class="a7-caret"></span></span>`);
+  if (stateId === "chat-block") h = h.replace("AI-Tutor</h1>", A7_THREADS[m.block == null ? 0 : m.block] + "</h1>");   /* R2: the thread is named after the use case (design) */
   if (stateId === "idle-tip"){ let n = 0; h = h.replace(/class="tab( active)?"/g, (m0, act) => (++n === 2 ? `class="tab a7-hl${act||""}" data-el="a7.tabhl" data-label="AI Tutor tab (highlighted)"` : m0)); }
   return h.replace(/<\/div>\s*$/, extra + "</div>");
 }

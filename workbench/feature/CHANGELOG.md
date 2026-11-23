@@ -3,7 +3,6 @@
 ## 1.0.6 (23.11.26)
 - Thread input grows up to 7 lines before it scrolls (Enter sends, Shift+Enter new line).
 - ✓ ✕ ↩ only show for the proposal under the pointer or with its thread open; a proposal with messages keeps just its count.
-- A proposal that editing split into several blue pieces is joined back into one (it showed two sets of controls).
 
 ## 1.0.5 (23.11.26)
 - Threads on Claude's proposals: ↩ next to ✓ ✕ (or the blue counter) opens a popover anchored below the proposal with messages, revised version, Accept / Decline and one input (reply, or an optional reason when declining). Replies waiting for Claude count in the yellow counter. Stored in `S.threads`.
