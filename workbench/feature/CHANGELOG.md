@@ -1,5 +1,10 @@
 # Feature workbench shell: changelog
 
+## 1.0.12 (23.11.26)
+- Links in the spec: paste a URL onto selected text to link it; paste a URL with nothing selected to insert a link with a short readable name (Notion page title, "Phone prototype", GitHub repo, host); Figma keeps its chip.
+- A typed URL becomes a link on Enter or Space.
+- Links show a hand cursor and underline on hover. Clicking one opens a popover: Open ↗ (plain link, since artifacts block window.open) · Change · Remove.
+
 ## 1.0.11 (23.11.26)
 - Fix: thread replies were never sent inside Claude artifacts. The sandboxed frame blocks form submission, so Enter and Send did nothing (since 1.0.5).
   The reply box is no longer a form; Enter and Send call the send function directly. Checked in a sandboxed frame like the artifact's.
