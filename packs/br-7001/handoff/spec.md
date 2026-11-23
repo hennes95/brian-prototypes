@@ -1,6 +1,6 @@
 # BR-7001 · AI Tutor use cases — spec
 
-> Generated from the Feature Workbench at commit `f219df7`. Same sections as the Notion ticket. Don't edit by hand; change the workbench and export again. Agents start at `HANDOFF.md`.
+> Generated from the Feature Workbench at commit `3be97fa`. Same sections as the Notion ticket. Don't edit by hand; change the workbench and export again. Agents start at `HANDOFF.md`.
 
 ## Brief
 
@@ -10,6 +10,11 @@
 - Also in the empty state they have to come up with a prompt to ask the AI Tutor themselves (cold start problem)
 - In a workshop we realized that especially study plans or practice of hard topics was highly requested from students yet not possible with the Brian chat ("Where should I practice again?", "What are my knowledge gaps?")
 - The tutor has no access to the learning history (blocked by the backend ticket)
+
+#### Related
+
+- Coordinate with [FE Chat: Improve AI-Tutor Chat for Students](https://app.notion.com/p/3fdfca9f403c80699f29d4a8a7ba77cd) (renaming/archiving)
+- Coordinate with [Ralph Idea: Allow students to dive deeper into their attempts in AI Dialogues](https://app.notion.com/p/3e4fca9f403c80fcaaa0fe1264be7fb2) (feedback deep-dive and Tutor follow-up)
 
 #### Success Criteria
 
