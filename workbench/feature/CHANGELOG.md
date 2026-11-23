@@ -1,5 +1,8 @@
 # Feature workbench shell: changelog
 
+## 1.0.13 (23.11.26)
+- Comment count on the collapsed comment button (and the toolbar's button badges) in dark text: the badge is yellow, so the white number was hard to read. No other changes.
+
 ## 1.0.12 (23.11.26)
 - Links in the spec: paste a URL onto selected text to link it; paste a URL with nothing selected to insert a link with a short readable name (Notion page title, "Phone prototype", GitHub repo, host); Figma keeps its chip.
 - A typed URL becomes a link on Enter or Space.
