@@ -6,6 +6,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#ffffff"><meta name="color-scheme" content="light">
 <style>html,body{margin:0;background:#fff}</style>
-<!-- This page never changes, so a cached copy is harmless. It always opens the newest build (app.html with a fresh query, bypassing the ~10 min GitHub Pages cache). -->
-<script>location.replace("app.html?v="+Date.now()+location.hash);</script>
+<!-- Since 23.11.26 this old link (and home-screen icons made from it) opens the workbench phone build in flow/, always the newest one.
+     The pilot prototype that used to live here is kept as app-pilot.html. -->
+<script>location.replace("flow/app.html?v="+Date.now()+(location.hash||"#prototype"));</script>
 </head><body></body></html>
