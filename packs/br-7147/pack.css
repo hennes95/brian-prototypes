@@ -335,3 +335,12 @@ body:not(.proto) .oosa{outline:1px dashed #e0b400;outline-offset:4px;border-radi
 .v-pill .c-att{margin-left:-8px;margin-right:-8px;padding-left:14px;padding-right:14px}
 /* Hannes 24.11: remove button inside the attachment's top left corner */
 .att .rm{top:4px;left:4px;width:18px;height:18px;font-size:11px;line-height:14px;border-width:1px}
+/* Hannes 24.11: folding away while scrolling the history moves like BR-7144: the top bar slides out to the top, the field slides
+   down behind the tab bar (both 0.22s ease, with a fade); scrolling down brings them back the same way. Reduced motion: fade only. */
+.p-head{transition:margin .22s ease,opacity .22s ease}
+.phone.headhidden .p-head{height:35px;margin-top:-43px;opacity:0;overflow:visible}
+.phone.cmphidden .cmp{display:flex;margin-bottom:calc(-1 * var(--cmpc,64px));opacity:0;pointer-events:none}
+.phone.hidanim .cmp{transition:margin .22s ease,opacity .22s ease}
+.phone.hidanim .p-tabs{transition:margin .22s ease}
+.p-tabs{z-index:3}
+@media (prefers-reduced-motion:reduce){.p-head,.phone.hidanim .cmp,.phone.hidanim .p-tabs{transition:opacity .15s}}

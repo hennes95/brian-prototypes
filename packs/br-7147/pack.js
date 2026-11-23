@@ -371,7 +371,7 @@ function renderStage(){
     const updOver=()=>ph.classList.toggle("topover",over());
     /* R4: scrolling up hides top bar (and the field when empty/unfocused); scrolling down brings them back right away, not only at the bottom */
     let lastTop=ch.scrollTop, lockUntil=0, hid=false;
-    const applyHid=()=>{ const typing=!!$("#pwrap .cmp.focused:not(.resting), #pwrap .cmp.focused-inline"); ph.classList.toggle("headhidden",hid); ph.classList.toggle("cmphidden",hid&&!typing&&!ui.live.menu&&!ui.live.picker); updOver(); };
+    const applyHid=()=>{ const typing=!!$("#pwrap .cmp.focused:not(.resting), #pwrap .cmp.focused-inline"); const cm=$("#pwrap .cmp"); if(cm&&!ph.classList.contains("cmphidden")) ph.style.setProperty("--cmpc",(cm.offsetHeight+parseFloat(getComputedStyle(cm).marginTop||0))+"px"); if(ph.classList.contains("headhidden")!==hid){ ph.classList.add("hidanim"); clearTimeout(ph._ha); ph._ha=setTimeout(()=>ph.classList.remove("hidanim"),400); } ph.classList.toggle("headhidden",hid); ph.classList.toggle("cmphidden",hid&&!typing&&!ui.live.menu&&!ui.live.picker); updOver(); };
     const setHid=h=>{ if(h===hid) return; hid=h; lockUntil=performance.now()+350; applyHid(); };
     ch.addEventListener("scroll",()=>{ const now=ch.scrollTop, d=now-lastTop; if(Math.abs(d)>=4||now<=0){ lastTop=now; if(performance.now()>=lockUntil){ const atBottom=now>=ch.scrollHeight-ch.clientHeight-12; if(atBottom) setHid(false); else if(d<0) setHid(true); else if(d>0) setHid(false); } } applyHid(); });
     /* when the content fits once the bars are hidden there is nothing to scroll: a downward gesture still brings them back */
