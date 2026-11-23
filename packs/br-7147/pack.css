@@ -386,3 +386,5 @@ body:not(.proto) .oosa{outline:1px dashed #e0b400;outline-offset:4px;border-radi
 .phone.dark .v-pill.v-pill-light::after{box-shadow:inset 0 0 0 .75px #fff}
 /* pill on screens without a tab bar (Dialog, Quiz, Discussion, Diary): the home-indicator space goes below the pill, not inside it (Hannes 24.11) */
 body.native .v-pill.notab:not(.focused){padding-bottom:4px;margin-bottom:calc(10px + env(safe-area-inset-bottom))}
+/* quiz result sheet: less room on top, more at the bottom (Hannes 24.11) */
+.q-result{padding-top:12px;padding-bottom:calc(24px + env(safe-area-inset-bottom));height:auto;box-sizing:border-box}
