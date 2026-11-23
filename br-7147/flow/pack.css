@@ -326,3 +326,7 @@ body:not(.proto) .oosa{outline:1px dashed #e0b400;outline-offset:4px;border-radi
 .docsvg .dfold{fill:#fff;stroke:var(--b-ink);stroke-width:.75;stroke-linejoin:round;vector-effect:non-scaling-stroke}
 /* Hannes 24.11: attachments as far from the field's left edge as from its top, lined up with the text below (both pill variants) */
 .v-pill .c-att{padding-top:6px;padding-left:16px}
+/* Hannes 24.11: smaller attachment previews (was 122x72, same proportions) */
+.att{width:88px;height:52px}
+.a-image .acard{padding:3px 3px 9px}
+.c-att{gap:14px}
