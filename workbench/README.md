@@ -23,5 +23,10 @@ python3 tools/assemble.py br-7147     # -> dist/br-7147/ (shell version from pac
 ```
 Publish the contents of `dist/<ticket>/` as the ticket's artifact. `dist/` is not committed.
 
+## Load a ticket
+Steps (new ticket, existing workbench, ticket changed, old prototype, animations): Notion > 🧰 Workbenches > "Load a ticket".
+- `pack.json` keeps the ticket's `links` (feature / animation artifact, phone prototype, Notion ticket) so the next chat finds the running workbench.
+- A pack built by a script keeps it next to it (`build.py`, sources in `source/`), so any chat can rebuild it.
+
 ## Pack interface
 See `workbench/feature/PACK-API.md`.
