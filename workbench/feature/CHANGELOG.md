@@ -6,6 +6,10 @@
 - New: **Implementation** with the ticket's links (read-only, from `PACK.links`) and the design system changes (moved from their own section).
 - Ticket preview uses the same order. Packs on older shells keep working; they show an empty Implementation link list until `PACK.links` is set.
 
+## 1.0.15 (23.11.26)
+- Fix (data loss, the actual trigger of 1.0.14's reset): after loading, the shell called the pack's optional loadPreviews() unguarded. In a pack without it (BR-7144) that threw, the shell fell back to the browser's local copy (which a fresh page had just filled with the pack default) and the next save wrote it over the stored spec.
+- loadPreviews is now optional for real, and once the stored spec is loaded an error never swaps it for the local copy.
+
 ## 1.0.14 (23.11.26)
 - Fix (data loss): a newly opened page could save the pack's default spec over the stored one. On load the page first renders the default, gives its proposals new ids and saves; if loading the stored spec took longer than the 0.8 s save delay, that default was written to the database. Every new copy of the page (republish, a preview card, another tab) could trigger it. Seen in BR-7144: the spec reset three times and thread replies ended up on proposal ids that no longer existed.
 - The database is now only connected once the stored spec is loaded, and a save without a loaded spec never overwrites a stored one.

@@ -259,6 +259,9 @@ function cvToggle(){
   t.querySelectorAll("button").forEach(b=>b.classList.toggle("on",(b.dataset.cv==="1")===CV));
 }
 
+/* shell hook: this pack fetches nothing (assets are committed files). Defined so older shells don't throw after loading. */
+function loadPreviews(){}
+
 /* ================= stage ================= */
 const anchorOf=(ch,kind)=>[...ch.querySelectorAll("[data-g]")].filter(n=>n.dataset.g.split(" ").includes(kind));
 function renderStage(){

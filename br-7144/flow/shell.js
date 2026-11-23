@@ -57,13 +57,13 @@ async function initDb(){
     else { S=structuredClone(d); DOC=doc; }
     base=structuredClone(S);
     try{ await db.doc("history/pre-unified-doc").get().then(async x=>{ if(!unwrap(x)) await db.doc("history/pre-unified-doc").set({at:new Date().toISOString(),data:JSON.parse(JSON.stringify(d))}); }); }catch(e){}
-    clearTimeout(guard); render(true); setSync("saved"); loadPreviews();
+    clearTimeout(guard); render(true); setSync("saved"); if(typeof loadPreviews==="function"){ try{ loadPreviews(); }catch(e){ console.warn("loadPreviews",e); } }
     try{ DOC.onSnapshot(snap=>{ const r=unwrap(snap); if(!valid(r)||r.updated===lastSaved) return;
       if(saving||tmr) return; /* the next save merges it in */
       S=merge3(base,S,r); base=structuredClone(r);
       const a=document.activeElement; if(a&&a.closest&&a.closest(".ed,.sec-name")){ needRender=true; setSync("Claude updated · click outside to see it"); return; }
       render(true); setSync("saved"); }); }catch(e){}
-  }catch(e){ loadLocal(); setSync("offline · local"); }
+  }catch(e){ console.error("initDb",e); /* 1.0.15: once the stored spec is loaded, never swap it for the local copy (it can hold the pack default) */ if(base){ setSync("saved · live updates off (reload)"); } else { loadLocal(); setSync("offline · local"); } }
 }
 function loadLocal(){ try{ const d=JSON.parse(localStorage.getItem(PACK.lsKey)||"null"); if(valid(d)){ S=structuredClone(d); render(); } }catch(e){} }
 function save(){ dirty=true; try{ localStorage.setItem(PACK.lsKey,JSON.stringify(S)); }catch(e){} if(!DOC) return; setSync("editing…"); clearTimeout(tmr); tmr=setTimeout(flush,800); }
