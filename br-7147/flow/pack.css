@@ -351,3 +351,8 @@ body:not(.proto) .oosa{outline:1px dashed #e0b400;outline-offset:4px;border-radi
 .v-pill.noplus textarea{padding-left:10px}
 /* Hannes 24.11: full screen: no rounded corners at the bottom, so the field sits flush on the keyboard */
 .v-pill.fs{border-bottom-left-radius:0;border-bottom-right-radius:0}
+/* Hannes 24.11: coming back, the field slides up from BEHIND the tab bar: the tab bar keeps its background and angled edge while it moves,
+   the stroke fades out instead of popping */
+.phone.hidanim .p-tabs{background:var(--b-bg);clip-path:polygon(0 11.2px,100% .2px,100% 100%,0 100%)}
+.p-tabs .tline{display:block;opacity:0;transition:opacity .22s ease}
+.phone.cmphidden .p-tabs .tline{opacity:1}
