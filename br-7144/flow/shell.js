@@ -634,10 +634,10 @@ function openThread(sp){
   inp.addEventListener("input",()=>{ ui._draft[id]=inp.value; });
   /* 1.0.16: a thread counts as read only once Hannes starts typing a reply (or sends / accepts / declines), not when it opens */
   inp.addEventListener("input",()=>{ if(inp.value.trim()) thSeen(sp); });
-  const send=()=>{ const v=inp.value.trim(); if(!v) return; T[id]=T[id]||{msgs:[],prev:[]}; T[id].msgs.push({w:"h",t:v,at:new Date().toISOString()}); T[id].wait=true; T[id].text=sp.textContent; delete ui._draft[id]; thSeen(sp); save(); placeAiCtl(); updateCounters(); openThread(sp); };
+  const send=()=>{ const v=inp.value.trim(); if(!v) return; const T=thAll(); T[id]=T[id]||{msgs:[],prev:[]}; T[id].msgs.push({w:"h",t:v,at:new Date().toISOString()}); T[id].wait=true; T[id].text=sp.textContent; delete ui._draft[id]; thSeen(sp); save(); placeAiCtl(); updateCounters(); openThread(sp); };
   inp.addEventListener("keydown",e=>{ if(e.key==="Enter"&&!e.shiftKey&&!e.isComposing){ e.preventDefault(); e.stopPropagation(); send(); } });
   const step=d=>{ const a=[...sc.querySelectorAll(".ed span.ai,.ed .imp")]; if(!a.length){ thClose(); return; } const j=(a.indexOf(sp)+d+a.length)%a.length; a[j].scrollIntoView({block:"center",behavior:"smooth"}); setTimeout(()=>openThread(a[j]),250); };
-  const finish=ok=>{ const why=inp.value.trim(); delete ui._draft[id]; if(why){ T[id]=T[id]||{msgs:[],prev:[]}; T[id].msgs.push({w:"h",t:why,at:new Date().toISOString(),why:!ok}); }
+  const finish=ok=>{ const why=inp.value.trim(); delete ui._draft[id]; const T=thAll(); if(why){ T[id]=T[id]||{msgs:[],prev:[]}; T[id].msgs.push({w:"h",t:why,at:new Date().toISOString(),why:!ok}); }
     thDone(sp, ok?"accepted":"declined"); const ed2=sp.closest(".ed");
     if(ok) sp.replaceWith(...sp.childNodes); else { const li=sp.closest("li"); sp.remove(); if(li&&!textOf(li.innerHTML).trim()) li.remove(); }
     edSave(ed2); placeAiCtl(); updateCounters(); const a=[...sc.querySelectorAll(".ed span.ai,.ed .imp")]; thClose(); if(a.length){ const nx=a[Math.min(i,a.length-1)]; nx.scrollIntoView({block:"center",behavior:"smooth"}); setTimeout(()=>openThread(nx),250); } };

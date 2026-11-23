@@ -1,5 +1,8 @@
 # Feature workbench shell: changelog
 
+## 1.1.2 (23.11.26)
+- Fix: a thread reply (or the reason given with Accept / Decline) could be lost. The popover kept the threads object from when it opened; every save replaces it, so a reply sent after a save went into the old object. Since threads stay open longer (1.0.16 / 1.1.1) this happened often. Send / Accept / Decline now always write into the current threads.
+
 ## 1.1.1 (23.11.26)
 - 1.1.0 plus the fixes from 1.0.13–1.0.16, which were released in parallel on the 1.0.x line:
   - Spec reset on load (data loss): the database is only connected once the stored spec is loaded, a save without a loaded spec never overwrites it, the pack's loadPreviews is optional for real, and a loaded spec is never swapped for the local copy.
@@ -11,6 +14,9 @@
 - New: **Side effects** with "Effects on existing data" (`docs.data`) and "Notifications, emails & tracking" (`docs.side`); touchpoints moved here ("other screens affected").
 - New: **Implementation** with the ticket's links (read-only, from `PACK.links`) and the design system changes (moved from their own section).
 - Ticket preview uses the same order. Packs on older shells keep working; they show an empty Implementation link list until `PACK.links` is set.
+
+## 1.0.17 (23.11.26)
+- Fix: a thread reply (or the reason given with Accept / Decline) could be lost. The popover kept the threads object from when it opened; every save replaces it, so a reply sent after a save went into the old object. Since threads stay open longer (1.0.16 / 1.1.1) this happened often. Send / Accept / Decline now always write into the current threads.
 
 ## 1.0.16 (23.11.26)
 - Threads: opening a thread (or hovering a proposal) no longer marks it read. It counts as read once a reply is typed (first character) or sent, or the proposal is accepted / declined. Doing nothing changes nothing.
