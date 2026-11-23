@@ -31,13 +31,24 @@ def md(h):
     return re.sub(r'\n{3,}', '\n\n', s).strip()
 
 t = P.get('title', tk); L = P.get('links', {})
-spec = [f"# {P['ticket']} · {t} — spec", "", f"> Exported from the Feature Workbench at commit `{commit}`. For people; agents start at `HANDOFF.md`.", ""]
-for k, n in [('brief','Brief'),('rules','Rules'),('edges','Edge cases'),('ds','Design system changes'),('questions','Open questions')]:
-    if D['docs'].get(k): spec += ['## '+n, '', md(D['docs'][k]), '']
-spec += ['## States', '']
+spec = [f"# {P['ticket']} · {t} — spec", "", f"> Generated from the Feature Workbench at commit `{commit}`. Same sections as the Notion ticket. Don't edit by hand; change the workbench and export again. Agents start at `HANDOFF.md`.", ""]
+docs = D['docs']
+if docs.get('brief'): spec += ['## Brief', '', md(docs['brief']), '']
+spec += ['## Solution', '']
+if docs.get('rules'): spec += ['### Global rules', '', md(docs['rules']), '']
 for m in D['modes']:
-    spec += ['### '+m['name'], '']
-    for s in m['states']: spec += [f"#### {s['name']} (`{s['id']}`)", '', md(s.get('doc','')) or '_(no spec)_', '']
+    spec += ['### ' + m['name'] + (f" ([Figma]({m['figma']}))" if m.get('figma') else ''), '']
+    for s_ in m['states']: spec += [f"#### {s_['name']} (`{s_['id']}`)", '', md(s_.get('doc','')) or '_(no spec)_', '']
+spec += ['## Edge cases', '', md(docs.get('edges','')) or '_none_', '']
+spec += ['## Side effects', '', '### Effects on existing data', '', md(docs.get('data','')) or '_not checked_', '', '### Notifications, emails & tracking', '', md(docs.get('side','')) or '_not checked_', '']
+tps = [k for k in docs if k.startswith('tp:') and md(docs[k])]
+if tps: spec += ['### Touchpoints (other screens affected)', ''] + sum([[f"#### {k[3:]}", '', md(docs[k]), ''] for k in tps], [])
+spec += ['## Open questions', '', md(docs.get('questions','')) or '_none_', '']
+LK = P.get('links', {})
+hub = [('Design', 'Figma', LK.get('figma') or next((m.get('figma') for m in D['modes'] if m.get('figma')), '')), ('Copies', 'Copies ' + P['ticket'], LK.get('copies')),
+       ('Feature Workbench', 'Feature Workbench', LK.get('feature')), ('Animation Workbench', 'Animation Workbench', LK.get('animation')),
+       ('Prototype', 'Phone prototype', LK.get('phone')), ('Handoff', f"packs/{tk}/handoff", f"https://github.com/hennes95/brian-prototypes/tree/main/packs/{tk}/handoff")]
+spec += ['## Implementation', ''] + [f"- {a}: [{b}]({u})" for a, b, u in hub if u] + ['', '### Design system changes', '', md(docs.get('ds','')) or '_none_', '']
 open(os.path.join(out,'spec.md'),'w').write('\n'.join(spec))
 
 st = {"ticket":P['ticket'], "source":f"packs/{tk} @ {commit}", "states":[{"id":s['id'],"mode":m['name'],"name":s['name'],"figma":m.get('figma') or None} for m in D['modes'] for s in m['states']],
