@@ -1,6 +1,6 @@
 # BR-7001 · AI Tutor use cases — spec
 
-> Generated from the Feature Workbench at commit `67adf0f`. Same sections as the Notion ticket. Don't edit by hand; change the workbench and export again. Agents start at `HANDOFF.md`.
+> Generated from the Feature Workbench at commit `f219df7`. Same sections as the Notion ticket. Don't edit by hand; change the workbench and export again. Agents start at `HANDOFF.md`.
 
 ## Brief
 
@@ -9,9 +9,15 @@
 - Students can't use the AI Tutor as an actual tutor as it does not know about their performance in the activities
 - Also in the empty state they have to come up with a prompt to ask the AI Tutor themselves (cold start problem)
 - In a workshop we realized that especially study plans or practice of hard topics was highly requested from students yet not possible with the Brian chat ("Where should I practice again?", "What are my knowledge gaps?")
-- The tutor has no access to the learning history (blocked by the backend ticket)Success Criteria
+- The tutor has no access to the learning history (blocked by the backend ticket)
+
+#### Success Criteria
+
 - More students are using the course AI Tutor
-- We see the amount of chats per Student increase (easier to start a chat now)#### Goal
+- We see the amount of chats per Student increase (easier to start a chat now)
+
+#### Goal
+
 - Empty state shows use cases as conversation starters ("use-case blocks")
 - Tapping a block starts a new thread with that use case's prompt
 - Students get onboarded on the new functionality of AI Tutors

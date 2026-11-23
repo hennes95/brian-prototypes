@@ -19,14 +19,14 @@ def md(h):
     h = re.sub(r'<div class="imp"[^>]*>(.*?)</div>', r'\1', h or '', flags=re.S)
     h = re.sub(r'<span class="ai"[^>]*>(.*?)</span>', r'\1 *(open proposal)*', h or '', flags=re.S)
     h = re.sub(r'<a [^>]*href="([^"]+)"[^>]*>(.*?)</a>', r'[\2](\1)', h)
-    h = re.sub(r'</?b>', '**', h); h = re.sub(r'<h4>(.*?)</h4>', r'\n\n#### \1\n\n', h)
+    h = re.sub(r'</?b>', '**', h); h = re.sub(r'<h[1-6][^>]*>(.*?)</h[1-6]>', r'\n\n#### \1\n\n', h); h = re.sub(r'</?p[^>]*>', '\n', h); h = re.sub(r'<br\s*/?>', '\n', h)
     o = []; dep = 0
     for t in re.split(r'(<ul>|</ul>|<ol>|</ol>|<li>|</li>)', h):
         if t in ('<ul>','<ol>'): dep += 1
         elif t in ('</ul>','</ol>'): dep -= 1
         elif t == '<li>': o.append('\n' + '  '*max(dep-1,0) + '- ')
         elif t == '</li>': pass
-        elif t.strip(): o.append(html.unescape(re.sub(r'<[^>]+>', '', t)).strip() if not t.strip().startswith('####') else t)
+        elif t.strip(): o.append(html.unescape(re.sub(r'<[^>]+>', '', t)).strip() if not t.strip().startswith('####') else '\n\n' + t.strip() + '\n')
     s = ''.join(o); s = re.sub(r'([^\n])\n\n####', r'\1\n\n####', s)
     return re.sub(r'\n{3,}', '\n\n', s).strip()
 
