@@ -1,0 +1,287 @@
+/* BR-7147 pack styles: the Brian Student app phone (moved unchanged from the original workbench) */
+/* native (prototype-only on a phone): pack parts */
+body.native .phone{position:fixed;left:0;top:var(--vvtop,0px);width:100vw;height:var(--vvh,100dvh);border-radius:0;box-shadow:none;padding-top:env(safe-area-inset-top)}
+/* tab bar height as in Figma (72px incl. home indicator): no extra safe-area padding below it */
+body.native .p-tabs{padding-top:10px;padding-bottom:26px;height:92px}
+body.native .cmp.notab:not(.focused){padding-bottom:calc(12px + env(safe-area-inset-bottom))}
+body.native .p-status,body.native .home{display:none}
+/* ============ PHONE · Brian Student app ============ */
+.phone{width:402px;height:874px;background:var(--b-bg);color:var(--b-ink);border-radius:46px;box-shadow:0 0 0 10px #111,0 24px 60px rgba(0,0,0,.22);position:relative;overflow:hidden;font:500 16px/1.4 var(--b-font);display:flex;flex-direction:column}
+.phone b{font-weight:700}
+.p-status{height:40px;flex:none;display:flex;align-items:center;justify-content:space-between;padding:6px 32px 0 40px;font:600 15px/22px Inter,system-ui,sans-serif}
+.p-status svg{display:block}
+.p-head{height:35px;flex:none;display:flex;align-items:center;justify-content:space-between;padding:0 24px;margin:12px 0 8px}
+.p-head .t{font-weight:700;font-size:16px}
+.p-head [data-el]{display:grid;place-items:center;width:24px;height:24px;border:0;background:none;padding:0;color:inherit}
+.p-chat{flex:1;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-start;padding-bottom:8px}
+/* bottom-aligned without justify-content:flex-end, which makes the overflow at the top unreachable (no scrolling up) */
+.p-chat>:first-child{margin-top:auto}
+.m-t{padding:12px 24px 4px;display:flex;flex-direction:column;gap:8px}
+.m-t p{margin:0}
+.m-t .act{display:flex;height:16px}
+.m-t .act button{border:0;background:none;padding:0;width:16px;height:16px}
+.m-s{padding:12px 24px 12px 64px;display:flex;flex-direction:column;gap:8px}
+.m-s,.m-t{overflow-wrap:anywhere;word-break:break-word}
+/* student messages shorter than one line sit on the right (Hannes 16.11) */
+/* student messages shorter than one line: right-aligned, the line underneath hugs the text width (Hannes 16.11) */
+.m-s.short{align-items:flex-end}
+.m-s.short>div:first-child{text-align:right;width:fit-content}
+.m-s .wl{height:1px;background:var(--b-ink);transform:scaleY(.75);transform-origin:0 0}
+.tag{align-self:center;border:0;position:relative;font:700 12px/1.4 var(--b-font);padding:3px 8px;margin:24px 0}
+.typing{display:flex;align-items:center;gap:16px;padding:12px 24px}
+.ava{width:40px;height:40px;border-radius:50%;background:#efefef;border:0;position:relative;display:grid;place-items:center;font:700 15px var(--b-font)}
+.dots{display:flex;gap:5px}.dots span{width:7px;height:7px;border-radius:50%;background:var(--b-ink);animation:bl 1.2s infinite}
+.dots span:nth-child(2){animation-delay:.2s}.dots span:nth-child(3){animation-delay:.4s}
+@keyframes bl{0%,80%,100%{opacity:.25}40%{opacity:1}}
+@media (prefers-reduced-motion:reduce){.dots span{animation:none}}
+/* composer — open variant per Figma "Chat Input Field / Variant2": padding 4 20 8, dashed bottom .75 */
+.cmp{flex:none;display:flex;align-items:flex-end;gap:8px;position:relative}
+.cmp .c-plus{width:40px;height:40px;border-radius:32px;border:0;background:var(--b-ink);display:grid;place-items:center;flex:none;padding:0}
+.cmp .c-body{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;min-height:40px}
+.cmp textarea{width:100%;border:0;background:none;resize:none;font:500 16px/22.4px var(--b-font);color:inherit;padding:8.8px 4px;outline:none;overflow-y:hidden;display:block}
+.cmp textarea{scrollbar-width:none}
+.cmp textarea::-webkit-scrollbar{display:none}
+.cmp textarea::placeholder{color:var(--b-muted);font-size:16px}
+.cmp .c-right{width:40px;height:40px;border:0;background:none;display:grid;place-items:center;flex:none;padding:0;border-radius:32px;position:relative;color:var(--b-ink)}
+.cmp .c-right.send{background:var(--b-ink);color:#fff}
+.cmp .resv{position:absolute;inset:2px;border:1.5px dashed #c69a00;border-radius:50%;display:none}
+.reserved .cmp .resv{display:block}
+.c-right.send.inactive{opacity:.35;cursor:default}
+.cmp .bar{position:absolute;right:52px;top:10px;width:3px;height:44px;border-radius:2px;background:#c4c4c4;display:none}
+.cmp.over .bar{display:block}
+.cmp.focused{flex-direction:column;align-items:stretch;gap:2px}
+.c-ctrl{display:flex;justify-content:space-between;align-items:center}
+.phone :focus,.phone :focus-visible{outline:none}
+.v-open.focused{margin:-6px 0 0;padding:6px 20px 13px;background:none;border:0;border-radius:0;position:relative;isolation:isolate;gap:4px}
+/* Figma "Chat Input Field / Variant2": full-bleed white shape whose top edge rises 5.6px across the width (~0.8°), 0.75 stroke */
+.v-open.focused::before,.v-open.inline::before{content:"";position:absolute;inset:0;background:var(--b-bg);clip-path:polygon(0 5.6px,100% 0,100% 100%,0 100%);z-index:-1}
+.v-open.inline{position:relative;isolation:isolate;margin-top:-6px;padding-top:14px}
+.v-open.focused::after,.v-open.inline::after{content:"";position:absolute;left:-2px;right:-2px;top:2.4px;height:.75px;background:var(--b-ink);transform:rotate(-.8deg);z-index:-1}
+.v-open.focused textarea{padding:12.4px 10px 6.4px 0}
+.v-open.focused.over textarea{padding-top:0;-webkit-mask:none}
+.v-open.focused textarea::placeholder{font-size:16px}
+.cmp.focused .c-right{background:var(--b-ink);color:#fff}
+.phone.dark .cmp.focused .c-right{color:#2f2f2f}
+.v-pill.focused{border-radius:20px;padding:6px 8px 6px}
+.cmp.focused .bar{right:4px;top:6px}
+/* full-screen input (focus mode), per Figma "Focus Mode (optional)" 12610:178200 */
+/* entry: Nucleo/Expand in a 40px slot top right of the text; text column keeps 36px free on the right (326 of 362) */
+.cmp .c-exp{display:none;position:absolute;top:6px;right:16px;width:40px;height:40px;border:0;background:none;padding:0;place-items:center;color:var(--b-muted);z-index:2}
+/* shown once the text reaches the 8th line (the field starts scrolling anyway); only then does the text make room for it */
+.cmp.focused.over .c-exp,.cmp.fs .c-exp{display:grid}
+.cmp.focused.over textarea,.cmp.fs textarea{padding-right:36px}
+/* expanded: the field grows up to 59px below the top (status bar stays, chat peeks above the angled line), top bar hidden */
+.cmp.fs{position:absolute;left:0;right:0;top:59px;bottom:0;z-index:8;margin:0;padding:8px 20px 13px;gap:8px;animation:fsIn .22s ease-out}
+.cmp.fs .c-exp{top:14px;right:21px}
+.cmp.fs .c-body{flex:1;min-height:0;justify-content:flex-start}
+.cmp.fs textarea{flex:1;height:auto!important;overflow-y:auto!important;padding-top:24px}
+.cmp.fs .c-att{margin-top:24px}
+.cmp.fs .c-att+textarea,.cmp.fs .c-att~textarea{padding-top:8px}
+.cmp.fs .bar{display:none}
+.cmp.fs.over .bar{display:block}
+.phone:has(.cmp.fs) .p-head{visibility:hidden}
+body.native .cmp.fs{top:calc(env(safe-area-inset-top) + 5px)}
+body:not(.proto) .phone:has(.kbd) .cmp.fs{bottom:291px}
+@keyframes fsIn{from{transform:translateY(40px)}to{transform:none}}
+@media (prefers-reduced-motion:reduce){.cmp.fs{animation:none}}
+.p-chat{overflow-y:auto;scrollbar-width:none}
+.p-chat::-webkit-scrollbar{display:none}
+.p-chat>:first-child{margin-top:auto}
+.p-head{transition:height .2s,margin .2s,opacity .2s}
+/* line under the top bar as soon as chat text scrolls underneath it (0.75px, at the edge of the chat area) */
+.p-head{position:relative}
+.p-head::after{content:"";position:absolute;left:-24px;right:-24px;bottom:-8px;height:1px;background:var(--b-ink);transform:scaleY(.75);transform-origin:0 100%;opacity:0;transition:opacity .15s;z-index:3;pointer-events:none}
+.phone.topover .p-head::after{opacity:1}
+.phone.headhidden .p-head{height:0;margin:0;opacity:0;overflow:hidden}
+.phone.cmphidden .cmp{display:none}
+.oos{position:relative;margin-top:10px;display:inline-block}
+.oos-chip{display:inline-block;font:500 13px var(--b-font);color:#858585;border:1px dashed #b5b5b5;border-radius:6px;padding:6px 10px;background:repeating-linear-gradient(135deg,transparent 0 6px,rgba(0,0,0,.035) 6px 12px)}
+.oos::after{content:attr(data-oos);position:absolute;left:0;top:calc(100% + 4px);white-space:nowrap;font:500 10px var(--mono);color:#a07a00;background:#fff8db;border:1px solid #f0d36b;border-radius:4px;padding:1px 5px;opacity:0;transition:opacity .15s;pointer-events:none;z-index:5}
+.oos:hover::after{opacity:1}
+body:not(.proto) .oos{outline:1px dashed #e0b400;outline-offset:3px;border-radius:6px}
+.c-att{display:flex;gap:16px;overflow-x:auto;overflow-y:visible;padding:10px 10px 10px 10px;margin-left:-10px;scrollbar-width:none;margin-right:-10px}
+.c-att::-webkit-scrollbar{display:none}
+.att{flex:none;width:122px;height:72px;position:relative}
+/* attachment previews per Figma "Components" 12495:98454, scaled from 320×188 */
+.att .acard{position:absolute;inset:0;background:#fff;border:0}
+.a-image .acard,.a-loading .acard{padding:4px 4px 12px}
+.att .pic{display:block}
+.a-image .pic{width:100%;height:100%;background:linear-gradient(180deg,#f3f6f9 0 16%,transparent 16%),repeating-linear-gradient(90deg,#6f7d8a 0 2px,#b9c4ce 2px 6px,#8a98a5 6px 9px,#dfe6ec 9px 11px)}
+.a-loading .acard{background:#3a3a3a;border-color:#fff}
+.a-loading .pic{width:100%;height:100%;display:grid;place-items:center}
+.spin{width:16px;height:16px;border-radius:50%;border:.75px solid #fff;position:relative}
+.spin::after{content:"";position:absolute;inset:3px;border-radius:50%;background:conic-gradient(#fff 0 25%,transparent 0);animation:sp 1s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.spin::after{animation:none}}
+.a-drawing .acard svg{display:block;width:100%;height:100%}
+.a-doc .acard{background:none;border:0}
+.a-doc .acard svg{display:block;width:100%;height:100%;overflow:visible}
+.att .rm{position:absolute;top:-8px;left:-8px;width:20px;height:20px;border-radius:50%;background:#3a3a3a;color:#fff;border:1.5px solid #fff;font:600 12px/16px var(--b-font);padding:0;z-index:2}
+.v-open{padding:8px 20px 12px}
+/* one-row field (idle + short typing): dashed 0.75 line under field and mic/send, solid under the typed text */
+.cmp.inline .c-body{position:relative}
+.cmp.inline .uline{position:absolute;left:0;right:-48px;bottom:-4px;height:1px;background:linear-gradient(to right,var(--b-ink) 50%,transparent 0) left top/8px 1px repeat-x;transform:scaleY(.75);transform-origin:0 0;pointer-events:none}
+.cmp.inline .uline i{position:absolute;left:0;top:0;height:1px;background:var(--b-bg)}
+.cmp.inline .uline i::after{content:"";position:absolute;inset:0;background:var(--b-ink)}
+/* FLOW 2 (Figma 12639-183097): no line at all once the field is tapped or holds content; the dashed line only shows on the empty, resting field */
+.cmp.focused-inline .uline,.cmp.inline.hastext .uline{display:none}
+.cmp.focused-inline .c-right:not(.send){background:none;color:var(--b-ink)}
+.cmp.focused-inline textarea{height:40px!important;overflow:hidden!important}
+.v-open.focused-inline{padding-bottom:15.5px}
+/* stacked field (text no longer fits one line): solid 0.75 line under the text */
+.v-open.focused .c-body{position:relative}
+.v-open.focused .c-body::after{display:none;content:"";position:absolute;left:0;right:0;bottom:0;height:1px;background:var(--b-ink);transform:scaleY(.75);transform-origin:0 100%}
+.v-open.notab{background:none}
+.v-pill{margin:0 16px 10px;padding:4px;background:var(--b-ink);color:#fff;border-radius:24px}
+.v-pill .c-plus{background:none}
+.v-pill .c-right{color:#fff}
+.v-pill .c-right.send{background:#fff;color:var(--b-ink)}
+.v-pill textarea{padding:8.8px 2px}
+.v-pill textarea::placeholder{color:#c2c2c2}
+.p-tabs{height:92px;flex:none;display:flex;justify-content:center;gap:12px;padding-top:10px;padding-bottom:26px}
+.p-tabs button{width:53px;height:53px;border:0;background:none;padding:0;display:grid;place-items:center;position:relative}
+.p-tabs .sel::before{content:"";position:absolute;left:3px;right:4px;bottom:6px;height:22px;border-radius:50%;background:radial-gradient(var(--b-ink) .9px,transparent 1.3px) 0 0/4px 4px;opacity:.55}
+.p-tabs svg{position:relative}
+.kbd{height:291px;background:#d1d3d9;flex:none;padding:8px 3px;display:flex;flex-direction:column;gap:11px}
+.kbd div{display:flex;gap:6px;justify-content:center}
+.kbd i{height:42px;flex:0 0 33px;background:#fff;border-radius:5px;box-shadow:0 1px 0 #8e8e93}
+.kbd .w{flex:0 0 188px}
+.home{height:22px;flex:none;display:grid;place-items:center}
+/* Figma's 72px tab bar already includes the home indicator area: overlay it instead of adding a strip below */
+.p-tabs + .home{position:absolute;left:0;right:0;bottom:0;pointer-events:none}
+.home::after{content:"";width:134px;height:5px;border-radius:3px;background:#111}
+.up-menu{position:absolute;left:21px;bottom:261px;width:290px;background:#3a3a3a;color:#fff;z-index:9;display:flex;flex-direction:column}
+.up-menu button{display:flex;align-items:center;height:56px;padding:8px;gap:0;border:0;position:relative;background:none;color:#fff;font:500 14px var(--b-font);text-align:left}
+.up-menu button:last-child{border-bottom:0}
+.up-menu .ic{width:40px;height:40px;display:grid;place-items:center;flex:none}
+.up-scrim{position:absolute;inset:0;z-index:8}
+.sys-sheet{position:absolute;z-index:9;overflow:hidden;max-height:calc(100% - 40px)}
+.sys-sheet img{display:block;width:100%;height:100%;object-fit:cover;object-position:top;pointer-events:none;user-select:none}
+.sys-spot{position:absolute;border:0;background:none;padding:0;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.att .acard{cursor:pointer}
+/* hairlines: every line in the app is 0.75px. CSS borders below 1px snap to whole device pixels (and look thinner), so lines are drawn as a 1px stroke scaled to 0.75 */
+.tag::before,.att:not(.a-doc):not(.a-loading) .acard::before,.ava::before,.opt::before{content:"";position:absolute;left:0;top:0;width:133.334%;height:133.334%;border:1px solid var(--b-ink);transform:scale(.75);transform-origin:0 0;pointer-events:none;box-sizing:border-box;border-radius:inherit}
+.ava::before{border-radius:50%}
+.opt::before{border-radius:18.667px}
+/* menu: white 2px borders (outer + separators) so it separates from what is behind it — Hannes 12.11, exception to the 0.75px rule */
+/* outer border as a real border with the dark fill clipped inside it, so no dark/grey fringe shows outside the white edge */
+.up-menu{border:2px solid #fff;background-clip:padding-box;box-sizing:border-box;border-radius:16px;overflow:hidden}
+/* separators between items stay 0.75px (scaled 1px line) */
+.up-menu button:not(:last-child)::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;background:#fff;transform:scaleY(.75);transform-origin:0 100%;z-index:1}
+.att.a-doc{margin-bottom:20px}
+.att .aname{position:absolute;left:0;right:0;top:calc(100% + 4px);font:500 12px/16px var(--b-font);color:var(--b-muted,#7a7a7a);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.picker{position:absolute;left:0;right:0;bottom:0;height:52%;background:#1c1c1e;color:#fff;border-radius:14px 14px 0 0;z-index:9;display:flex;flex-direction:column;font:500 14px system-ui,sans-serif}
+.picker .ph{display:flex;justify-content:space-between;align-items:center;padding:12px 16px}
+.picker .ph b{font-weight:600}
+.picker .ph button{border:0;background:none;color:#0a84ff;font:600 15px system-ui,sans-serif;padding:0}
+.picker .grid{flex:1;display:grid;grid-template-columns:repeat(3,1fr);gap:2px;overflow:hidden;padding:0 0 20px}
+.picker .grid i{background:linear-gradient(135deg,#55565b,#3a3b40);aspect-ratio:1}
+.picker .grid i.sel{outline:3px solid #0a84ff;outline-offset:-3px}
+.picker .grab{background:#555;margin:8px auto 0}
+.sheet-dim{position:absolute;inset:0;background:rgba(0,0,0,.32);z-index:8;display:flex;align-items:flex-end}
+.sheet{background:#fff;width:100%;border-radius:24px 24px 0 0;padding:10px 24px 36px;color:var(--b-ink)}
+.grab{width:38px;height:5px;border-radius:3px;background:#d0d0d0;margin:0 auto 16px}
+.sheet h5{margin:0 0 14px;font:700 16px var(--b-font)}
+.opts{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.opt{border:0;position:relative;border-radius:14px;padding:12px 4px 10px;font:700 13px var(--b-font);background:#fff;color:var(--b-ink);display:flex;flex-direction:column;align-items:center;gap:6px}
+.ph-note{position:absolute;left:24px;right:24px;bottom:150px;border:1.5px dashed #9a9a9a;border-radius:12px;padding:14px;text-align:center;color:#6d6d6d;background:rgba(255,255,255,.94);font-size:14px;z-index:7}
+.ph-note b{display:block;color:var(--b-ink)}
+/* AI Dialog context (dark) */
+.phone.dark{--b-bg:#2f2f2f;--b-ink:#f1f1f1;--b-muted:#a5a5a5}
+.phone.dark{--b-bg:#3a3a3a}
+.phone.quiz .q-chat{flex:none;max-height:calc(100% - 300px)}
+.phone.quiz.kbdopen .q-chat{flex:1;max-height:none}
+.phone.quiz .q-chat>:first-child{margin-top:0}
+.q-prog{padding:6px 24px 4px}.q-bar{display:block;height:1px;background:var(--b-ink);position:relative;transform:scaleY(.75)}.q-bar i{position:absolute;left:0;top:0;width:45%;height:1px;background:var(--b-ink)}
+.q-card{margin:14px 24px 6px;background:#fff;color:#2f2f2f;padding:18px 16px;font-size:15px;line-height:1.45;display:flex;flex-direction:column;gap:14px}
+.q-card p{margin:0}.q-ans{border:.75px solid #2f2f2f;padding:8px 10px;font-size:13px}
+.q-hint{text-align:center;color:var(--b-muted);font-size:13px;margin:4px 0}
+.q-wrong{color:#ff6b5b;font-weight:700;font-size:18px;margin:6px 24px 0}
+.q-result{flex:1;background:#e8605a;display:flex;align-items:flex-start;justify-content:center;padding:28px 24px 0;min-height:120px}
+.q-end{width:100%;background:#fff;color:#2f2f2f;border:0;font:600 15px var(--b-font,inherit);padding:10px}
+.phone.quiz .home{position:absolute;bottom:0;left:0;right:0}
+/* inverted field (Figma 12702-194812): the field area takes the opposite colour of the chat */
+.phone:not(.dark) .v-inv{--b-bg:#3a3a3a;--b-ink:#f1f1f1;--b-muted:#a5a5a5;color:#f1f1f1}
+.phone.dark .v-inv{--b-bg:#fff;--b-ink:#2f2f2f;--b-muted:#8a8a8a;color:#2f2f2f}
+.phone:not(.dark) .cmp.v-inv .c-plus{background:#f1f1f1}
+.phone.dark .cmp.v-inv .c-plus{background:#2f2f2f}
+.phone.dark .cmp.v-inv .c-plus svg path{stroke:#fff}
+.phone:not(.dark) .cmp.v-inv .c-plus svg path{stroke:#2f2f2f}
+.phone:not(.dark) .v-inv .c-right.send{color:#2f2f2f;background:#f1f1f1}
+.phone.dark .v-inv .c-right.send{color:#fff;background:#2f2f2f}
+.v-inv textarea{color:inherit}
+.phone.vinv:not(.dark) .home{background:#3a3a3a}.phone.vinv:not(.dark) .home::after{background:#eee}
+.phone.vinv.dark .home{background:#fff}.phone.vinv.dark .home::after{background:#111}
+.phone.vinv:not(.dark) .p-tabs{background:#3a3a3a;color:#f1f1f1}
+.phone.vinv.dark .kbd,.phone.vinv .kbd{position:relative}
+/* quiz: red result sheet angled against the field line, ~170px */
+.phone.quiz .q-chat{flex:1;max-height:none}
+.q-card{flex:1;justify-content:space-between;min-height:0}
+.q-q{display:flex;flex-direction:column;gap:14px;margin-top:auto;margin-bottom:auto}
+.q-foot{display:flex;align-items:center;justify-content:center;position:relative;border-top:1.5px solid #2f2f2f;padding-top:10px}
+.q-foot>span:first-child{position:absolute;left:4px;top:12px}
+.q-result{flex:none;height:150px;min-height:0;margin-top:-6px;padding:30px 24px 0;flex-direction:column;align-items:stretch;gap:10px;clip-path:polygon(0 0,100% 6px,100% 100%,0 100%);background:#ec625c}
+.q-disc{align-self:flex-end;border:0;background:none;color:#fff;font:500 18px var(--b-font,inherit);display:flex;align-items:center;gap:8px;padding:0}
+.q-end{border:1.5px solid #2f2f2f}
+.phone.quiz .home{background:transparent}
+/* discussion room */
+.phone.disc .p-status{background:#3a3a3a;color:#fff}
+.d-chat{padding:0;justify-content:flex-start}.d-chat>:first-child{margin-top:0!important}
+.d-top{background:#3a3a3a;padding:4px 24px 26px;flex:none}
+.d-peek{margin:0;min-height:0;flex:none}
+.d-sheet{flex:1;display:flex;flex-direction:column;padding:10px 24px 8px;background:#fff;border-top:.75px solid #2f2f2f}
+.d-grab{width:28px;height:2px;background:#2f2f2f;align-self:center;margin-bottom:14px}
+.d-h{display:flex;justify-content:space-between;align-items:center;font-size:17px}
+.d-rules{font-size:13px;margin:6px 0 10px}
+.d-empty{display:flex;flex-direction:column;gap:6px;font-size:13px;line-height:1.45;margin-top:auto;margin-bottom:auto}
+.d-empty p{margin:0}.d-e1{margin-bottom:10px!important}
+.d-ill{align-self:center;width:110px;height:90px;border:1px dashed #bbb;color:#999;display:grid;place-items:center;font-size:11px;margin-bottom:14px}
+.cmp.noplus .c-body{margin-left:0}
+/* learning diary */
+.d-head{justify-content:flex-start;gap:14px}.d-head .t{font-size:20px}
+.y-chat{padding:0 24px;justify-content:flex-start}.y-chat>:first-child{margin-top:8px!important}
+.y-stats{display:flex;align-items:center;justify-content:space-between}
+.y-st{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:11px}.y-st i{font-style:normal}
+.y-c{width:64px;height:64px;border-radius:50%;border:.75px solid var(--b-ink);display:grid;place-items:center;font-weight:700;font-size:13px;grid-auto-flow:column;align-content:center}
+.y-c small{font-size:9px;font-weight:600}
+.y-ring{background:radial-gradient(closest-side,var(--b-bg) 84%,transparent 85%),conic-gradient(#5aa9e6 0 300deg,#2f2f2f 300deg 360deg);border:0}
+.y-div{width:1px;height:36px;background:var(--b-ink)}
+.y-act{display:flex;justify-content:space-between;font-size:12px;margin:16px 0 0;padding-bottom:12px}
+.y-empty{margin:auto 0;display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;font-size:12px;line-height:1.45}
+.y-empty b{font-size:14px}.y-empty p{margin:0}
+
+
+.phone.dark .cmp .c-plus{background:#f1f1f1}
+.phone.dark .cmp .c-plus svg path{stroke:#2f2f2f}
+.phone.dark .c-right.send{color:#2f2f2f}
+.phone.dark .ava{background:#444}
+.phone.dark .home::after{background:#eee}
+.phone.dark .v-pill{background:#f1f1f1;color:#2f2f2f}
+.phone.dark .v-pill .c-plus svg path{stroke:#2f2f2f}
+.phone.dark .v-pill .c-right{color:#2f2f2f}
+/* 17.11 evening: Hannes' comments */
+.q-prog{padding:0;margin:0}.q-bar{transform-origin:0 0}
+.phone.quiz:not(.kbdopen) .cmp{padding-bottom:28px}
+.phone.quiz:not(.kbdopen) .cmp.v-pill{padding-bottom:4px;margin-bottom:34px}
+.phone.quiz:not(.kbdopen) .cmp.v-angled{padding-bottom:14px}
+.v-pill .uline{display:none!important}
+.q-result{height:132px;padding-top:16px}
+.phone.quiz .home{background:transparent!important}
+.d-sheet{border-top:0;margin-top:-6px;padding-top:18px;clip-path:polygon(0 0,100% 6px,100% 100%,0 100%)}
+.d-ill{border:0;width:auto;height:auto;display:block;align-self:center;margin-bottom:14px}.d-ill svg{display:block;width:88px;height:141px}
+.d-rules{display:flex;align-items:center;gap:2px}.d-rules svg,.y-act svg{display:block}
+.y-act span{display:grid;place-items:center}
+.d-h svg{display:block}
+/* variant: workbook line, but without the line under the text (separator stays) */
+.v-angled .uline,.v-angled.focused .c-body::after{display:none!important}
+.d-ill svg{display:none}.d-ill img{display:block;width:104px;height:auto}
+.y-stats-img{display:block;width:calc(100% + 48px);max-width:none;margin:0 -24px;height:auto}
+.oosa{position:relative}
+body:not(.proto) .oosa{outline:1px dashed #e0b400;outline-offset:4px;border-radius:6px}
+.oosa::after{content:attr(data-oos);position:absolute;left:0;top:calc(100% + 6px);white-space:nowrap;font:500 10px var(--mono);color:#a07a00;background:#fff8db;border:1px solid #f0d36b;border-radius:4px;padding:1px 5px;opacity:0;transition:opacity .15s;pointer-events:none;z-index:5}
+.oosa:hover::after{opacity:1}
+/* Hannes 23.11 (comments): pill composer. Corners concentric with the 40px send button (radius 20 + 8 inset);
+   input text as wide as the chat history text (no inner side padding); expand icon mirrors the + (8 in from top and right), Mono-500 */
+.v-pill.focused{border-radius:28px;padding:8px}
+.v-pill textarea{padding-left:0;padding-right:0}
+.v-pill .c-exp,.v-pill.fs .c-exp{top:8px;right:8px;color:#b1b1b1}

@@ -280,3 +280,8 @@ body:not(.proto) .oos{outline:1px dashed #e0b400;outline-offset:3px;border-radiu
 body:not(.proto) .oosa{outline:1px dashed #e0b400;outline-offset:4px;border-radius:6px}
 .oosa::after{content:attr(data-oos);position:absolute;left:0;top:calc(100% + 6px);white-space:nowrap;font:500 10px var(--mono);color:#a07a00;background:#fff8db;border:1px solid #f0d36b;border-radius:4px;padding:1px 5px;opacity:0;transition:opacity .15s;pointer-events:none;z-index:5}
 .oosa:hover::after{opacity:1}
+/* Hannes 23.11 (comments): pill composer. Corners concentric with the 40px send button (radius 20 + 8 inset);
+   input text as wide as the chat history text (no inner side padding); expand icon mirrors the + (8 in from top and right), Mono-500 */
+.v-pill.focused{border-radius:28px;padding:8px}
+.v-pill textarea{padding-left:0;padding-right:0}
+.v-pill .c-exp,.v-pill.fs .c-exp{top:8px;right:8px;color:#b1b1b1}
