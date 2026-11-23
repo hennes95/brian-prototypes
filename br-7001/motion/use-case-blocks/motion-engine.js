@@ -639,7 +639,8 @@ root.MotionEngine = { id:'ai-tutor-blocks', create(ctx){
     const KS = {}; KS[vr] = {open:{seed:12345,i:1}, back:{seed:777,fromT:Infinity}, enter:{seed:999}, focus:{seed:4242}, blur:{seed:5151,fromT:Infinity}, send:{seed:6262}};
     const rd = v=>Math.round(v*100)/100, out = {T:VEC_T};
     try{ ['open','back','enter'].concat(vr==='D'?['focus','blur','send']:[]).forEach(kd=>{ const m = modelFor(vr,kd,KS);
-      out[kd] = {duration:rd(m.dur),s:VEC_T.map(t=>{ const st = m.at(t); return {b:st.blocks.map(b=>[rd(b.cx),rd(b.cy),rd(b.r),rd(b.s),rd(b.o)]),intro:rd(st.intro),stu:rd(st.stu),tut:rd(st.tut)}; })}; }); }
+      out[kd] = {duration:rd(m.dur),s:VEC_T.map(t=>{ const st = m.at(t); const o = {b:st.blocks.map(b=>[rd(b.cx),rd(b.cy),rd(b.r),rd(b.s),rd(b.o)]),intro:rd(st.intro),stu:rd(st.stu),tut:rd(st.tut)};
+        if(st.kb!==undefined) o.kb = rd(st.kb); if(st.fly) o.fly = [rd(st.fly.x),rd(st.fly.cy),rd(st.fly.o)]; if(st.morph) o.m = [rd(st.morph.surface),rd(st.morph.chip),rd(st.morph.chipScale),rd(st.morph.msg),rd(st.morph.msgScale)]; if(st.stuText!==undefined) o.st = rd(st.stuText); return o; })}; }); }
     finally{ setValues(keep); }
     return out;
   }

@@ -10,53 +10,66 @@ The tapped block moves to the student message on the open spring, tilts to −fl
 
 ### V3 · the block becomes the message
 The tapped block’s label is the prompt sent to the tutor, so it flies up-left and lands exactly on the student text line (left 68 px, line centre 163.6 px).
-1. Tap: the block turns dark (tap lead 90 ms).
+1. Tap: the block turns dark (tap lead `tap` ms).
 2. Flight on two springs, Y (up, 0.55 s) and X (left, 0.62 s); different springs bend the path into a slight arc. The tilt reaches 0° at `fStraighten` % of the flight; the block lifts by `fLift` % mid-flight.
 3. On the way, fill, border, shadow and icon fade (from `fSurfAt` %, over `fSurfDur` %), and the label crossfades from block style (12 px bold, white on dark) to message style (14 px regular, #3a3a3a) from `fTextAt` % over `fTextDur` %, scaling between the two sizes.
 4. Landing: when both springs are at rest the real message text takes over (same position, so no jump). Avatar and “Student - hh:mm” fade in from `fMetaAt` % (rising `fMetaRise` px); Brian follows `fTutorDelay` ms after the flight.
 5. The other blocks fall as in V2, with their own values. Back and Enter work as in V2, with their own values.
 
-### V2 rules (developer handoff)
+### V3 rules (developer handoff · chosen variant)
+Build V3 only. V1 and V2 above are explored alternatives; their values stay in the manifest for the workbench.
 
 #### Setup (how the animation is built)
-- R1: The animation is a pure function of time: `at(tMs) -> Frame`. No per-frame state; scrubbing, replay and tests = sampling `at(t)`.
-- R2: ELEMENT CONTRACT – the engine never touches content, size or styling of elements.
-  - Output per element index: centre x/y, rotation (deg), scale, opacity.
-  - Output for 3 text layers: `intro`, `student` (+ translateY rise), `tutor`: opacity (+ translateY).
-  - Any element can be swapped (other cards, any number); pass their rest poses via `Layout` (`rest[]`, `landing`).
-- R3: Every animation = user action first (tap lead, `tap` ms), then the animation plays.
-  - The tapped block turns dark 60 ms after touch-down and stays dark until it has faded out.
+- R1: Every animation is a pure function of time: `at(tMs) -> Frame`. No per-frame state; scrubbing, replay and tests = sampling `at(t)`.
+- R2: ELEMENT CONTRACT – the motion model never touches content, size or styling. Its frame carries only:
+  - per block index: centre x/y, rotation (deg), scale, opacity;
+  - `intro` opacity; `stu` / `tut` message opacity (+ `rise` px for avatar and name), `stuText` (the student text line), `done` (reply instead of dots);
+  - `morph` (Open: the tapped block turning into message text), `kb` (keyboard progress 0..1), `fly` (Send: text in flight), `pressed`.
+  - The screen code (`motion:screen-react`, `motion:screen-dart`) takes exactly this frame. The reference ports (`motion:ref-ts`, `motion:ref-dart`) produce it.
+- R3: Every animation = user action first (tap lead, `tap` ms), then the motion. A tapped block turns dark 60 ms after touch-down.
 - R4: Layout is the 402 x 874 artboard; scale the whole artboard once (width / 402), never per element.
-- R5: Springs
-  - Duration springs: stiffness = (2π / (visualDuration·1.2))², damping = 2·ζ·√stiffness, mass 1, ζ = 1 − bounce.
-  - Spring value goes 0 → 1 (may overshoot). Time base = visualDuration · 1.6 s (explicit-physics spring: 1.28 s).
-  - `ease(p) = p ≥ 1 ? 1 : spring(p · timeBase)`.
-- R6: `total` scales the whole motion in time: `f = total / motionEnd`, `at'(t) = at((t − tap) / f)`; `total` 0 = natural length (no scaling).
-- R7: Randomness is seeded (mulberry32), fixed draw order. Production may use any new seed per run; parity tests use the seeds below.
-- R8: Page assembly = blocks first, text last (Back, Enter). Never fly a block across the whole screen.
+- R5: Springs are Motion's `spring()` (motion.dev): stiffness = (2π / (visualDuration·1.2))², damping = 2·ζ·√stiffness, mass 1, ζ = 1 − bounce;
+  sampled by elapsed ms, value snaps to exactly 1 once speed ≤ 0.01/s and distance ≤ 0.005; forced to 1 after visualDuration · 1.6.
+- R6: `total` time-scales the whole motion: `f = total / motionEnd`, `at'(t) = at((t − tap) / f)`; `total` 0 = natural length.
+- R7: Randomness is seeded (mulberry32), fixed draw order. Production may use a new seed per run; the test vectors use the seeds in R9.
+- R8: Page assembly = blocks first, text last. No idle animation: blocks never move on their own (hover wiggle on desktop only).
 
 #### Animations
-##### Open (user taps block i)
-- Tapped block: moves to `landing` on the open spring; rotation goes from rest angle to −flySpin and stays (no swing back); scale lift 1 + 0.07·sin(π·t/timeBase); opacity fades 1 → 0 from `move·morphAt` over `move·(1 − morphAt)`; swing arc `arc` px.
-- Other blocks fall: release delay = ripple · |j − i| + random(0..start); y = y0 + kick·u + ½·gravity·u²; x drift = dr·drift·q·1.6; rotation = spin·(u − q) (±spinRand %, random sign); q = 0.22·(1 − e^(−u/0.22)); wobble = wobble·sin(18u)·e^(−7u); u in seconds since release; blocks stay opaque and leave the screen (y > 990).
-- Text: intro fades out over 450 ms; student message fades in from `move·morphAt` (duration `move·(1 − morphAt)` + 250 ms), rising `rise` px with cubic-bezier(.2,.8,.2,1); tutor message +850 ms (fade 600 ms), dots for `loading` ms, then the reply.
-##### Back (user taps "+" in the chat)
-- All blocks rise from just below the screen: start x = x0 ± up to 170 px, y = 910–970 + 14·j, tilt up to ±48° · rand; lowest block first; stagger · 1.3 per block; back spring; opacity 1.
-- Chat fades out in 450 ms; intro fades in from 0.45 · timeBase.
 ##### Enter (user opens the AI Tutor tab)
-- Blocks start near their own place: x ± (130–280 px), y ± (110–250 px) away from centre (upper above, lower below, middle sideways only), tilt ±(16–46°) · rand; random release delay 0..stagger·3; enter spring; opacity 0 → 1 with cubic-bezier(.25,.1,.25,1) over 350 ms.
+- Blocks start near their own place: x ± (130–280 px), y ± (110–250 px) away from the centre (upper above, lower below, middle sideways only), tilt ±(16–46°) · rand.
+- Random release delay 0..stagger·3; enter spring; opacity 0 → 1 with cubic-bezier(.25,.1,.25,1) over 350 ms.
 - Intro fades in from `textAt` over 450 ms (text last).
+##### Open (user taps block i): the block becomes the message
+- The tapped block flies to the student text line (label left edge 68 px, line centre 163.6 px) on two springs: Y (`flyY`) and X (`flyX`); different springs bend the path into a slight arc.
+- Tilt reaches 0° at `straighten` % of the flight (cubic-bezier(.2,.8,.2,1)); the block grows by `lift` % mid-flight (sin).
+- Surface (fill, border, shadow, icon) fades from `surfAt` % over `surfDur` %; the label crossfades from block style (12 px bold) to message style (14 px medium, #3a3a3a) from `textAt` % over `textDur` %, scaling between the sizes.
+- Landing: when both springs are at rest the real message text takes over (same position, no jump). Avatar and "Student - hh:mm" fade in from `metaAt` % over `metaFade` ms, rising `metaRise` px. Brian follows `tutorDelay` ms after the flight (fade 600 ms), dots for `loading` ms, then the reply.
+- Other blocks fall: release delay = ripple · |j − i| + random · start; y = y0 + kick·u + ½·gravity·u²; x drift = dr·drift·q·1.6; rotation = spin·(u − q) (±spinRand %, random sign); q = 0.22·(1 − e^(−u/0.22)); wobble = wobble·sign·sin(18u)·e^(−7u).
+- Intro fades out over 450 ms.
+##### Focus (user taps the message field)
+- The keyboard slides up right away (the app uses the OS keyboard and its own animation; the input bar rides on it, 245 px higher when open).
+- All blocks break away `blocksAt` ms after the tap, lowest block first (`ripple` ms apart), with the falling physics of Open (`kick`, `gravity`, `spin` ±55 %, `drift`, wobble 7).
+- The intro stays.
+##### Back out (user leaves the field without sending: tap outside, keyboard swiped down, app switch, call)
+- Identical to Back (same values), started from the Focus state: the keyboard goes down, the blocks rise back in, the intro (still visible) stays.
+##### Send (user sends a typed message)
+- The typed text lifts out of the field (left 81 px, line centre 510 px with the keyboard up) and lands on the student text line on two springs (`sendY`, `sendX`), same idea as Open.
+- Landing: the real message text takes over; avatar and name fade in from `metaAt` % over `metaFade` ms (rising `metaRise` px); Brian follows `tutorDelay` ms after the flight.
+- The keyboard stays up; the intro fades out over 450 ms. Send with an empty field: nothing animates.
+##### Back (user taps "+" in the chat; also after Send)
+- All blocks rise from just below the screen: start x = x0 ± up to 170 px, y = 910–970 + 14·j, tilt up to ±48° · rand; lowest block first, stagger · 1.3 per block, starting `blocksAt` ms after the tap; back spring.
+- Chat fades out over `chatOut` ms; intro fades in from `introAt` % of the spring time over `introIn` ms; a keyboard that is up goes down.
 ##### Desktop hover wiggle (pointer devices; web/desktop only)
 - On pointer-enter: ONE random jolt (±5·a px x, ±4·a px y, ±5·a ° rotation, a = wiggle), then it springs back; hovered block fill #ececec.
 - Jolt 180 ms cubic-bezier(.2,.9,.3,1.2); after 110 ms return 500 ms cubic-bezier(.2,1.4,.4,1); on pointer-leave return immediately.
 - Disabled while an animation runs / after a block was tapped. No hover on touch devices.
 
 #### Acceptance
-- R9: Frames sampled at the times in the test vectors match within 0.01 px / 0.01° / 0.01 opacity.
+- R9: Test vectors (manifest `vectors.D`): open = block 1, seed 12345; back = seed 777 from the end of open; enter = seed 999; focus = seed 4242; blur (Back out) = seed 5151 from the end of focus; send = text "Explain photosynthesis". Frames sampled at `T` match within 0.01 px / 0.01° / 0.01 opacity (blocks, intro, stu, tut, kb, fly, morph, stuText). The TS reference port passes all of them.
 - R10: 60 fps on a mid-range phone; animate transforms and opacity only.
 <!-- /motion:rules -->
 ````json motion:manifest
-{"format": "motion-package/1", "id": "ai-tutor-blocks", "title": "AI Tutor · Use-case blocks", "screen": "AI Tutor home screen", "valuesRevision": 1, "artboard": {"w": 402, "h": 874, "statusBar": 40}, "fonts": "Nunito Sans 500 / 700 (Google Fonts); Inter 600 for the status-bar time", "fontLinks": ["https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@500;700&display=swap"], "variants": [{"id": "B", "name": "V1", "about": "physical push"}, {"id": "C", "name": "V2", "about": "handoff: block flies to the message, the others fall"}, {"id": "D", "name": "V3", "about": "block flies into the student message and becomes its text"}], "defaultVariant": "D", "animations": [{"id": "enter", "name": "Enter", "trigger": "open the AI Tutor tab"}, {"id": "open", "name": "Open", "trigger": "tap a block"}, {"id": "focus", "name": "Focus", "trigger": "tap the message field", "variants": ["D"]}, {"id": "blur", "name": "Back out", "trigger": "tap outside the field while typing", "variants": ["D"]}, {"id": "send", "name": "Send", "trigger": "send a typed message", "variants": ["D"]}, {"id": "back", "name": "Back", "trigger": "tap “+” in the chat header"}], "keyframeFormat": "phase: open = block tapped, back = plus button pressed (blocks fly back to the tower), enter = tab entry (blocks fly in); every animation starts with the user action (touch=[x,y,scale,opacity,type] finger down for the tap lead, pressed = tapped block dark) and then the animation plays; frames[].blocks[j]=[centerX,centerY,rotationDeg,scale,opacity] in artboard px (scale = resize the block, not a raster scale); intro = empty-state opacity; chat=[studentMsg,brianMsg,replyShown] 0-1; shake=[dx,dy] whole artboard; V3 frames add morph = {block, surface opacity, chipLabel [opacity, scale], messageLabel [opacity, scale], studentText}", "interactionDefaults": {"pressMs": 150, "note": "one press / tap length for every UI interaction that starts an animation"}, "values": {"tapOpen2": 150, "durOpen2": 1800, "cMove": 420, "cMorphAt": 23, "cRise": 68, "cGravity": 3500, "cKick": -10, "cSpin": 235, "cSpinRand": 55, "cDrift": 310, "cStart": 0, "cWobble": 7, "cFlySpin": 58, "cArc": 0, "cRipple": 70, "loading2": 1800, "moveSpring": {"stiffness": 101, "damping": 15, "mass": 3.4}, "tapBack2": 150, "durBack2": 1200, "staggerBack2": 70, "randBack2": 100, "backSpring2": {"visualDuration": 0.8, "bounce": 0.2}, "tapEnter2": 150, "durEnter2": 1190, "staggerEnter2": 40, "randEnter2": 67, "textEnter2": 190, "enterSpring2": {"visualDuration": 0.25, "bounce": 0.25}, "wiggle2": 40, "durOpen3": 1500, "tapOpen1": 150, "tapOpen3": 150, "tapBack1": 150, "tapBack3": 150, "tapEnter1": 150, "tapEnter3": 150}, "vectors": {"B": {"T": [0, 100, 170, 300, 500, 800, 1200, 1600, 2200], "open": {"duration": 4460, "s": [{"b": [[200.7, 434.9, -2, 1, 1], [180.7, 490.4, 0, 1, 1], [200.7, 546.4, 2, 1, 1], [219.7, 601.9, -4, 1, 1], [200.7, 658, -2, 1, 1]], "intro": 1, "stu": 0, "tut": 0}, {"b": [[200.7, 434.9, -2, 1, 1], [180.7, 490.4, 0, 1, 1], [200.7, 546.4, 2, 1, 1], [219.7, 601.9, -4, 1, 1], [200.7, 658, -2, 1, 1]], "intro": 1, "stu": 0, "tut": 0}, {"b": [[201.72, 415.88, 1.15, 1, 1], [180.7, 490.4, 0, 1.01, 1], [201.55, 560.25, 3.84, 1, 1], [221.13, 621.11, -7.07, 1, 1], [199.9, 676.04, -5.61, 1, 1]], "intro": 0.96, "stu": 0, "tut": 0}, {"b": [[208.33, 299.34, 21.62, 1, 1], [180.7, 490.4, 0, 1.61, 1], [207.09, 645.1, 15.77, 1, 1], [230.4, 738.8, -27.04, 1, 1], [194.67, 786.57, -29.06, 1, 1]], "intro": 0.67, "stu": 0, "tut": 0}, {"b": [[218.5, 142.14, 53.12, 1, 1], [180.7, 490.4, 0, 4.69, 0.93], [215.62, 759.56, 34.13, 1, 1], [244.67, 897.55, -57.76, 1, 1], [186.63, 935.68, -65.15, 1, 1]], "intro": 0.22, "stu": 0, "tut": 0}, {"b": [[233.77, -51.17, 100.36, 1, 1], [180.7, 490.4, 0, 6.28, 0.27], [228.41, 900.31, 61.67, 1, 1], [266.07, 1092.78, -103.83, 1, 1], [174.58, 1119.03, -119.28, 1, 1]], "intro": 0, "stu": 0.32, "tut": 0}, {"b": [[254.11, -246.34, 163.35, 1, 0.3], [180.7, 490.4, 0, 6.4, 0], [245.45, 1042.42, 98.39, 1, 0.3], [294.6, 1289.88, -165.27, 1, 0.3], [158.5, 1304.15, -191.45, 1, 0.3]], "intro": 0, "stu": 0.98, "tut": 0}, {"b": [[272.34, -375.32, 219.77, 1, 0], [180.7, 490.4, 0, 6.4, 0], [260.73, 1136.33, 131.29, 1, 0], [320.16, 1420.13, -220.3, 1, 0], [144.1, 1426.49, -256.1, 1, 0]], "intro": 0, "stu": 1, "tut": 0.4}, {"b": [[272.34, -375.32, 219.77, 1, 0], [180.7, 490.4, 0, 6.4, 0], [260.73, 1136.33, 131.29, 1, 0], [320.16, 1420.13, -220.3, 1, 0], [144.1, 1426.49, -256.1, 1, 0]], "intro": 0, "stu": 1, "tut": 1}]}, "back": {"duration": 1410, "s": [{"b": [[272.34, -375.32, 219.77, 1, 0], [180.7, 490.4, 0, 1, 0], [260.73, 1136.33, 131.29, 1, 0], [320.16, 1420.13, -220.3, 1, 0], [144.1, 1426.49, -256.1, 1, 0]], "intro": 0, "stu": 1, "tut": 1}, {"b": [[272.34, -375.32, 219.77, 1, 0], [180.7, 490.4, 0, 1, 0], [260.73, 1136.33, 131.29, 1, 0], [320.16, 1420.13, -220.3, 1, 0], [144.1, 1426.49, -256.1, 1, 0]], "intro": 0, "stu": 1, "tut": 1}, {"b": [[271.2, -362.38, 216.23, 1, 0.04], [180.7, 490.4, 0, 1, 0], [260.73, 1136.33, 131.29, 1, 0], [320.16, 1420.13, -220.3, 1, 0], [144.1, 1426.49, -256.1, 1, 0]], "intro": 0, "stu": 0.96, "tut": 0.96}, {"b": [[242.41, -36.82, 127.12, 1, 0.72], [180.7, 490.4, 0, 1, 0.36], [260.47, 1133.82, 130.74, 1, 0.02], [320.16, 1420.13, -220.3, 1, 0], [144.1, 1426.49, -256.1, 1, 0]], "intro": 0, "stu": 0.67, "tut": 0.67}, {"b": [[211.79, 309.52, 32.32, 1, 1], [180.7, 490.4, 0, 1, 0.98], [225.08, 786.04, 54.52, 1, 0.89], [281.51, 1105.32, -137.08, 1, 0.68], [152.26, 1315.66, -219.45, 1, 0.3]], "intro": 0, "stu": 0.22, "tut": 0.22}, {"b": [[201.76, 422.94, 1.27, 1, 1], [180.7, 490.4, 0, 1, 1], [203.44, 573.3, 7.9, 1, 1], [227.61, 666.28, -21.02, 1, 1], [193.14, 760.62, -35.93, 1, 1]], "intro": 0.56, "stu": 0, "tut": 0}, {"b": [[200.7, 434.9, -2, 1, 1], [180.7, 490.4, 0, 1, 1], [200.7, 546.4, 2, 1, 1], [220, 604.38, -4.65, 1, 1], [200.39, 662.2, -3.39, 1, 1]], "intro": 1, "stu": 0, "tut": 0}, {"b": [[200.7, 434.9, -2, 1, 1], [180.7, 490.4, 0, 1, 1], [200.7, 546.4, 2, 1, 1], [219.7, 601.9, -4, 1, 1], [200.7, 658, -2, 1, 1]], "intro": 1, "stu": 0, "tut": 0}, {"b": [[200.7, 434.9, -2, 1, 1], [180.7, 490.4, 0, 1, 1], [200.7, 546.4, 2, 1, 1], [219.7, 601.9, -4, 1, 1], [200.7, 658, -2, 1, 1]], "intro": 1, "stu": 0, "tut": 0}]}, "enter": {"duration": 1706.39, "s": [{"b": [[364.32, 7.6, -32.51, 1, 0], [228.66, 75.25, -72.38, 1, 0], [200.7, 546.4, 2, 0.88, 0], [-49.52, 897.57, 53.95, 1, 0], [-69.44, 1068.19, -48.94, 1, 0]], "intro": 0, "stu": 0, "tut": 0}, {"b": [[364.32, 7.6, -32.51, 1, 0], [228.66, 75.25, -72.38, 1, 0], [200.7, 546.4, 2, 0.88, 0], [-49.52, 897.57, 53.95, 1, 0], [-69.44, 1068.19, -48.94, 1, 0]], "intro": 0, "stu": 0, "tut": 0}, {"b": [[364.32, 7.6, -32.51, 1, 0], [228.66, 75.25, -72.38, 1, 0], [200.7, 546.4, 2, 0.88, 0], [-49.52, 897.57, 53.95, 1, 0], [-69.44, 1068.19, -48.94, 1, 0]], "intro": 0.04, "stu": 0, "tut": 0}, {"b": [[364.32, 7.6, -32.51, 1, 0], [228.66, 75.25, -72.38, 1, 0], [200.7, 546.4, 2, 0.88, 0], [-49.52, 897.57, 53.95, 1, 0], [-69.44, 1068.19, -48.94, 1, 0]], "intro": 0.33, "stu": 0, "tut": 0}, {"b": [[364.32, 7.6, -32.51, 1, 0], [228.66, 75.25, -72.38, 1, 0], [200.7, 546.4, 2, 0.88, 0], [-49.52, 897.57, 53.95, 1, 0], [-69.44, 1068.19, -48.94, 1, 0]], "intro": 0.78, "stu": 0, "tut": 0}, {"b": [[338.78, 74.29, -27.75, 1, 0.32], [200.78, 316.57, -30.31, 1, 0.88], [200.7, 546.4, 2, 0.96, 0.92], [119.17, 712.3, 17.64, 1, 0.91], [36.47, 907.38, -30.53, 1, 0.69]], "intro": 1, "stu": 0, "tut": 0}, {"b": [[210.63, 408.98, -3.85, 1, 1], [181.72, 481.57, -1.54, 1, 1], [200.7, 546.4, 2, 1, 1], [214.75, 607.34, -2.93, 1, 1], [191.16, 672.49, -3.66, 1, 1]], "intro": 1, "stu": 0, "tut": 0}, {"b": [[201.07, 433.93, -2.07, 1, 1], [180.7, 490.4, 0, 1, 1], [200.7, 546.4, 2, 1, 1], [219.7, 601.9, -4, 1, 1], [200.7, 658, -2, 1, 1]], "intro": 1, "stu": 0, "tut": 0}, {"b": [[200.7, 434.9, -2, 1, 1], [180.7, 490.4, 0, 1, 1], [200.7, 546.4, 2, 1, 1], [219.7, 601.9, -4, 1, 1], [200.7, 658, -2, 1, 1]], "intro": 1, "stu": 0, "tut": 0}]}}, "C": {"T": [0, 100, 170, 300, 500, 800, 1200, 1600, 2200], "open": {"duration": 4384.7, "s": [{"b": [[200.7, 434.9, -2, 1, 1], [180.7, 490.4, 0, 1, 1], [200.7, 546.4, 2, 1, 1], [219.7, 601.9, -4, 1, 1], [200.7, 658, -2, 1, 1]], "intro": 1, "stu": 0, "tut": 0}, {"b": [[200.7, 434.9, -2, 1, 1], [180.7, 490.4, 0, 1, 1], [200.7, 546.4, 2, 1, 1], [219.7, 601.9, -4, 1, 1], [200.7, 658, -2, 1, 1]], "intro": 1, "stu": 0, "tut": 0}, {"b": [[200.7, 434.9, -2, 1, 1], [180.96, 489.29, -0.2, 1, 1], [200.7, 546.4, 2, 1, 1], [219.7, 601.9, -4, 1, 1], [200.7, 658, -2, 1, 1]], "intro": 0.97, "stu": 0, "tut": 0}, {"b": [[200.06, 437.99, -6.5, 1, 1], [193.13, 437.71, -9.39, 1.02, 0.94], [183.49, 549.49, -2.54, 1, 1], [219.7, 601.9, -4, 1, 1], [200.7, 658, -2, 1, 1]], "intro": 0.74, "stu": 0.03, "tut": 0}, {"b": [[198.65, 501.75, -13.79, 1, 1], [229.37, 284.04, -36.76, 1.04, 0.47], [145.44, 613.25, -10.5, 1, 1], [215.84, 629.44, -16.03, 1, 1], [207.19, 663.37, -8.56, 1, 1]], "intro": 0.4, "stu": 0.3, "tut": 0}, {"b": [[197.74, 751.69, -46.71, 1, 1], [270.82, 108.33, -58, 1.07, 0], [120.95, 863.19, -45.23, 1, 1], [212.67, 823.02, -61.99, 1, 1], [221.05, 800.6, -46.66, 1, 1]], "intro": 0, "stu": 0.7, "tut": 0}, {"b": [[197.38, 1372.94, -98.76, 1, 1], [270.28, 110.6, -58, 1.06, 0], [110.97, 1484.44, -100.27, 1, 1], [211.38, 1369.14, -149.34, 1, 1], [226.7, 1271.59, -140.76, 1, 1]], "intro": 0, "stu": 1, "tut": 0}, {"b": [[197.28, 2323.35, -154.4, 1, 1], [254.61, 177.06, -55.82, 1.03, 0], [108.49, 2434.85, -159.07, 1, 1], [211.06, 2244.42, -244.64, 1, 1], [228.1, 2071.74, -246.19, 1, 1]], "intro": 0, "stu": 1, "tut": 0.28}, {"b": [[197.26, 4366.14, -239.21, 1, 1], [257.5, 164.8, -58, 1, 0], [107.78, 4477.64, -248.7, 1, 1], [210.97, 4174.5, -390.65, 1, 1], [228.5, 3889.12, -408.97, 1, 1]], "intro": 0, "stu": 1, "tut": 1}]}, "back": {"duration": 1350, "s": [{"b": [[96.11, 917.38, -46.69, 1, 1], [96.24, 968.57, -11.31, 1, 1], [269.88, 988.9, 28.25, 1, 1], [237.48, 1007.68, 13.93, 1, 1], [344.06, 1009.95, -41.77, 1, 1]], "intro": 0, "stu": 1, "tut": 1}, {"b": [[96.11, 917.38, -46.69, 1, 1], [96.24, 968.57, -11.31, 1, 1], [269.88, 988.9, 28.25, 1, 1], [237.48, 1007.68, 13.93, 1, 1], [344.06, 1009.95, -41.77, 1, 1]], "intro": 0, "stu": 1, "tut": 1}, {"b": [[96.11, 917.38, -46.69, 1, 1], [96.24, 968.57, -11.31, 1, 1], [269.88, 988.9, 28.25, 1, 1], [237.48, 1007.68, 13.93, 1, 1], [341.71, 1004.2, -41.12, 1, 1]], "intro": 0, "stu": 0.94, "tut": 0.94}, {"b": [[96.11, 917.38, -46.69, 1, 1], [96.24, 968.57, -11.31, 1, 1], [268.19, 978.08, 27.61, 1, 1], [233.56, 918.26, 9.98, 1, 1], [276.81, 844.86, -23.12, 1, 1]], "intro": 0, "stu": 0.52, "tut": 0.52}, {"b": [[124.19, 787.86, -34.69, 1, 1], [139.72, 722.42, -5.49, 1, 1], [220.24, 671.4, 9.42, 1, 1], [222.22, 659.34, -1.46, 1, 1], [208.69, 677.63, -4.22, 1, 1]], "intro": 0, "stu": 0, "tut": 0}, {"b": [[198.9, 443.21, -2.77, 1, 1], [181.28, 487.11, 0.08, 1, 1], [199.69, 539.92, 1.62, 1, 1], [219.44, 596.06, -4.26, 1, 1], [199.11, 654.1, -1.56, 1, 1]], "intro": 0.82, "stu": 0, "tut": 0}, {"b": [[201.05, 433.29, -1.85, 1, 1], [180.83, 489.66, 0.02, 1, 1], [200.7, 546.4, 2, 1, 1], [219.7, 601.9, -4, 1, 1], [200.7, 658, -2, 1, 1]], "intro": 1, "stu": 0, "tut": 0}, {"b": [[200.7, 434.9, -2, 1, 1], [180.7, 490.4, 0, 1, 1], [200.7, 546.4, 2, 1, 1], [219.7, 601.9, -4, 1, 1], [200.7, 658, -2, 1, 1]], "intro": 1, "stu": 0, "tut": 0}, {"b": [[200.7, 434.9, -2, 1, 1], [180.7, 490.4, 0, 1, 1], [200.7, 546.4, 2, 1, 1], [219.7, 601.9, -4, 1, 1], [200.7, 658, -2, 1, 1]], "intro": 1, "stu": 0, "tut": 0}]}, "enter": {"duration": 1592.79, "s": [{"b": [[11.89, 255.47, -17.87, 1, 0], [-17.7, 332.84, -14.9, 1, 0], [428.85, 546.4, -14.05, 1, 0], [80.7, 751.01, -30.6, 1, 0], [-5.79, 890.58, 10.9, 1, 0]], "intro": 0, "stu": 0, "tut": 0}, {"b": [[11.89, 255.47, -17.87, 1, 0], [-17.7, 332.84, -14.9, 1, 0], [428.85, 546.4, -14.05, 1, 0], [80.7, 751.01, -30.6, 1, 0], [-5.79, 890.58, 10.9, 1, 0]], "intro": 0, "stu": 0, "tut": 0}, {"b": [[11.89, 255.47, -17.87, 1, 0], [-17.7, 332.84, -14.9, 1, 0], [428.85, 546.4, -14.05, 1, 0], [80.7, 751.01, -30.6, 1, 0], [-2.89, 887.31, 10.71, 1, 0.01]], "intro": 0, "stu": 0, "tut": 0}, {"b": [[49.82, 291.52, -14.68, 1, 0.1], [-7.65, 340.81, -14.14, 1, 0.03], [428.51, 546.4, -14.03, 1, 0], [128.64, 699.58, -21.43, 1, 0.19], [98.47, 773.15, 4.38, 1, 0.3]], "intro": 0, "stu": 0, "tut": 0}, {"b": [[181.13, 416.3, -3.65, 1, 0.65], [141.57, 459.33, -2.94, 1, 0.55], [264.87, 546.4, -2.51, 1, 0.47], [212.47, 609.66, -5.38, 1, 0.72], [198.03, 661.01, -1.83, 1, 0.78]], "intro": 0, "stu": 0, "tut": 0}, {"b": [[204.39, 438.4, -1.69, 1, 0.97], [185.57, 494.27, 0.37, 1, 0.95], [194.5, 546.4, 2.44, 1, 0.94], [221.84, 599.6, -3.59, 1, 0.98], [203, 655.41, -2.14, 1, 0.99]], "intro": 0.27, "stu": 0, "tut": 0}, {"b": [[200.7, 434.9, -2, 1, 1], [180.7, 490.4, 0, 1, 1], [200.7, 546.4, 2, 1, 1], [219.7, 601.9, -4, 1, 1], [200.7, 658, -2, 1, 1]], "intro": 0.69, "stu": 0, "tut": 0}, {"b": [[200.7, 434.9, -2, 1, 1], [180.7, 490.4, 0, 1, 1], [200.7, 546.4, 2, 1, 1], [219.7, 601.9, -4, 1, 1], [200.7, 658, -2, 1, 1]], "intro": 1, "stu": 0, "tut": 0}, {"b": [[200.7, 434.9, -2, 1, 1], [180.7, 490.4, 0, 1, 1], [200.7, 546.4, 2, 1, 1], [219.7, 601.9, -4, 1, 1], [200.7, 658, -2, 1, 1]], "intro": 1, "stu": 0, "tut": 0}]}}, "D": {"T": [0, 100, 170, 300, 500, 800, 1200, 1600, 2200], "open": {"duration": 4641.76, "s": [{"b": [[200.7, 434.9, -2, 1, 1], [180.7, 490.4, 0, 1, 1], [200.7, 546.4, 2, 1, 1], [219.7, 601.9, -4, 1, 1], [200.7, 658, -2, 1, 1]], "intro": 1, "stu": 0, "tut": 0}, {"b": [[200.7, 434.9, -2, 1, 1], [180.7, 490.4, 0, 1, 1], [200.7, 546.4, 2, 1, 1], [219.7, 601.9, -4, 1, 1], [200.7, 658, -2, 1, 1]], "intro": 1, "stu": 0, "tut": 0}, {"b": [[200.7, 434.9, -2, 1, 1], [180.41, 487.51, 0, 1, 1], [200.7, 546.4, 2, 1, 1], [219.7, 601.9, -4, 1, 1], [200.7, 658, -2, 1, 1]], "intro": 0.97, "stu": 0, "tut": 0}, {"b": [[200.14, 437.2, -6.06, 1, 1], [170.79, 393.83, 0, 1.03, 1], [185.52, 548.7, -2.09, 1, 1], [219.7, 601.9, -4, 1, 1], [200.7, 658, -2, 1, 1]], "intro": 0.76, "stu": 0, "tut": 0}, {"b": [[198.74, 492.82, -12.71, 1, 1], [153.77, 244.75, 0, 1.05, 1], [147.84, 604.32, -9.34, 1, 1], [216.15, 623.82, -14.85, 1, 1], [205.83, 661.06, -7.21, 1, 1]], "intro": 0.43, "stu": 0, "tut": 0}, {"b": [[197.8, 715.37, -42.76, 1, 1], [142.53, 169.94, 0, 1.03, 1], [122.56, 826.87, -41.06, 1, 1], [212.88, 792.86, -55.36, 1, 1], [220.14, 776.6, -39.98, 1, 1]], "intro": 0, "stu": 0.11, "tut": 0}, {"b": [[197.4, 1271.79, -91.52, 1, 1], [139.9, 162.78, 0, 1, 1], [111.64, 1383.29, -92.61, 1, 1], [211.47, 1277.94, -137.03, 1, 1], [226.32, 1190.33, -127.39, 1, 1]], "intro": 0, "stu": 1, "tut": 0}, {"b": [[197.29, 2125.01, -144.13, 1, 1], [139.75, 163.6, 0, 1, 0], [108.73, 2236.51, -148.21, 1, 1], [211.09, 2059.81, -226.99, 1, 1], [227.96, 1900.86, -226.6, 1, 1]], "intro": 0, "stu": 1, "tut": 0.14}, {"b": [[197.26, 3961.31, -224.56, 1, 1], [139.75, 163.6, 0, 1, 0], [107.82, 4072.81, -233.22, 1, 1], [210.97, 3789.1, -365.41, 1, 1], [228.48, 3523.14, -380.79, 1, 1]], "intro": 0, "stu": 1, "tut": 0.87}]}, "back": {"duration": 1350, "s": [{"b": [[96.11, 917.38, -46.69, 1, 1], [96.24, 968.57, -11.31, 1, 1], [269.88, 988.9, 28.25, 1, 1], [237.48, 1007.68, 13.93, 1, 1], [344.06, 1009.95, -41.77, 1, 1]], "intro": 0, "stu": 1, "tut": 1}, {"b": [[96.11, 917.38, -46.69, 1, 1], [96.24, 968.57, -11.31, 1, 1], [269.88, 988.9, 28.25, 1, 1], [237.48, 1007.68, 13.93, 1, 1], [344.06, 1009.95, -41.77, 1, 1]], "intro": 0, "stu": 1, "tut": 1}, {"b": [[96.11, 917.38, -46.69, 1, 1], [96.24, 968.57, -11.31, 1, 1], [269.88, 988.9, 28.25, 1, 1], [237.48, 1007.68, 13.93, 1, 1], [341.71, 1004.2, -41.12, 1, 1]], "intro": 0, "stu": 0.94, "tut": 0.94}, {"b": [[96.11, 917.38, -46.69, 1, 1], [96.24, 968.57, -11.31, 1, 1], [268.19, 978.08, 27.61, 1, 1], [233.56, 918.26, 9.98, 1, 1], [276.81, 844.86, -23.12, 1, 1]], "intro": 0, "stu": 0.52, "tut": 0.52}, {"b": [[124.19, 787.86, -34.69, 1, 1], [139.72, 722.42, -5.49, 1, 1], [220.24, 671.4, 9.42, 1, 1], [222.22, 659.34, -1.46, 1, 1], [208.69, 677.63, -4.22, 1, 1]], "intro": 0, "stu": 0, "tut": 0}, {"b": [[198.9, 443.21, -2.77, 1, 1], [181.28, 487.11, 0.08, 1, 1], [199.69, 539.92, 1.62, 1, 1], [219.44, 596.06, -4.26, 1, 1], [199.11, 654.1, -1.56, 1, 1]], "intro": 0.82, "stu": 0, "tut": 0}, {"b": [[201.05, 433.29, -1.85, 1, 1], [180.83, 489.66, 0.02, 1, 1], [200.7, 546.4, 2, 1, 1], [219.7, 601.9, -4, 1, 1], [200.7, 658, -2, 1, 1]], "intro": 1, "stu": 0, "tut": 0}, {"b": [[200.7, 434.9, -2, 1, 1], [180.7, 490.4, 0, 1, 1], [200.7, 546.4, 2, 1, 1], [219.7, 601.9, -4, 1, 1], [200.7, 658, -2, 1, 1]], "intro": 1, "stu": 0, "tut": 0}, {"b": [[200.7, 434.9, -2, 1, 1], [180.7, 490.4, 0, 1, 1], [200.7, 546.4, 2, 1, 1], [219.7, 601.9, -4, 1, 1], [200.7, 658, -2, 1, 1]], "intro": 1, "stu": 0, "tut": 0}]}, "enter": {"duration": 1592.79, "s": [{"b": [[11.89, 255.47, -17.87, 1, 0], [-17.7, 332.84, -14.9, 1, 0], [428.85, 546.4, -14.05, 1, 0], [80.7, 751.01, -30.6, 1, 0], [-5.79, 890.58, 10.9, 1, 0]], "intro": 0, "stu": 0, "tut": 0}, {"b": [[11.89, 255.47, -17.87, 1, 0], [-17.7, 332.84, -14.9, 1, 0], [428.85, 546.4, -14.05, 1, 0], [80.7, 751.01, -30.6, 1, 0], [-5.79, 890.58, 10.9, 1, 0]], "intro": 0, "stu": 0, "tut": 0}, {"b": [[11.89, 255.47, -17.87, 1, 0], [-17.7, 332.84, -14.9, 1, 0], [428.85, 546.4, -14.05, 1, 0], [80.7, 751.01, -30.6, 1, 0], [-2.89, 887.31, 10.71, 1, 0.01]], "intro": 0, "stu": 0, "tut": 0}, {"b": [[49.82, 291.52, -14.68, 1, 0.1], [-7.65, 340.81, -14.14, 1, 0.03], [428.51, 546.4, -14.03, 1, 0], [128.64, 699.58, -21.43, 1, 0.19], [98.47, 773.15, 4.38, 1, 0.3]], "intro": 0, "stu": 0, "tut": 0}, {"b": [[181.13, 416.3, -3.65, 1, 0.65], [141.57, 459.33, -2.94, 1, 0.55], [264.87, 546.4, -2.51, 1, 0.47], [212.47, 609.66, -5.38, 1, 0.72], [198.03, 661.01, -1.83, 1, 0.78]], "intro": 0, "stu": 0, "tut": 0}, {"b": [[204.39, 438.4, -1.69, 1, 0.97], [185.57, 494.27, 0.37, 1, 0.95], [194.5, 546.4, 2.44, 1, 0.94], [221.84, 599.6, -3.59, 1, 0.98], [203, 655.41, -2.14, 1, 0.99]], "intro": 0.27, "stu": 0, "tut": 0}, {"b": [[200.7, 434.9, -2, 1, 1], [180.7, 490.4, 0, 1, 1], [200.7, 546.4, 2, 1, 1], [219.7, 601.9, -4, 1, 1], [200.7, 658, -2, 1, 1]], "intro": 0.69, "stu": 0, "tut": 0}, {"b": [[200.7, 434.9, -2, 1, 1], [180.7, 490.4, 0, 1, 1], [200.7, 546.4, 2, 1, 1], [219.7, 601.9, -4, 1, 1], [200.7, 658, -2, 1, 1]], "intro": 1, "stu": 0, "tut": 0}, {"b": [[200.7, 434.9, -2, 1, 1], [180.7, 490.4, 0, 1, 1], [200.7, 546.4, 2, 1, 1], [219.7, 601.9, -4, 1, 1], [200.7, 658, -2, 1, 1]], "intro": 1, "stu": 0, "tut": 0}]}, "focus": {"duration": 1270.61, "s": [{"b": [[200.7, 434.9, -2, 1, 1], [180.7, 490.4, 0, 1, 1], [200.7, 546.4, 2, 1, 1], [219.7, 601.9, -4, 1, 1], [200.7, 658, -2, 1, 1]], "intro": 1, "stu": 0, "tut": 0}, {"b": [[200.7, 434.9, -2, 1, 1], [180.7, 490.4, 0, 1, 1], [200.7, 546.4, 2, 1, 1], [219.7, 601.9, -4, 1, 1], [200.7, 658, -2, 1, 1]], "intro": 1, "stu": 0, "tut": 0}, {"b": [[200.7, 434.9, -2, 1, 1], [180.7, 490.4, 0, 1, 1], [200.7, 546.4, 2, 1, 1], [219.7, 601.9, -4, 1, 1], [200.7, 658, -2, 1, 1]], "intro": 1, "stu": 0, "tut": 0}, {"b": [[200.7, 434.9, -2, 1, 1], [179.96, 490.14, -0.62, 1, 1], [196.69, 546.8, 6.1, 1, 1], [231.08, 607.24, -10.91, 1, 1], [190.77, 672.58, -12.21, 1, 1]], "intro": 1, "stu": 0, "tut": 0}, {"b": [[236.65, 475.28, -9.98, 1, 1], [160.79, 551.64, -16.12, 1, 1], [184.67, 632.8, 17.54, 1, 1], [247.82, 717.74, -32.62, 1, 1], [181.64, 807.58, -45.86, 1, 1]], "intro": 1, "stu": 0, "tut": 0}, {"b": [[259.6, 793.28, -43.97, 1, 1], [151.16, 906.39, -72.9, 1, 1], [178.64, 1024.3, 62.38, 1, 1], [256.22, 1145.99, -97, 1, 1], [177.05, 1272.57, -126.55, 1, 1]], "intro": 1, "stu": 0, "tut": 0}, {"b": [[266.21, 1707.28, -100.98, 1, 1], [148.38, 1869.39, -163.28, 1, 1], [176.9, 2036.3, 130.92, 1, 1], [258.64, 2206.99, -194.05, 1, 1], [175.73, 2382.57, -246.57, 1, 1]], "intro": 1, "stu": 0, "tut": 0}, {"b": [[267.28, 3181.27, -160.96, 1, 1], [147.93, 3392.39, -257.43, 1, 1], [176.62, 3608.3, 201.8, 1, 1], [259.03, 3827.99, -293.86, 1, 1], [175.52, 4052.58, -369.48, 1, 1]], "intro": 1, "stu": 0, "tut": 0}, {"b": [[267.48, 6442.28, -251.64, 1, 1], [147.85, 6726.89, -399.58, 1, 1], [176.57, 7016.3, 308.7, 1, 1], [259.1, 7309.49, -444.28, 1, 1], [175.48, 7607.57, -554.61, 1, 1]], "intro": 1, "stu": 0, "tut": 0}]}, "blur": {"duration": 1350, "s": [{"b": [[59.58, 968.28, -2.06, 1, 1], [126.62, 975.36, 31.62, 1, 1], [231.21, 963.62, -34.04, 1, 1], [297.74, 968.83, 33.9, 1, 1], [349.19, 999.28, -43.15, 1, 1]], "intro": 1, "stu": 0, "tut": 0}, {"b": [[59.58, 968.28, -2.06, 1, 1], [126.62, 975.36, 31.62, 1, 1], [231.21, 963.62, -34.04, 1, 1], [297.74, 968.83, 33.9, 1, 1], [349.19, 999.28, -43.15, 1, 1]], "intro": 1, "stu": 0, "tut": 0}, {"b": [[59.58, 968.28, -2.06, 1, 1], [126.62, 975.36, 31.62, 1, 1], [231.21, 963.62, -34.04, 1, 1], [297.74, 968.83, 33.9, 1, 1], [346.76, 993.7, -42.48, 1, 1]], "intro": 1, "stu": 0, "tut": 0}, {"b": [[59.58, 968.28, -2.06, 1, 1], [126.62, 975.36, 31.62, 1, 1], [230.47, 953.41, -33.16, 1, 1], [280.54, 887.97, 25.55, 1, 1], [279.53, 839.19, -23.85, 1, 1]], "intro": 1, "stu": 0, "tut": 0}, {"b": [[97.47, 825.09, -2.04, 1, 1], [154.46, 725.72, 15.34, 1, 1], [209.32, 664.25, -8.18, 1, 1], [230.75, 653.84, 1.36, 1, 1], [208.98, 677.03, -4.29, 1, 1]], "intro": 1, "stu": 0, "tut": 0}, {"b": [[198.27, 444.09, -2, 1, 1], [181.07, 487.06, -0.22, 1, 1], [200.25, 540.29, 2.53, 1, 1], [218.58, 596.62, -4.55, 1, 1], [199.05, 654.21, -1.54, 1, 1]], "intro": 1, "stu": 0, "tut": 0}, {"b": [[201.17, 433.12, -2, 1, 1], [180.78, 489.65, -0.05, 1, 1], [200.7, 546.4, 2, 1, 1], [219.7, 601.9, -4, 1, 1], [200.7, 658, -2, 1, 1]], "intro": 1, "stu": 0, "tut": 0}, {"b": [[200.7, 434.9, -2, 1, 1], [180.7, 490.4, 0, 1, 1], [200.7, 546.4, 2, 1, 1], [219.7, 601.9, -4, 1, 1], [200.7, 658, -2, 1, 1]], "intro": 1, "stu": 0, "tut": 0}, {"b": [[200.7, 434.9, -2, 1, 1], [180.7, 490.4, 0, 1, 1], [200.7, 546.4, 2, 1, 1], [219.7, 601.9, -4, 1, 1], [200.7, 658, -2, 1, 1]], "intro": 1, "stu": 0, "tut": 0}]}, "send": {"duration": 2320, "s": [{"b": [[200.7, 1100, -2, 1, 0], [180.7, 1100, 0, 1, 0], [200.7, 1100, 2, 1, 0], [219.7, 1100, -4, 1, 0], [200.7, 1100, -2, 1, 0]], "intro": 1, "stu": 0, "tut": 0}, {"b": [[200.7, 1100, -2, 1, 0], [180.7, 1100, 0, 1, 0], [200.7, 1100, 2, 1, 0], [219.7, 1100, -4, 1, 0], [200.7, 1100, -2, 1, 0]], "intro": 1, "stu": 0, "tut": 0}, {"b": [[200.7, 1100, -2, 1, 0], [180.7, 1100, 0, 1, 0], [200.7, 1100, 2, 1, 0], [219.7, 1100, -4, 1, 0], [200.7, 1100, -2, 1, 0]], "intro": 0.96, "stu": 0, "tut": 0}, {"b": [[200.7, 1100, -2, 1, 0], [180.7, 1100, 0, 1, 0], [200.7, 1100, 2, 1, 0], [219.7, 1100, -4, 1, 0], [200.7, 1100, -2, 1, 0]], "intro": 0.67, "stu": 0, "tut": 0}, {"b": [[200.7, 1100, -2, 1, 0], [180.7, 1100, 0, 1, 0], [200.7, 1100, 2, 1, 0], [219.7, 1100, -4, 1, 0], [200.7, 1100, -2, 1, 0]], "intro": 0.22, "stu": 0, "tut": 0}, {"b": [[200.7, 1100, -2, 1, 0], [180.7, 1100, 0, 1, 0], [200.7, 1100, 2, 1, 0], [219.7, 1100, -4, 1, 0], [200.7, 1100, -2, 1, 0]], "intro": 0, "stu": 0.85, "tut": 0}, {"b": [[200.7, 1100, -2, 1, 0], [180.7, 1100, 0, 1, 0], [200.7, 1100, 2, 1, 0], [219.7, 1100, -4, 1, 0], [200.7, 1100, -2, 1, 0]], "intro": 0, "stu": 1, "tut": 0.13}, {"b": [[200.7, 1100, -2, 1, 0], [180.7, 1100, 0, 1, 0], [200.7, 1100, 2, 1, 0], [219.7, 1100, -4, 1, 0], [200.7, 1100, -2, 1, 0]], "intro": 0, "stu": 1, "tut": 0.8}, {"b": [[200.7, 1100, -2, 1, 0], [180.7, 1100, 0, 1, 0], [200.7, 1100, 2, 1, 0], [219.7, 1100, -4, 1, 0], [200.7, 1100, -2, 1, 0]], "intro": 0, "stu": 1, "tut": 1}]}}}}
+{"format": "motion-package/1", "id": "ai-tutor-blocks", "title": "AI Tutor · Use-case blocks", "screen": "AI Tutor home screen", "valuesRevision": 1, "artboard": {"w": 402, "h": 874, "statusBar": 40}, "fonts": "Nunito Sans 500 / 700 (Google Fonts); Inter 600 for the status-bar time", "fontLinks": ["https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@500;700&display=swap"], "variants": [{"id": "B", "name": "V1", "about": "physical push"}, {"id": "C", "name": "V2", "about": "handoff: block flies to the message, the others fall"}, {"id": "D", "name": "V3", "about": "block flies into the student message and becomes its text"}], "defaultVariant": "D", "animations": [{"id": "enter", "name": "Enter", "trigger": "open the AI Tutor tab"}, {"id": "open", "name": "Open", "trigger": "tap a block"}, {"id": "focus", "name": "Focus", "trigger": "tap the message field", "variants": ["D"]}, {"id": "blur", "name": "Back out", "trigger": "tap outside the field while typing", "variants": ["D"]}, {"id": "send", "name": "Send", "trigger": "send a typed message", "variants": ["D"]}, {"id": "back", "name": "Back", "trigger": "tap “+” in the chat header"}], "keyframeFormat": "phase: open = block tapped, back = plus button pressed (blocks fly back to the tower), enter = tab entry (blocks fly in); every animation starts with the user action (touch=[x,y,scale,opacity,type] finger down for the tap lead, pressed = tapped block dark) and then the animation plays; frames[].blocks[j]=[centerX,centerY,rotationDeg,scale,opacity] in artboard px (scale = resize the block, not a raster scale); intro = empty-state opacity; chat=[studentMsg,brianMsg,replyShown] 0-1; shake=[dx,dy] whole artboard; V3 frames add morph = {block, surface opacity, chipLabel [opacity, scale], messageLabel [opacity, scale], studentText}", "interactionDefaults": {"pressMs": 150, "note": "one press / tap length for every UI interaction that starts an animation"}, "values": {"bDrag": 0.8, "bDrift": 80, "bFade": 700, "bGap": 8, "bInertia": 0, "bKick": 700, "bKickRand": 40, "bOffset": 0, "bSpin": 160, "bSpinBias": 0, "bSpinRand": 50, "bTransfer": 100, "bZoom": 800, "backSpring1": {"bounce": 0, "visualDuration": 0.55}, "backSpring2": {"bounce": 0.2, "visualDuration": 0.8}, "backSpring3": {"bounce": 0.2, "visualDuration": 0.8}, "blocksAtBack1": 0, "blocksAtBack2": 0, "blocksAtBack3": 0, "blocksAtFocus3": 40, "cArc": 0, "cDrift": 310, "cFlySpin": 58, "cGravity": 3500, "cKick": -10, "cMorphAt": 23, "cMove": 420, "cRipple": 70, "cRise": 68, "cSpin": 235, "cSpinRand": 55, "cStart": 0, "cWobble": 7, "chatOutBack1": 450, "chatOutBack2": 450, "chatOutBack3": 450, "dDrift": 310, "dGravity": 3500, "dKick": -10, "dRipple": 70, "dSpin": 235, "dSpinRand": 55, "dStart": 0, "dWobble": 7, "durBack1": 0, "durBack2": 1200, "durBack3": 1200, "durEnter1": 0, "durEnter2": 1190, "durEnter3": 1190, "durFocus3": 0, "durOpen1": 0, "durOpen2": 1800, "durOpen3": 1500, "durSend3": 0, "enterSpring1": {"bounce": 0, "visualDuration": 0.55}, "enterSpring2": {"bounce": 0.25, "visualDuration": 0.25}, "enterSpring3": {"bounce": 0.25, "visualDuration": 0.25}, "fLift": 5, "fMetaAt": 72, "fMetaFade": 240, "fMetaRise": 8, "fStraighten": 60, "fSurfAt": 25, "fSurfDur": 45, "fTextAt": 35, "fTextDur": 30, "fTutorDelay": 350, "flyXSpring": {"bounce": 0.06, "visualDuration": 0.62}, "flyYSpring": {"bounce": 0.12, "visualDuration": 0.55}, "gDrift3": 220, "gGravity3": 3500, "gKick3": -60, "gRipple3": 35, "gSpin3": 200, "inLead1": 320, "introAtBack1": 45, "introAtBack2": 45, "introAtBack3": 45, "introInBack1": 450, "introInBack2": 450, "introInBack3": 450, "loading1": 2600, "loading2": 1800, "loading3": 1800, "moveSpring": {"damping": 15, "mass": 3.4, "stiffness": 101}, "randBack1": 100, "randBack2": 100, "randBack3": 100, "randEnter1": 100, "randEnter2": 67, "randEnter3": 67, "sMetaAt3": 72, "sMetaFade3": 240, "sMetaRise3": 8, "sTutorDelay3": 350, "sendXSpring": {"bounce": 0.06, "visualDuration": 0.62}, "sendYSpring": {"bounce": 0.12, "visualDuration": 0.55}, "shake1": 0, "shake2": 0, "shake3": 0, "staggerBack1": 70, "staggerBack2": 70, "staggerBack3": 70, "staggerEnter1": 70, "staggerEnter2": 40, "staggerEnter3": 40, "tapBack1": 150, "tapBack2": 150, "tapBack3": 150, "tapEnter1": 150, "tapEnter2": 150, "tapEnter3": 150, "tapFocus1": 150, "tapFocus2": 150, "tapFocus3": 150, "tapOpen1": 150, "tapOpen2": 150, "tapOpen3": 150, "tapSend1": 150, "tapSend2": 150, "tapSend3": 150, "textEnter2": 190, "textEnter3": 190, "wiggle1": 40, "wiggle2": 40, "wiggle3": 40, "wind1": 0}, "vectors": {"B": {"T": [0, 100, 170, 300, 500, 800, 1200, 1600, 2200], "open": {"duration": 4460, "s": [{"b": [[200.7, 434.9, -2, 1, 1], [180.7, 490.4, 0, 1, 1], [200.7, 546.4, 2, 1, 1], [219.7, 601.9, -4, 1, 1], [200.7, 658, -2, 1, 1]], "intro": 1, "stu": 0, "tut": 0}, {"b": [[200.7, 434.9, -2, 1, 1], [180.7, 490.4, 0, 1, 1], [200.7, 546.4, 2, 1, 1], [219.7, 601.9, -4, 1, 1], [200.7, 658, -2, 1, 1]], "intro": 1, "stu": 0, "tut": 0}, {"b": [[201.72, 415.88, 1.15, 1, 1], [180.7, 490.4, 0, 1.01, 1], [201.55, 560.25, 3.84, 1, 1], [221.13, 621.11, -7.07, 1, 1], [199.9, 676.04, -5.61, 1, 1]], "intro": 0.96, "stu": 0, "tut": 0}, {"b": [[208.33, 299.34, 21.62, 1, 1], [180.7, 490.4, 0, 1.61, 1], [207.09, 645.1, 15.77, 1, 1], [230.4, 738.8, -27.04, 1, 1], [194.67, 786.57, -29.06, 1, 1]], "intro": 0.67, "stu": 0, "tut": 0}, {"b": [[218.5, 142.14, 53.12, 1, 1], [180.7, 490.4, 0, 4.69, 0.93], [215.62, 759.56, 34.13, 1, 1], [244.67, 897.55, -57.76, 1, 1], [186.63, 935.68, -65.15, 1, 1]], "intro": 0.22, "stu": 0, "tut": 0}, {"b": [[233.77, -51.17, 100.36, 1, 1], [180.7, 490.4, 0, 6.28, 0.27], [228.41, 900.31, 61.67, 1, 1], [266.07, 1092.78, -103.83, 1, 1], [174.58, 1119.03, -119.28, 1, 1]], "intro": 0, "stu": 0.32, "tut": 0}, {"b": [[254.11, -246.34, 163.35, 1, 0.3], [180.7, 490.4, 0, 6.4, 0], [245.45, 1042.42, 98.39, 1, 0.3], [294.6, 1289.88, -165.27, 1, 0.3], [158.5, 1304.15, -191.45, 1, 0.3]], "intro": 0, "stu": 0.98, "tut": 0}, {"b": [[272.34, -375.32, 219.77, 1, 0], [180.7, 490.4, 0, 6.4, 0], [260.73, 1136.33, 131.29, 1, 0], [320.16, 1420.13, -220.3, 1, 0], [144.1, 1426.49, -256.1, 1, 0]], "intro": 0, "stu": 1, "tut": 0.4}, {"b": [[272.34, -375.32, 219.77, 1, 0], [180.7, 490.4, 0, 6.4, 0], [260.73, 1136.33, 131.29, 1, 0], [320.16, 1420.13, -220.3, 1, 0], [144.1, 1426.49, -256.1, 1, 0]], "intro": 0, "stu": 1, "tut": 1}]}, "back": {"duration": 1410, "s": [{"b": [[272.34, -375.32, 219.77, 1, 0], [180.7, 490.4, 0, 1, 0], [260.73, 1136.33, 131.29, 1, 0], [320.16, 1420.13, -220.3, 1, 0], [144.1, 1426.49, -256.1, 1, 0]], "intro": 0, "stu": 1, "tut": 1}, {"b": [[272.34, -375.32, 219.77, 1, 0], [180.7, 490.4, 0, 1, 0], [260.73, 1136.33, 131.29, 1, 0], [320.16, 1420.13, -220.3, 1, 0], [144.1, 1426.49, -256.1, 1, 0]], "intro": 0, "stu": 1, "tut": 1}, {"b": [[271.2, -362.38, 216.23, 1, 0.04], [180.7, 490.4, 0, 1, 0], [260.73, 1136.33, 131.29, 1, 0], [320.16, 1420.13, -220.3, 1, 0], [144.1, 1426.49, -256.1, 1, 0]], "intro": 0, "stu": 0.96, "tut": 0.96}, {"b": [[242.41, -36.82, 127.12, 1, 0.72], [180.7, 490.4, 0, 1, 0.36], [260.47, 1133.82, 130.74, 1, 0.02], [320.16, 1420.13, -220.3, 1, 0], [144.1, 1426.49, -256.1, 1, 0]], "intro": 0, "stu": 0.67, "tut": 0.67}, {"b": [[211.79, 309.52, 32.32, 1, 1], [180.7, 490.4, 0, 1, 0.98], [225.08, 786.04, 54.52, 1, 0.89], [281.51, 1105.32, -137.08, 1, 0.68], [152.26, 1315.66, -219.45, 1, 0.3]], "intro": 0, "stu": 0.22, "tut": 0.22}, {"b": [[201.76, 422.94, 1.27, 1, 1], [180.7, 490.4, 0, 1, 1], [203.44, 573.3, 7.9, 1, 1], [227.61, 666.28, -21.02, 1, 1], [193.14, 760.62, -35.93, 1, 1]], "intro": 0.56, "stu": 0, "tut": 0}, {"b": [[200.7, 434.9, -2, 1, 1], [180.7, 490.4, 0, 1, 1], [200.7, 546.4, 2, 1, 1], [220, 604.38, -4.65, 1, 1], [200.39, 662.2, -3.39, 1, 1]], "intro": 1, "stu": 0, "tut": 0}, {"b": [[200.7, 434.9, -2, 1, 1], [180.7, 490.4, 0, 1, 1], [200.7, 546.4, 2, 1, 1], [219.7, 601.9, -4, 1, 1], [200.7, 658, -2, 1, 1]], "intro": 1, "stu": 0, "tut": 0}, {"b": [[200.7, 434.9, -2, 1, 1], [180.7, 490.4, 0, 1, 1], [200.7, 546.4, 2, 1, 1], [219.7, 601.9, -4, 1, 1], [200.7, 658, -2, 1, 1]], "intro": 1, "stu": 0, "tut": 0}]}, "enter": {"duration": 1706.39, "s": [{"b": [[364.32, 7.6, -32.51, 1, 0], [228.66, 75.25, -72.38, 1, 0], [200.7, 546.4, 2, 0.88, 0], [-49.52, 897.57, 53.95, 1, 0], [-69.44, 1068.19, -48.94, 1, 0]], "intro": 0, "stu": 0, "tut": 0}, {"b": [[364.32, 7.6, -32.51, 1, 0], [228.66, 75.25, -72.38, 1, 0], [200.7, 546.4, 2, 0.88, 0], [-49.52, 897.57, 53.95, 1, 0], [-69.44, 1068.19, -48.94, 1, 0]], "intro": 0, "stu": 0, "tut": 0}, {"b": [[364.32, 7.6, -32.51, 1, 0], [228.66, 75.25, -72.38, 1, 0], [200.7, 546.4, 2, 0.88, 0], [-49.52, 897.57, 53.95, 1, 0], [-69.44, 1068.19, -48.94, 1, 0]], "intro": 0.04, "stu": 0, "tut": 0}, {"b": [[364.32, 7.6, -32.51, 1, 0], [228.66, 75.25, -72.38, 1, 0], [200.7, 546.4, 2, 0.88, 0], [-49.52, 897.57, 53.95, 1, 0], [-69.44, 1068.19, -48.94, 1, 0]], "intro": 0.33, "stu": 0, "tut": 0}, {"b": [[364.32, 7.6, -32.51, 1, 0], [228.66, 75.25, -72.38, 1, 0], [200.7, 546.4, 2, 0.88, 0], [-49.52, 897.57, 53.95, 1, 0], [-69.44, 1068.19, -48.94, 1, 0]], "intro": 0.78, "stu": 0, "tut": 0}, {"b": [[338.78, 74.29, -27.75, 1, 0.32], [200.78, 316.57, -30.31, 1, 0.88], [200.7, 546.4, 2, 0.96, 0.92], [119.17, 712.3, 17.64, 1, 0.91], [36.47, 907.38, -30.53, 1, 0.69]], "intro": 1, "stu": 0, "tut": 0}, {"b": [[210.63, 408.98, -3.85, 1, 1], [181.72, 481.57, -1.54, 1, 1], [200.7, 546.4, 2, 1, 1], [214.75, 607.34, -2.93, 1, 1], [191.16, 672.49, -3.66, 1, 1]], "intro": 1, "stu": 0, "tut": 0}, {"b": [[201.07, 433.93, -2.07, 1, 1], [180.7, 490.4, 0, 1, 1], [200.7, 546.4, 2, 1, 1], [219.7, 601.9, -4, 1, 1], [200.7, 658, -2, 1, 1]], "intro": 1, "stu": 0, "tut": 0}, {"b": [[200.7, 434.9, -2, 1, 1], [180.7, 490.4, 0, 1, 1], [200.7, 546.4, 2, 1, 1], [219.7, 601.9, -4, 1, 1], [200.7, 658, -2, 1, 1]], "intro": 1, "stu": 0, "tut": 0}]}}, "C": {"T": [0, 100, 170, 300, 500, 800, 1200, 1600, 2200], "open": {"duration": 4384.7, "s": [{"b": [[200.7, 434.9, -2, 1, 1], [180.7, 490.4, 0, 1, 1], [200.7, 546.4, 2, 1, 1], [219.7, 601.9, -4, 1, 1], [200.7, 658, -2, 1, 1]], "intro": 1, "stu": 0, "tut": 0}, {"b": [[200.7, 434.9, -2, 1, 1], [180.7, 490.4, 0, 1, 1], [200.7, 546.4, 2, 1, 1], [219.7, 601.9, -4, 1, 1], [200.7, 658, -2, 1, 1]], "intro": 1, "stu": 0, "tut": 0}, {"b": [[200.7, 434.9, -2, 1, 1], [180.96, 489.29, -0.2, 1, 1], [200.7, 546.4, 2, 1, 1], [219.7, 601.9, -4, 1, 1], [200.7, 658, -2, 1, 1]], "intro": 0.97, "stu": 0, "tut": 0}, {"b": [[200.06, 437.99, -6.5, 1, 1], [193.13, 437.71, -9.39, 1.02, 0.94], [183.49, 549.49, -2.54, 1, 1], [219.7, 601.9, -4, 1, 1], [200.7, 658, -2, 1, 1]], "intro": 0.74, "stu": 0.03, "tut": 0}, {"b": [[198.65, 501.75, -13.79, 1, 1], [229.37, 284.04, -36.76, 1.04, 0.47], [145.44, 613.25, -10.5, 1, 1], [215.84, 629.44, -16.03, 1, 1], [207.19, 663.37, -8.56, 1, 1]], "intro": 0.4, "stu": 0.3, "tut": 0}, {"b": [[197.74, 751.69, -46.71, 1, 1], [270.82, 108.33, -58, 1.07, 0], [120.95, 863.19, -45.23, 1, 1], [212.67, 823.02, -61.99, 1, 1], [221.05, 800.6, -46.66, 1, 1]], "intro": 0, "stu": 0.7, "tut": 0}, {"b": [[197.38, 1372.94, -98.76, 1, 1], [270.28, 110.6, -58, 1.06, 0], [110.97, 1484.44, -100.27, 1, 1], [211.38, 1369.14, -149.34, 1, 1], [226.7, 1271.59, -140.76, 1, 1]], "intro": 0, "stu": 1, "tut": 0}, {"b": [[197.28, 2323.35, -154.4, 1, 1], [254.61, 177.06, -55.82, 1.03, 0], [108.49, 2434.85, -159.07, 1, 1], [211.06, 2244.42, -244.64, 1, 1], [228.1, 2071.74, -246.19, 1, 1]], "intro": 0, "stu": 1, "tut": 0.28}, {"b": [[197.26, 4366.14, -239.21, 1, 1], [257.5, 164.8, -58, 1, 0], [107.78, 4477.64, -248.7, 1, 1], [210.97, 4174.5, -390.65, 1, 1], [228.5, 3889.12, -408.97, 1, 1]], "intro": 0, "stu": 1, "tut": 1}]}, "back": {"duration": 1350, "s": [{"b": [[96.11, 917.38, -46.69, 1, 1], [96.24, 968.57, -11.31, 1, 1], [269.88, 988.9, 28.25, 1, 1], [237.48, 1007.68, 13.93, 1, 1], [344.06, 1009.95, -41.77, 1, 1]], "intro": 0, "stu": 1, "tut": 1}, {"b": [[96.11, 917.38, -46.69, 1, 1], [96.24, 968.57, -11.31, 1, 1], [269.88, 988.9, 28.25, 1, 1], [237.48, 1007.68, 13.93, 1, 1], [344.06, 1009.95, -41.77, 1, 1]], "intro": 0, "stu": 1, "tut": 1}, {"b": [[96.11, 917.38, -46.69, 1, 1], [96.24, 968.57, -11.31, 1, 1], [269.88, 988.9, 28.25, 1, 1], [237.48, 1007.68, 13.93, 1, 1], [341.71, 1004.2, -41.12, 1, 1]], "intro": 0, "stu": 0.94, "tut": 0.94}, {"b": [[96.11, 917.38, -46.69, 1, 1], [96.24, 968.57, -11.31, 1, 1], [268.19, 978.08, 27.61, 1, 1], [233.56, 918.26, 9.98, 1, 1], [276.81, 844.86, -23.12, 1, 1]], "intro": 0, "stu": 0.52, "tut": 0.52}, {"b": [[124.19, 787.86, -34.69, 1, 1], [139.72, 722.42, -5.49, 1, 1], [220.24, 671.4, 9.42, 1, 1], [222.22, 659.34, -1.46, 1, 1], [208.69, 677.63, -4.22, 1, 1]], "intro": 0, "stu": 0, "tut": 0}, {"b": [[198.9, 443.21, -2.77, 1, 1], [181.28, 487.11, 0.08, 1, 1], [199.69, 539.92, 1.62, 1, 1], [219.44, 596.06, -4.26, 1, 1], [199.11, 654.1, -1.56, 1, 1]], "intro": 0.82, "stu": 0, "tut": 0}, {"b": [[201.05, 433.29, -1.85, 1, 1], [180.83, 489.66, 0.02, 1, 1], [200.7, 546.4, 2, 1, 1], [219.7, 601.9, -4, 1, 1], [200.7, 658, -2, 1, 1]], "intro": 1, "stu": 0, "tut": 0}, {"b": [[200.7, 434.9, -2, 1, 1], [180.7, 490.4, 0, 1, 1], [200.7, 546.4, 2, 1, 1], [219.7, 601.9, -4, 1, 1], [200.7, 658, -2, 1, 1]], "intro": 1, "stu": 0, "tut": 0}, {"b": [[200.7, 434.9, -2, 1, 1], [180.7, 490.4, 0, 1, 1], [200.7, 546.4, 2, 1, 1], [219.7, 601.9, -4, 1, 1], [200.7, 658, -2, 1, 1]], "intro": 1, "stu": 0, "tut": 0}]}, "enter": {"duration": 1592.79, "s": [{"b": [[11.89, 255.47, -17.87, 1, 0], [-17.7, 332.84, -14.9, 1, 0], [428.85, 546.4, -14.05, 1, 0], [80.7, 751.01, -30.6, 1, 0], [-5.79, 890.58, 10.9, 1, 0]], "intro": 0, "stu": 0, "tut": 0}, {"b": [[11.89, 255.47, -17.87, 1, 0], [-17.7, 332.84, -14.9, 1, 0], [428.85, 546.4, -14.05, 1, 0], [80.7, 751.01, -30.6, 1, 0], [-5.79, 890.58, 10.9, 1, 0]], "intro": 0, "stu": 0, "tut": 0}, {"b": [[11.89, 255.47, -17.87, 1, 0], [-17.7, 332.84, -14.9, 1, 0], [428.85, 546.4, -14.05, 1, 0], [80.7, 751.01, -30.6, 1, 0], [-2.89, 887.31, 10.71, 1, 0.01]], "intro": 0, "stu": 0, "tut": 0}, {"b": [[49.82, 291.52, -14.68, 1, 0.1], [-7.65, 340.81, -14.14, 1, 0.03], [428.51, 546.4, -14.03, 1, 0], [128.64, 699.58, -21.43, 1, 0.19], [98.47, 773.15, 4.38, 1, 0.3]], "intro": 0, "stu": 0, "tut": 0}, {"b": [[181.13, 416.3, -3.65, 1, 0.65], [141.57, 459.33, -2.94, 1, 0.55], [264.87, 546.4, -2.51, 1, 0.47], [212.47, 609.66, -5.38, 1, 0.72], [198.03, 661.01, -1.83, 1, 0.78]], "intro": 0, "stu": 0, "tut": 0}, {"b": [[204.39, 438.4, -1.69, 1, 0.97], [185.57, 494.27, 0.37, 1, 0.95], [194.5, 546.4, 2.44, 1, 0.94], [221.84, 599.6, -3.59, 1, 0.98], [203, 655.41, -2.14, 1, 0.99]], "intro": 0.27, "stu": 0, "tut": 0}, {"b": [[200.7, 434.9, -2, 1, 1], [180.7, 490.4, 0, 1, 1], [200.7, 546.4, 2, 1, 1], [219.7, 601.9, -4, 1, 1], [200.7, 658, -2, 1, 1]], "intro": 0.69, "stu": 0, "tut": 0}, {"b": [[200.7, 434.9, -2, 1, 1], [180.7, 490.4, 0, 1, 1], [200.7, 546.4, 2, 1, 1], [219.7, 601.9, -4, 1, 1], [200.7, 658, -2, 1, 1]], "intro": 1, "stu": 0, "tut": 0}, {"b": [[200.7, 434.9, -2, 1, 1], [180.7, 490.4, 0, 1, 1], [200.7, 546.4, 2, 1, 1], [219.7, 601.9, -4, 1, 1], [200.7, 658, -2, 1, 1]], "intro": 1, "stu": 0, "tut": 0}]}}, "D": {"T": [0, 100, 170, 300, 500, 800, 1200, 1600, 2200], "open": {"duration": 4641.76, "s": [{"b": [[200.7, 434.9, -2, 1, 1], [180.7, 490.4, 0, 1, 1], [200.7, 546.4, 2, 1, 1], [219.7, 601.9, -4, 1, 1], [200.7, 658, -2, 1, 1]], "intro": 1, "stu": 0, "tut": 0, "m": [1, 1, 1, 0, 0.86], "st": 0}, {"b": [[200.7, 434.9, -2, 1, 1], [180.7, 490.4, 0, 1, 1], [200.7, 546.4, 2, 1, 1], [219.7, 601.9, -4, 1, 1], [200.7, 658, -2, 1, 1]], "intro": 1, "stu": 0, "tut": 0, "m": [1, 1, 1, 0, 0.86], "st": 0}, {"b": [[200.7, 434.9, -2, 1, 1], [180.41, 487.51, 0, 1, 1], [200.7, 546.4, 2, 1, 1], [219.7, 601.9, -4, 1, 1], [200.7, 658, -2, 1, 1]], "intro": 0.97, "stu": 0, "tut": 0, "m": [1, 1, 1, 0, 0.86], "st": 0}, {"b": [[200.14, 437.2, -6.06, 1, 1], [170.79, 393.83, 0, 1.03, 1], [185.52, 548.7, -2.09, 1, 1], [219.7, 601.9, -4, 1, 1], [200.7, 658, -2, 1, 1]], "intro": 0.76, "stu": 0, "tut": 0, "m": [1, 1, 1, 0, 0.86], "st": 0}, {"b": [[198.74, 492.82, -12.71, 1, 1], [153.77, 244.75, 0, 1.05, 1], [147.84, 604.32, -9.34, 1, 1], [216.15, 623.82, -14.85, 1, 1], [205.83, 661.06, -7.21, 1, 1]], "intro": 0.43, "stu": 0, "tut": 0, "m": [0.38, 0.7, 1.05, 0.3, 0.9], "st": 0}, {"b": [[197.8, 715.37, -42.76, 1, 1], [142.53, 169.94, 0, 1.03, 1], [122.56, 826.87, -41.06, 1, 1], [212.88, 792.86, -55.36, 1, 1], [220.14, 776.6, -39.98, 1, 1]], "intro": 0, "stu": 0.11, "tut": 0, "m": [0, 0, 1.17, 1, 1], "st": 0}, {"b": [[197.4, 1271.79, -91.52, 1, 1], [139.9, 162.78, 0, 1, 1], [111.64, 1383.29, -92.61, 1, 1], [211.47, 1277.94, -137.03, 1, 1], [226.32, 1190.33, -127.39, 1, 1]], "intro": 0, "stu": 1, "tut": 0, "m": [0, 0, 1.17, 1, 1], "st": 0}, {"b": [[197.29, 2125.01, -144.13, 1, 1], [139.75, 163.6, 0, 1, 0], [108.73, 2236.51, -148.21, 1, 1], [211.09, 2059.81, -226.99, 1, 1], [227.96, 1900.86, -226.6, 1, 1]], "intro": 0, "stu": 1, "tut": 0.14, "m": [0, 0, 1.17, 1, 1], "st": 1}, {"b": [[197.26, 3961.31, -224.56, 1, 1], [139.75, 163.6, 0, 1, 0], [107.82, 4072.81, -233.22, 1, 1], [210.97, 3789.1, -365.41, 1, 1], [228.48, 3523.14, -380.79, 1, 1]], "intro": 0, "stu": 1, "tut": 0.87, "m": [0, 0, 1.17, 1, 1], "st": 1}]}, "back": {"duration": 1350, "s": [{"b": [[96.11, 917.38, -46.69, 1, 1], [96.24, 968.57, -11.31, 1, 1], [269.88, 988.9, 28.25, 1, 1], [237.48, 1007.68, 13.93, 1, 1], [344.06, 1009.95, -41.77, 1, 1]], "intro": 0, "stu": 1, "tut": 1}, {"b": [[96.11, 917.38, -46.69, 1, 1], [96.24, 968.57, -11.31, 1, 1], [269.88, 988.9, 28.25, 1, 1], [237.48, 1007.68, 13.93, 1, 1], [344.06, 1009.95, -41.77, 1, 1]], "intro": 0, "stu": 1, "tut": 1}, {"b": [[96.11, 917.38, -46.69, 1, 1], [96.24, 968.57, -11.31, 1, 1], [269.88, 988.9, 28.25, 1, 1], [237.48, 1007.68, 13.93, 1, 1], [341.71, 1004.2, -41.12, 1, 1]], "intro": 0, "stu": 0.94, "tut": 0.94}, {"b": [[96.11, 917.38, -46.69, 1, 1], [96.24, 968.57, -11.31, 1, 1], [268.19, 978.08, 27.61, 1, 1], [233.56, 918.26, 9.98, 1, 1], [276.81, 844.86, -23.12, 1, 1]], "intro": 0, "stu": 0.52, "tut": 0.52}, {"b": [[124.19, 787.86, -34.69, 1, 1], [139.72, 722.42, -5.49, 1, 1], [220.24, 671.4, 9.42, 1, 1], [222.22, 659.34, -1.46, 1, 1], [208.69, 677.63, -4.22, 1, 1]], "intro": 0, "stu": 0, "tut": 0}, {"b": [[198.9, 443.21, -2.77, 1, 1], [181.28, 487.11, 0.08, 1, 1], [199.69, 539.92, 1.62, 1, 1], [219.44, 596.06, -4.26, 1, 1], [199.11, 654.1, -1.56, 1, 1]], "intro": 0.82, "stu": 0, "tut": 0}, {"b": [[201.05, 433.29, -1.85, 1, 1], [180.83, 489.66, 0.02, 1, 1], [200.7, 546.4, 2, 1, 1], [219.7, 601.9, -4, 1, 1], [200.7, 658, -2, 1, 1]], "intro": 1, "stu": 0, "tut": 0}, {"b": [[200.7, 434.9, -2, 1, 1], [180.7, 490.4, 0, 1, 1], [200.7, 546.4, 2, 1, 1], [219.7, 601.9, -4, 1, 1], [200.7, 658, -2, 1, 1]], "intro": 1, "stu": 0, "tut": 0}, {"b": [[200.7, 434.9, -2, 1, 1], [180.7, 490.4, 0, 1, 1], [200.7, 546.4, 2, 1, 1], [219.7, 601.9, -4, 1, 1], [200.7, 658, -2, 1, 1]], "intro": 1, "stu": 0, "tut": 0}]}, "enter": {"duration": 1592.79, "s": [{"b": [[11.89, 255.47, -17.87, 1, 0], [-17.7, 332.84, -14.9, 1, 0], [428.85, 546.4, -14.05, 1, 0], [80.7, 751.01, -30.6, 1, 0], [-5.79, 890.58, 10.9, 1, 0]], "intro": 0, "stu": 0, "tut": 0}, {"b": [[11.89, 255.47, -17.87, 1, 0], [-17.7, 332.84, -14.9, 1, 0], [428.85, 546.4, -14.05, 1, 0], [80.7, 751.01, -30.6, 1, 0], [-5.79, 890.58, 10.9, 1, 0]], "intro": 0, "stu": 0, "tut": 0}, {"b": [[11.89, 255.47, -17.87, 1, 0], [-17.7, 332.84, -14.9, 1, 0], [428.85, 546.4, -14.05, 1, 0], [80.7, 751.01, -30.6, 1, 0], [-2.89, 887.31, 10.71, 1, 0.01]], "intro": 0, "stu": 0, "tut": 0}, {"b": [[49.82, 291.52, -14.68, 1, 0.1], [-7.65, 340.81, -14.14, 1, 0.03], [428.51, 546.4, -14.03, 1, 0], [128.64, 699.58, -21.43, 1, 0.19], [98.47, 773.15, 4.38, 1, 0.3]], "intro": 0, "stu": 0, "tut": 0}, {"b": [[181.13, 416.3, -3.65, 1, 0.65], [141.57, 459.33, -2.94, 1, 0.55], [264.87, 546.4, -2.51, 1, 0.47], [212.47, 609.66, -5.38, 1, 0.72], [198.03, 661.01, -1.83, 1, 0.78]], "intro": 0, "stu": 0, "tut": 0}, {"b": [[204.39, 438.4, -1.69, 1, 0.97], [185.57, 494.27, 0.37, 1, 0.95], [194.5, 546.4, 2.44, 1, 0.94], [221.84, 599.6, -3.59, 1, 0.98], [203, 655.41, -2.14, 1, 0.99]], "intro": 0.27, "stu": 0, "tut": 0}, {"b": [[200.7, 434.9, -2, 1, 1], [180.7, 490.4, 0, 1, 1], [200.7, 546.4, 2, 1, 1], [219.7, 601.9, -4, 1, 1], [200.7, 658, -2, 1, 1]], "intro": 0.69, "stu": 0, "tut": 0}, {"b": [[200.7, 434.9, -2, 1, 1], [180.7, 490.4, 0, 1, 1], [200.7, 546.4, 2, 1, 1], [219.7, 601.9, -4, 1, 1], [200.7, 658, -2, 1, 1]], "intro": 1, "stu": 0, "tut": 0}, {"b": [[200.7, 434.9, -2, 1, 1], [180.7, 490.4, 0, 1, 1], [200.7, 546.4, 2, 1, 1], [219.7, 601.9, -4, 1, 1], [200.7, 658, -2, 1, 1]], "intro": 1, "stu": 0, "tut": 0}]}, "focus": {"duration": 1270.61, "s": [{"b": [[200.7, 434.9, -2, 1, 1], [180.7, 490.4, 0, 1, 1], [200.7, 546.4, 2, 1, 1], [219.7, 601.9, -4, 1, 1], [200.7, 658, -2, 1, 1]], "intro": 1, "stu": 0, "tut": 0, "kb": 0}, {"b": [[200.7, 434.9, -2, 1, 1], [180.7, 490.4, 0, 1, 1], [200.7, 546.4, 2, 1, 1], [219.7, 601.9, -4, 1, 1], [200.7, 658, -2, 1, 1]], "intro": 1, "stu": 0, "tut": 0, "kb": 0}, {"b": [[200.7, 434.9, -2, 1, 1], [180.7, 490.4, 0, 1, 1], [200.7, 546.4, 2, 1, 1], [219.7, 601.9, -4, 1, 1], [200.7, 658, -2, 1, 1]], "intro": 1, "stu": 0, "tut": 0, "kb": 0.03}, {"b": [[200.7, 434.9, -2, 1, 1], [179.96, 490.14, -0.62, 1, 1], [196.69, 546.8, 6.1, 1, 1], [231.08, 607.24, -10.91, 1, 1], [190.77, 672.58, -12.21, 1, 1]], "intro": 1, "stu": 0, "tut": 0, "kb": 0.61}, {"b": [[236.65, 475.28, -9.98, 1, 1], [160.79, 551.64, -16.12, 1, 1], [184.67, 632.8, 17.54, 1, 1], [247.82, 717.74, -32.62, 1, 1], [181.64, 807.58, -45.86, 1, 1]], "intro": 1, "stu": 0, "tut": 0, "kb": 0.95}, {"b": [[259.6, 793.28, -43.97, 1, 1], [151.16, 906.39, -72.9, 1, 1], [178.64, 1024.3, 62.38, 1, 1], [256.22, 1145.99, -97, 1, 1], [177.05, 1272.57, -126.55, 1, 1]], "intro": 1, "stu": 0, "tut": 0, "kb": 1}, {"b": [[266.21, 1707.28, -100.98, 1, 1], [148.38, 1869.39, -163.28, 1, 1], [176.9, 2036.3, 130.92, 1, 1], [258.64, 2206.99, -194.05, 1, 1], [175.73, 2382.57, -246.57, 1, 1]], "intro": 1, "stu": 0, "tut": 0, "kb": 1}, {"b": [[267.28, 3181.27, -160.96, 1, 1], [147.93, 3392.39, -257.43, 1, 1], [176.62, 3608.3, 201.8, 1, 1], [259.03, 3827.99, -293.86, 1, 1], [175.52, 4052.58, -369.48, 1, 1]], "intro": 1, "stu": 0, "tut": 0, "kb": 1}, {"b": [[267.48, 6442.28, -251.64, 1, 1], [147.85, 6726.89, -399.58, 1, 1], [176.57, 7016.3, 308.7, 1, 1], [259.1, 7309.49, -444.28, 1, 1], [175.48, 7607.57, -554.61, 1, 1]], "intro": 1, "stu": 0, "tut": 0, "kb": 1}]}, "blur": {"duration": 1350, "s": [{"b": [[59.58, 968.28, -2.06, 1, 1], [126.62, 975.36, 31.62, 1, 1], [231.21, 963.62, -34.04, 1, 1], [297.74, 968.83, 33.9, 1, 1], [349.19, 999.28, -43.15, 1, 1]], "intro": 1, "stu": 0, "tut": 0, "kb": 1}, {"b": [[59.58, 968.28, -2.06, 1, 1], [126.62, 975.36, 31.62, 1, 1], [231.21, 963.62, -34.04, 1, 1], [297.74, 968.83, 33.9, 1, 1], [349.19, 999.28, -43.15, 1, 1]], "intro": 1, "stu": 0, "tut": 0, "kb": 1}, {"b": [[59.58, 968.28, -2.06, 1, 1], [126.62, 975.36, 31.62, 1, 1], [231.21, 963.62, -34.04, 1, 1], [297.74, 968.83, 33.9, 1, 1], [346.76, 993.7, -42.48, 1, 1]], "intro": 1, "stu": 0, "tut": 0, "kb": 0.94}, {"b": [[59.58, 968.28, -2.06, 1, 1], [126.62, 975.36, 31.62, 1, 1], [230.47, 953.41, -33.16, 1, 1], [280.54, 887.97, 25.55, 1, 1], [279.53, 839.19, -23.85, 1, 1]], "intro": 1, "stu": 0, "tut": 0, "kb": 0.2}, {"b": [[97.47, 825.09, -2.04, 1, 1], [154.46, 725.72, 15.34, 1, 1], [209.32, 664.25, -8.18, 1, 1], [230.75, 653.84, 1.36, 1, 1], [208.98, 677.03, -4.29, 1, 1]], "intro": 1, "stu": 0, "tut": 0, "kb": 0.01}, {"b": [[198.27, 444.09, -2, 1, 1], [181.07, 487.06, -0.22, 1, 1], [200.25, 540.29, 2.53, 1, 1], [218.58, 596.62, -4.55, 1, 1], [199.05, 654.21, -1.54, 1, 1]], "intro": 1, "stu": 0, "tut": 0, "kb": 0}, {"b": [[201.17, 433.12, -2, 1, 1], [180.78, 489.65, -0.05, 1, 1], [200.7, 546.4, 2, 1, 1], [219.7, 601.9, -4, 1, 1], [200.7, 658, -2, 1, 1]], "intro": 1, "stu": 0, "tut": 0, "kb": 0}, {"b": [[200.7, 434.9, -2, 1, 1], [180.7, 490.4, 0, 1, 1], [200.7, 546.4, 2, 1, 1], [219.7, 601.9, -4, 1, 1], [200.7, 658, -2, 1, 1]], "intro": 1, "stu": 0, "tut": 0, "kb": 0}, {"b": [[200.7, 434.9, -2, 1, 1], [180.7, 490.4, 0, 1, 1], [200.7, 546.4, 2, 1, 1], [219.7, 601.9, -4, 1, 1], [200.7, 658, -2, 1, 1]], "intro": 1, "stu": 0, "tut": 0, "kb": 0}]}, "send": {"duration": 2320, "s": [{"b": [[200.7, 1100, -2, 1, 0], [180.7, 1100, 0, 1, 0], [200.7, 1100, 2, 1, 0], [219.7, 1100, -4, 1, 0], [200.7, 1100, -2, 1, 0]], "intro": 1, "stu": 0, "tut": 0, "kb": 1, "fly": [81, 510, 1], "st": 0}, {"b": [[200.7, 1100, -2, 1, 0], [180.7, 1100, 0, 1, 0], [200.7, 1100, 2, 1, 0], [219.7, 1100, -4, 1, 0], [200.7, 1100, -2, 1, 0]], "intro": 1, "stu": 0, "tut": 0, "kb": 1, "fly": [81, 510, 1], "st": 0}, {"b": [[200.7, 1100, -2, 1, 0], [180.7, 1100, 0, 1, 0], [200.7, 1100, 2, 1, 0], [219.7, 1100, -4, 1, 0], [200.7, 1100, -2, 1, 0]], "intro": 0.96, "stu": 0, "tut": 0, "kb": 1, "fly": [80.83, 504.38, 1], "st": 0}, {"b": [[200.7, 1100, -2, 1, 0], [180.7, 1100, 0, 1, 0], [200.7, 1100, 2, 1, 0], [219.7, 1100, -4, 1, 0], [200.7, 1100, -2, 1, 0]], "intro": 0.67, "stu": 0, "tut": 0, "kb": 1, "fly": [76.15, 354.97, 1], "st": 0}, {"b": [[200.7, 1100, -2, 1, 0], [180.7, 1100, 0, 1, 0], [200.7, 1100, 2, 1, 0], [219.7, 1100, -4, 1, 0], [200.7, 1100, -2, 1, 0]], "intro": 0.22, "stu": 0, "tut": 0, "kb": 1, "fly": [70.31, 197.58, 1], "st": 0}, {"b": [[200.7, 1100, -2, 1, 0], [180.7, 1100, 0, 1, 0], [200.7, 1100, 2, 1, 0], [219.7, 1100, -4, 1, 0], [200.7, 1100, -2, 1, 0]], "intro": 0, "stu": 0.85, "tut": 0, "kb": 1, "fly": [68.17, 162.69, 1], "st": 0}, {"b": [[200.7, 1100, -2, 1, 0], [180.7, 1100, 0, 1, 0], [200.7, 1100, 2, 1, 0], [219.7, 1100, -4, 1, 0], [200.7, 1100, -2, 1, 0]], "intro": 0, "stu": 1, "tut": 0.13, "kb": 1, "fly": [68, 163.6, 0], "st": 1}, {"b": [[200.7, 1100, -2, 1, 0], [180.7, 1100, 0, 1, 0], [200.7, 1100, 2, 1, 0], [219.7, 1100, -4, 1, 0], [200.7, 1100, -2, 1, 0]], "intro": 0, "stu": 1, "tut": 0.8, "kb": 1, "fly": [68, 163.6, 0], "st": 1}, {"b": [[200.7, 1100, -2, 1, 0], [180.7, 1100, 0, 1, 0], [200.7, 1100, 2, 1, 0], [219.7, 1100, -4, 1, 0], [200.7, 1100, -2, 1, 0]], "intro": 0, "stu": 1, "tut": 1, "kb": 1, "fly": [68, 163.6, 0], "st": 1}]}}}}
 ````
 ````html motion:screen-html
   <div id="phone">
@@ -878,7 +891,8 @@ root.MotionEngine = { id:'ai-tutor-blocks', create(ctx){
     const KS = {}; KS[vr] = {open:{seed:12345,i:1}, back:{seed:777,fromT:Infinity}, enter:{seed:999}, focus:{seed:4242}, blur:{seed:5151,fromT:Infinity}, send:{seed:6262}};
     const rd = v=>Math.round(v*100)/100, out = {T:VEC_T};
     try{ ['open','back','enter'].concat(vr==='D'?['focus','blur','send']:[]).forEach(kd=>{ const m = modelFor(vr,kd,KS);
-      out[kd] = {duration:rd(m.dur),s:VEC_T.map(t=>{ const st = m.at(t); return {b:st.blocks.map(b=>[rd(b.cx),rd(b.cy),rd(b.r),rd(b.s),rd(b.o)]),intro:rd(st.intro),stu:rd(st.stu),tut:rd(st.tut)}; })}; }); }
+      out[kd] = {duration:rd(m.dur),s:VEC_T.map(t=>{ const st = m.at(t); const o = {b:st.blocks.map(b=>[rd(b.cx),rd(b.cy),rd(b.r),rd(b.s),rd(b.o)]),intro:rd(st.intro),stu:rd(st.stu),tut:rd(st.tut)};
+        if(st.kb!==undefined) o.kb = rd(st.kb); if(st.fly) o.fly = [rd(st.fly.x),rd(st.fly.cy),rd(st.fly.o)]; if(st.morph) o.m = [rd(st.morph.surface),rd(st.morph.chip),rd(st.morph.chipScale),rd(st.morph.msg),rd(st.morph.msgScale)]; if(st.stuText!==undefined) o.st = rd(st.stuText); return o; })}; }); }
     finally{ setValues(keep); }
     return out;
   }
@@ -1083,7 +1097,8 @@ const HOVER = matchMedia('(hover:hover)').matches;   // touch screens fire mouse
 // AI Tutor home screen – layout as code (Flutter). Part of the motion package; the workbench does not read this block.
 // Artboard 402 × 874 logical px. Wrap it in FittedBox / Transform.scale(width / 402) ONCE, never per element.
 // Static layout is fixed (absolute positions as designed). The motion engine drives only what `frame` carries:
-// block poses, intro opacity, student / tutor message opacity + rise, pressed block, and for V3 the morph of the tapped block.
+// block poses, intro opacity, student / tutor message opacity + rise, pressed block, for V3 the morph of the tapped block,
+// and for Focus / Back out / Send the keyboard progress (input bar follows it) and the text flying from the field to the student message.
 // `frame` mirrors the package engine's frame: modelFor(variant, kind, runs).at(tMs). Pass null for the resting home screen.
 // Packages: flutter_svg. Font: Nunito Sans 500 / 700 (google_fonts or bundled), Inter 600 for the status-bar time.
 // Assets: the file names in Assets are listed (with their contents) in section 1c of the package; add them to pubspec.yaml.
@@ -1094,14 +1109,19 @@ import 'package:flutter_svg/flutter_svg.dart';
 class Pose { final double cx, cy, r, s, o; const Pose(this.cx, this.cy, this.r, this.s, this.o); }   // centre px, rotation deg, size factor, opacity
 class Morph { final int i; final double surface, chip, chipScale, msg, msgScale;
   const Morph(this.i, this.surface, this.chip, this.chipScale, this.msg, this.msgScale); }
+class Fly { final double x, cy, o; final String text; const Fly(this.x, this.cy, this.o, this.text); }   // Send: text in flight (left edge, line centre)
 class ScreenFrame {
   final List<Pose> blocks; final double intro, stu, tut, rise; final bool done, pressed; final int hover;
   final double? stuText; final Morph? morph;                    // V3 only
+  final double kb; final Fly? fly;                              // Focus / Back out / Send: keyboard progress 0..1, text in flight
   const ScreenFrame({required this.blocks, this.intro = 1, this.stu = 0, this.tut = 0, this.rise = 14, this.done = false,
-      this.pressed = false, this.hover = -1, this.stuText, this.morph});
+      this.pressed = false, this.hover = -1, this.stuText, this.morph, this.kb = 0, this.fly});
 }
 
 const artW = 402.0, artH = 874.0, blockW = 231.5, blockH = 50.0;
+/// Keyboard: the app uses the OS keyboard and its own slide; the input bar sits on top of it (245 px higher when open).
+/// In the app, move the input bar with MediaQuery.viewInsetsOf(context).bottom; `kb` is the engine's stand-in for that progress.
+const kbH = 336.0, kbInputDy = -245.0;
 const dark = Color(0xFF3A3A3A), mono600 = Color(0xFF858585), white = Color(0xFFFFFFFF), hoverFill = Color(0xFFECECEC);
 const font = 'Nunito Sans';
 
@@ -1164,7 +1184,7 @@ class AiTutorScreen extends StatelessWidget {
         _Block(i: i, pose: f.blocks[i], pressed: f.pressed && tapped == i, hover: f.hover == i, morph: f.morph?.i == i ? f.morph : null,
             onTap: frame == null && onTapBlock != null ? () => onTapBlock!(i) : null),
       // input bar: top 731, 24 px side padding
-      Positioned(left: 0, top: 731, width: artW, child: Padding(padding: const EdgeInsets.fromLTRB(24, 4, 24, 4), child: Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
+      Positioned(left: 0, top: 731, width: artW, child: Transform.translate(offset: Offset(0, f.kb * kbInputDy), child: Padding(padding: const EdgeInsets.fromLTRB(24, 4, 24, 4), child: Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
         Container(width: 32, height: 32, margin: const EdgeInsets.only(bottom: 4), decoration: const BoxDecoration(color: dark, shape: BoxShape.circle),
             alignment: Alignment.center, child: SvgPicture.asset(Assets.attach, width: 16, height: 16)),
         const SizedBox(width: 8),
@@ -1177,7 +1197,10 @@ class AiTutorScreen extends StatelessWidget {
             Container(width: 30, height: 30, decoration: const BoxDecoration(color: dark, shape: BoxShape.circle), alignment: Alignment.center,
                 child: SvgPicture.asset(Assets.send, width: 16, height: 16)),
           ]))),
-      ]))),
+      ])))),
+      // Send: the typed text flies from the field to the student message line (14 / 500, same style as the message)
+      if (f.fly != null && f.fly!.o > 0)
+        Positioned(left: f.fly!.x, top: f.fly!.cy - 9.8, child: IgnorePointer(child: Text(f.fly!.text, style: _t(FontWeight.w500, 14, 19.6), softWrap: false))),
       // tab bar: top 791, 83 tall; slanted top line; tabs 53.5 × 53.5, gap 12, centred, 10 px from the top
       Positioned(left: 0, top: 791, width: artW, height: 83, child: Stack(children: [
         Positioned(left: 0, top: 3, child: SvgPicture.asset(Assets.tabbarLine, width: 402, height: 81)),
@@ -1292,7 +1315,8 @@ class _DotGlow extends CustomPainter {
 // AI Tutor home screen – layout as code (web / React). Part of the motion package; the workbench does not read this block.
 // Artboard 402 × 874 logical px. Render the artboard at its design size and scale it ONCE (width / 402), never per element.
 // Static layout is fixed (absolute positions as designed). The motion engine drives only what `frame` carries:
-// block poses, intro opacity, student / tutor message opacity + rise, pressed block, and for V3 the morph of the tapped block.
+// block poses, intro opacity, student / tutor message opacity + rise, pressed block, for V3 the morph of the tapped block,
+// and for Focus / Back out / Send the keyboard progress (input bar follows it) and the text flying from the field to the student message.
 // `frame` is exactly what the package engine returns: modelFor(variant, kind, runs).at(tMs). Pass null for the resting home screen.
 // Assets: the file names in ASSETS are listed (with their contents) in section 1c of the package.
 import React from 'react';
@@ -1304,10 +1328,15 @@ export type ScreenFrame = {
   stu: number; tut: number; done: boolean; rise?: number;       // student / tutor message opacity, reply shown, rise px
   stuText?: number; morph?: Morph;                              // V3 only: student text opacity, tapped-block morph
   pressed?: boolean; hover?: number;                            // tapped block dark (index = model.tapped)
+  kb?: number;                                                  // Focus / Back out / Send: keyboard progress 0 (down) .. 1 (up); input bar moves by kb * KB.inputDy
+  fly?: { x: number; cy: number; o: number; text: string };     // Send: typed text in flight (left edge x, line centre cy), hidden on landing
 };
 
 export const ART = { w: 402, h: 874 };
 export const BLOCK = { w: 231.5, h: 50 };
+/** Keyboard: the real app uses the OS keyboard and its own slide; the input bar sits on top of it (245 px higher when open).
+ *  In the app, move the input bar with the keyboard inset; `kb` is the engine's stand-in for that progress (prototype + test vectors). */
+export const KB = { h: 336, inputDy: -245 };
 export const C = { dark: '#3a3a3a', mono600: '#858585', white: '#ffffff', hover: '#ececec' };
 const FONT = '"Nunito Sans", "Nunito", system-ui, -apple-system, sans-serif';
 export const ASSETS = {
@@ -1421,16 +1450,18 @@ export function AiTutorScreen({ frame, tapped = -1, prompt, time = '10:32', repl
       {f.blocks.map((p, i) => <div key={i} onMouseEnter={() => setHover(i)} onMouseLeave={() => setHover(-1)}>
         <Block i={i} pose={p} pressed={!!f.pressed && tapped === i} hover={frame ? f.hover === i : hover === i} morph={f.morph && f.morph.i === i ? f.morph : undefined}
           assets={assets} onTap={frame ? undefined : onTapBlock} /></div>)}
-      {/* input bar: top 731, 24 px side padding */}
-      <div style={{ ...abs(0, 731, ART.w), padding: '4px 24px', boxSizing: 'border-box', display: 'flex', gap: 8, alignItems: 'flex-end' }}>
+      {/* input bar: top 731, 24 px side padding; rides on the keyboard */}
+      <div style={{ ...abs(0, 731, ART.w), transform: `translateY(${(f.kb ?? 0) * KB.inputDy}px)`, zIndex: 2, padding: '4px 24px', boxSizing: 'border-box', display: 'flex', gap: 8, alignItems: 'flex-end' }}>
         <div style={{ width: 32, height: 32, borderRadius: 16, background: C.dark, display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none', marginBottom: 4 }}>
           <img src={assets.attach} alt="" width={16} height={16} /></div>
         <div style={{ flex: 1, border: `0.75px solid ${C.dark}`, borderRadius: 20, padding: '4px 4px 4px 12px', display: 'flex', alignItems: 'center', gap: 8, background: C.white }}>
-          <input placeholder="Or ask anything..." style={{ flex: 1, minWidth: 0, border: 0, outline: 0, background: 'none', padding: 4, ...text(500, 14, 19.6) }} />
+          <input placeholder="Or ask anything..." value={f.fly ? '' : undefined} readOnly={!!f.fly} style={{ flex: 1, minWidth: 0, border: 0, outline: 0, background: 'none', padding: 4, ...text(500, 14, 19.6) }} />
           <button aria-label="Send" style={{ width: 30, height: 30, borderRadius: 15, background: C.dark, border: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none', padding: 0 }}>
             <img src={assets.send} alt="" width={16} height={16} /></button>
         </div>
       </div>
+      {/* Send: the typed text flies from the field to the student message line (14 / 500, same style as the message) */}
+      {f.fly && f.fly.o > 0 && <span style={{ ...abs(f.fly.x, f.fly.cy - 9.8), ...text(500, 14, 19.6), whiteSpace: 'nowrap', pointerEvents: 'none', zIndex: 3 }}>{f.fly.text}</span>}
       {/* tab bar: top 791, 83 tall; slanted top line; tabs 53.5 × 53.5, gap 12, centred, 10 px from the top */}
       <div style={abs(0, 791, ART.w, 83)}>
         <img src={assets.tabbarLine} alt="" style={abs(0, 3, 402, 81)} />
@@ -1451,48 +1482,128 @@ export function AiTutorScreen({ frame, tapped = -1, prompt, time = '10:32', repl
 ````
 ````ts motion:ref-ts
 /**
- * AI Tutor use-case blocks – motion model (V2, final values).
- * Pure functions of time: at(tMs) -> poses. Framework-agnostic; drive it with requestAnimationFrame
- * and apply the poses as CSS transforms (see usage at the bottom).
+ * AI Tutor use-case blocks – motion model (V3, final values). Reference port of the package engine (variant D).
+ * Pure functions of time: at(tMs) -> Frame. Framework-agnostic; drive it with requestAnimationFrame / a Ticker
+ * and hand the frame to the screen code (motion:screen-react / motion:screen-dart), which takes exactly this shape.
  *
- * ELEMENT CONTRACT: the engine never touches content, size or styling. It only outputs a pose per element index
- * (centre x/y, rotation, scale, opacity) plus opacity/translateY for three text layers (intro, student, tutor).
- * Swap the elements freely (other cards, any N); give the engine their rest poses via `Layout`.
- * Artboard: 402 x 874 px. Angles in degrees, time in ms.
+ * Animations (every one starts with the user action: `tap` ms finger down, then the motion):
+ *   enter()            user opens the AI Tutor tab: blocks arrive near their place, intro text last
+ *   open(i)            user taps block i: it flies into the student message and becomes its text; the others fall
+ *   back(from)         user taps "+" in the chat: chat fades, blocks rise back in from below, intro returns
+ *   focus()            user taps the message field: keyboard slides up, all blocks break away (bottom first)
+ *   backOut(from)      user leaves the field without sending: same as back(), keyboard goes down, intro stays
+ *   send(text)         user sends a typed message: the text lifts out of the field and lands on the student message line
+ * `from` = the frame on screen when the user acted (e.g. open(...).at(t), focus().at(t), send(...).at(t)).
+ *
+ * ELEMENT CONTRACT: the model never touches content, size or styling. It outputs poses for N elements (centre, rotation,
+ * scale, opacity) plus opacities for intro / student / tutor, the keyboard progress and the flying text.
+ * Artboard: 402 x 874 px. Angles in degrees, time in ms. Check against the test vectors in the manifest (±0.01).
  */
 export const ART = { w: 402, h: 874 };
-/** Where the elements rest, and where the tapped element lands (centre of its pose, artboard px). */
-export type Layout = { rest: { cx: number; cy: number; r: number }[]; landing: { x: number; y: number } };
-export const LAYOUT: Layout = {
-  rest: [   // block centres + rotation of the tower at rest (top -> bottom); any number of elements works
-    { cx: 200.7, cy: 434.9, r: -2 }, { cx: 180.7, cy: 490.4, r: 0 }, { cx: 200.7, cy: 546.4, r: 2 },
-    { cx: 219.7, cy: 601.9, r: -4 }, { cx: 200.7, cy: 658.0, r: -2 },
-  ],
-  landing: { x: 257.5, y: 164.8 },   // next to the student message
+export const BLOCK = { w: 231.5, h: 50 };
+/** Where the elements rest (block centres + tilt of the tower, top -> bottom). Any number of elements works. */
+export const REST = [
+  { cx: 200.7, cy: 434.9, r: -2 }, { cx: 180.7, cy: 490.4, r: 0 }, { cx: 200.7, cy: 546.4, r: 2 },
+  { cx: 219.7, cy: 601.9, r: -4 }, { cx: 200.7, cy: 658.0, r: -2 },
+];
+/** Measured geometry (artboard px). */
+export const GEO = {
+  msgTextLeft: 68, msgTextCy: 163.6,     // student message text line: left edge, line centre
+  labelLeft: 44,                         // block label left edge inside the block
+  chipFont: 12, msgFont: 14,             // label size in the block / in the message
+  fieldTextLeft: 81, fieldTextCy: 755,   // text in the message field (keyboard down)
+  kbInputDy: -245,                       // input bar offset when the keyboard is up
+  kbSpring: { visualDuration: 0.38, bounce: 0 } as Spring,   // stand-in for the OS keyboard slide (use the real inset in the app)
+  offscreen: 990,                        // falling blocks are done below this y
 };
 
-/** Final tuned values (V2). Change here only. */
+/** Final tuned values (V3). Change here only. */
 // <<PARAMS
 export const P = {
-  open:  { tap: 170, total: 1800, move: 420, morphAt: 0.23, rise: 68, gravity: 3500, kick: -10, spin: 235, spinRand: 55,
-           drift: 310, start: 0, wobble: 7, flySpin: 58, arc: 0, ripple: 70, loading: 1800,
-           spring: { stiffness: 101, damping: 15, mass: 3.4 } as Spring },
-  back:  { tap: 240, total: 1200, stagger: 70, rand: 1.0, spring: { visualDuration: 0.8, bounce: 0.2 } as Spring },
-  enter: { tap: 240, total: 1190, stagger: 95, rand: 0.67, textAt: 190, spring: { visualDuration: 0.25, bounce: 0.25 } as Spring },
-  wiggle: 0.4,   // desktop hover wiggle strength (0 = off)
+  enter: {
+    tap: 150,
+    total: 1190,
+    stagger: 40,
+    rand: 0.67,
+    textAt: 190,
+    spring: { visualDuration: 0.25, bounce: 0.25 } as Spring,
+  },
+  open: {
+    tap: 150,
+    total: 1500,
+    flyX: { visualDuration: 0.62, bounce: 0.06 } as Spring,
+    flyY: { visualDuration: 0.55, bounce: 0.12 } as Spring,
+    straighten: 60,
+    lift: 5,
+    surfAt: 25,
+    surfDur: 45,
+    textAt: 35,
+    textDur: 30,
+    metaAt: 72,
+    metaFade: 240,
+    metaRise: 8,
+    tutorDelay: 350,
+    loading: 1800,
+    ripple: 70,
+    start: 0,
+    kick: -10,
+    gravity: 3500,
+    spin: 235,
+    spinRand: 55,
+    drift: 310,
+    wobble: 7,
+  },
+  back: {
+    tap: 150,
+    total: 1200,
+    stagger: 70,
+    rand: 1.0,
+    blocksAt: 0,
+    introAt: 45,
+    introIn: 450,
+    chatOut: 450,
+    spring: { visualDuration: 0.8, bounce: 0.2 } as Spring,
+  },
+  focus: {
+    tap: 150,
+    total: 0,
+    blocksAt: 40,
+    ripple: 35,
+    kick: -60,
+    gravity: 3500,
+    spin: 200,
+    drift: 220,
+  },
+  send: {
+    tap: 150,
+    total: 0,
+    flyX: { visualDuration: 0.62, bounce: 0.06 } as Spring,
+    flyY: { visualDuration: 0.55, bounce: 0.12 } as Spring,
+    metaAt: 72,
+    metaFade: 240,
+    metaRise: 8,
+    tutorDelay: 350,
+  },
+  wiggle: 0.4,
 };
 // PARAMS>>
 
 export type Spring = { visualDuration: number; bounce: number } | { stiffness: number; damping: number; mass: number };
-export type Pose = { cx: number; cy: number; rot: number; scale: number; opacity: number };
+export type Pose = { cx: number; cy: number; r: number; s: number; o: number };
+export type Morph = { i: number; surface: number; chip: number; chipScale: number; msg: number; msgScale: number };
 export type Frame = {
-  blocks: Pose[];            // index = block index (0 = top)
-  intro: number;             // headline + illustration + subtitle opacity
-  student: number; studentRise: number;  // student message opacity + translateY(px) = rise * (1 - bezMsg(opacity))
-  tutor: number; tutorDone: boolean;     // tutor message opacity (translateY 14 px) ; false = dots, true = reply text
-  pressed: number;           // index of the tapped (dark) block, -1 = none
+  blocks: Pose[];          // index = block index (0 = top)
+  intro: number;           // headline + illustration + subtitle opacity
+  stu: number; tut: number; done: boolean;   // student / tutor message opacity; done = reply shown instead of dots
+  rise?: number;           // student avatar + name rise (px): translateY = rise * (1 - bezMsg(stu))
+  stuText?: number;        // V3: the student text line itself (0 until the flying label/text lands, then 1)
+  morph?: Morph;           // open(): the tapped block turning into message text
+  kb?: number;             // focus / backOut / send / back after send: keyboard progress 0..1
+  fly?: { x: number; cy: number; o: number; text: string };   // send(): text in flight
+  pressed: boolean;        // the tapped block is dark (from 60 ms after touch-down)
 };
-export type Timeline = { duration: number; at: (t: number) => Frame };
+export type Timeline = { duration: number; motionEnd: number; at: (t: number) => Frame };
+type Raw = { duration: number; motionEnd: number; at: (t: number) => Omit<Frame, 'pressed'> };
 
 /* ---------- helpers ---------- */
 const clamp = (v: number, a: number, b: number) => Math.max(a, Math.min(b, v));
@@ -1508,106 +1619,149 @@ function cubicBezier(x1: number, y1: number, x2: number, y2: number) {
 export const bezOpacity = cubicBezier(.25, .1, .25, 1);
 export const bezMsg = cubicBezier(.2, .8, .2, 1);
 
-/** Damped spring 0 -> 1 sampled in ms (same maths as Motion's spring()). */
-function springSampler(c: Spring) {
-  let k: number, d: number, m = 1, baseMs: number;
+/** Spring 0 -> 1 by elapsed ms. Same maths as Motion's spring() (motion.dev), including its rest snap
+ *  (value becomes exactly 1 once speed <= 0.01/s and distance <= 0.005). Returns 0 for ms <= 0. */
+export function spring(c: Spring): (ms: number) => number {
+  let k: number, d: number, m = 1, timeDefined = false;
   if ('visualDuration' in c) {
-    const root = (2 * Math.PI) / (c.visualDuration * 1.2), z = c.bounce >= 0 ? 1 - c.bounce : 1 / (1 + c.bounce);
-    k = root * root; d = 2 * z * Math.sqrt(k); baseMs = c.visualDuration * 1000 * 1.6;
-  } else { k = c.stiffness; d = c.damping; m = c.mass; baseMs = 0.8 * 1000 * 1.6; }
-  const w0 = Math.sqrt(k / m), z = d / (2 * Math.sqrt(k * m));
-  const x = (ms: number) => { const t = ms / 1000;
-    if (z < 1) { const wd = w0 * Math.sqrt(1 - z * z); return 1 - Math.exp(-z * w0 * t) * (Math.cos(wd * t) + (z * w0 / wd) * Math.sin(wd * t)); }
-    if (z === 1) return 1 - Math.exp(-w0 * t) * (1 + w0 * t);
-    const s = Math.sqrt(z * z - 1), r1 = -w0 * (z - s), r2 = -w0 * (z + s);
-    return 1 - (r2 * Math.exp(r1 * t) - r1 * Math.exp(r2 * t)) / (r2 - r1); };
-  /** progress 0..1 over the animation's time base -> eased 0..1 (may overshoot) */
-  return { ease: (p: number) => (p >= 1 ? 1 : p <= 0 ? 0 : x(p * baseMs)), baseMs };
+    const z = c.bounce < 0 ? 1 / Math.max(1 + c.bounce, .05) : Math.max(1 - c.bounce, .05), root = 2 * Math.PI / (c.visualDuration * 1.2);
+    k = root * root; d = 2 * z * Math.sqrt(k); timeDefined = true;
+  } else { k = c.stiffness; d = c.damping; m = c.mass; }
+  const u = d / (2 * Math.sqrt(k * m)), w = Math.sqrt(k / m) / 1000, g = u * w;   // per ms
+  let pos: (t: number) => number, vel: (t: number) => number;
+  if (u < 1) {
+    const s = w * Math.sqrt(1 - u * u), A = g / s, sinC = g * A + s, cosC = g - A * s;
+    pos = (t) => 1 - Math.exp(-g * t) * (A * Math.sin(s * t) + Math.cos(s * t));
+    vel = (t) => Math.exp(-g * t) * (sinC * Math.sin(s * t) + cosC * Math.cos(s * t));
+  } else if (u === 1) {
+    pos = (t) => 1 - Math.exp(-w * t) * (1 + w * t);
+    vel = (t) => Math.exp(-w * t) * (w * w * t);
+  } else {
+    const s = w * Math.sqrt(u * u - 1), a = g - s, b = g + s, cut = s < 1 || timeDefined ? Infinity : 300 / s;
+    const C = (x: number, t: number) => Math.exp(t > cut ? (g - x) * cut - g * t : -x * t);
+    const X = g / s, S = (1 + X) / 2, F = (1 - X) / 2;
+    pos = (t) => 1 - S * C(a, t) - F * C(b, t);
+    vel = (t) => a * S * C(a, t) + b * F * C(b, t);
+  }
+  return (ms) => { if (ms <= 0) return 0; const p = pos(ms); return Math.abs(vel(ms) * 1000) <= .01 && Math.abs(1 - p) <= .005 ? 1 : p; };
+}
+const visMs = (c: Spring) => ('visualDuration' in c ? c.visualDuration : .8) * 1000;
+/** spring that is exactly 1 after 1.6 x its visual duration */
+function capped(c: Spring) { const f = spring(c), end = visMs(c) * 1.6; return { at: (t: number) => (t >= end ? 1 : f(t)), end }; }
+const KB = capped(GEO.kbSpring);
+
+/** user action first (tap ms), then the motion, optionally time-scaled so the motion lasts `total` ms (0 = natural) */
+function withTap(m: Raw, tap: number, total: number, pressBlock: boolean): Timeline {
+  const f = total > 0 && m.motionEnd > 0 ? total / m.motionEnd : 1;
+  return { duration: m.duration * f + tap, motionEnd: m.motionEnd * f + tap,
+    at: (t) => ({ ...m.at(Math.max(0, t - tap) / f), pressed: pressBlock && t >= 60 }) };
+}
+/** falling block (open: the untapped ones; focus: all of them) */
+function faller(d: { cx: number; cy: number; r: number }, dly: number, vy: number, vx: number, w: number, sg: number, wobble: number, g: number) {
+  return (t: number): Pose => { const u = Math.max(0, (t - dly) / 1000), q = .22 * (1 - Math.exp(-u / .22));
+    return { cx: d.cx + vx * q * 1.6, cy: d.cy + vy * u + .5 * g * u * u, r: d.r + w * (u - q) + wobble * sg * Math.sin(u * 18) * Math.exp(-u * 7), s: 1, o: 1 }; };
 }
 
-/** user action first (tapMs), then the animation, optionally time-scaled to `totalMs` */
-function withTap(base: Timeline & { motionEnd: number }, tapMs: number, totalMs: number, block = -1): Timeline {
-  const f = totalMs > 0 ? totalMs / base.motionEnd : 1;
-  return { duration: base.duration * f + tapMs,
-    at: (t) => ({ ...base.at(Math.max(0, t - tapMs) / f), pressed: block >= 0 && t >= 60 ? block : -1 }) };  // tapped block turns dark 60 ms after touch-down
-}
-
-/* ---------- OPEN: user taps block `i` ---------- */
-export function open(i: number, seed = (Math.random() * 2 ** 31) | 0, p = P.open, L: Layout = LAYOUT): Timeline {
-  const rnd = mulberry32(seed), RR = (a: number, b: number) => a + rnd() * (b - a);
-  const td = L.rest[i], TX = L.landing.x, TY = L.landing.y;   // where the tapped block lands (next to the student message)
-  const sp = springSampler(p.spring), mD = sp.baseMs, g = p.gravity, OFF = 990, mAt = p.morphAt;
-  const msgAt = p.move * mAt, fadeD = p.move * (1 - mAt), tutAt = msgAt + 850;
-  const others = L.rest.map((_, j) => j).filter((j) => j !== i).map((j) => {
-    const d = L.rest[j], sd = rnd(), sr = RR(-1, 1), dr = RR(-1, 1), st = rnd();          // draw order matters for parity
-    const delay = p.ripple * Math.abs(j - i) + st * p.start, vy = p.kick, sg = sd < .5 ? 1 : -1;
-    const w = sg * p.spin * (1 + sr * p.spinRand / 100), vx = dr * p.drift;
-    const tau = (-vy + Math.sqrt(vy * vy + 2 * g * Math.max(OFF - d.cy, 0))) / g + .1;
-    return { j, d, delay, vy, vx, w, sg, end: delay + tau };
-  });
-  const motionEnd = Math.max(mD, ...others.map((n) => n.end)) + 100;
-  const doneAt = p.loading > 0 ? tutAt + p.loading : Infinity;
-  const duration = Math.max(motionEnd, isFinite(doneAt) ? doneAt + 500 : tutAt + 1200);
-  const at = (t: number): Frame => {
-    const blocks: Pose[] = [], e = sp.ease(clamp(t / mD, 0, 1)), pc = clamp(e, 0, 1), pb = Math.sin(Math.PI * pc);
-    blocks[i] = { cx: td.cx + (TX - td.cx) * e - p.arc * pb, cy: td.cy + (TY - td.cy) * e, rot: td.r * (1 - pc) - p.flySpin * pc,
-                  scale: 1 + .07 * Math.sin(Math.PI * clamp(t / mD, 0, 1)), opacity: 1 - clamp((t - msgAt) / fadeD, 0, 1) };
-    for (const n of others) {
-      const u = Math.max(0, (t - n.delay) / 1000), q = .22 * (1 - Math.exp(-u / .22));   // spin + drift ease in
-      blocks[n.j] = { cx: n.d.cx + n.vx * q * 1.6, cy: n.d.cy + n.vy * u + .5 * g * u * u,
-                      rot: n.d.r + n.w * (u - q) + p.wobble * n.sg * Math.sin(u * 18) * Math.exp(-u * 7), scale: 1, opacity: 1 };
-    }
-    return { blocks, intro: 1 - clamp(t / 450, 0, 1), student: clamp((t - msgAt) / (fadeD + 250), 0, 1), studentRise: p.rise,
-             tutor: clamp((t - tutAt) / 600, 0, 1), tutorDone: t >= doneAt, pressed: -1 };
-  };
-  return withTap({ duration, motionEnd, at }, p.tap, p.total, i);
-}
-
-/* ---------- BACK: user taps "+" while the chat is open (blocks fall back in from below) ---------- */
-export function back(seed = (Math.random() * 2 ** 31) | 0, p = P.back, L: Layout = LAYOUT): Timeline {
-  const rnd = mulberry32(seed), RR = (a: number, b: number) => a + rnd() * (b - a);
-  const sp = springSampler(p.spring), D = sp.baseMs, N = L.rest.length;
-  const items = L.rest.map((d, j) => {
-    const delay = (N - 1 - j) * p.stagger * 1.3;                                          // lowest block first
-    RR(0, 1); const rot = RR(-1, 1) * 80 * p.rand, xo = RR(-1, 1);                        // dist (unused), rot, xo
-    return { d, delay, sx: d.cx + xo * 170, sy: 910 + RR(0, 1) * 60 + j * 14, sr: d.r + rot * .6 };
-  });
-  const introAt = D * .45, motionEnd = Math.max(...items.map((it) => it.delay + D)) + 100;
-  const duration = Math.max(motionEnd, introAt + 500, 500);
-  const at = (t: number): Frame => ({
-    blocks: items.map((it) => { const e = sp.ease((t - it.delay) / D);
-      return { cx: it.sx + (it.d.cx - it.sx) * e, cy: it.sy + (it.d.cy - it.sy) * e, rot: it.sr + (it.d.r - it.sr) * e, scale: 1, opacity: 1 }; }),
-    intro: clamp((t - introAt) / 450, 0, 1),
-    student: 1 - clamp(t / 450, 0, 1), studentRise: 14, tutor: 1 - clamp(t / 450, 0, 1), tutorDone: true, pressed: -1,
-  });
-  return withTap({ duration, motionEnd, at }, p.tap, p.total);
-}
-
-/* ---------- ENTER: user opens the AI Tutor tab (blocks arrive near their place, text last) ---------- */
-export function enter(seed = (Math.random() * 2 ** 31) | 0, p = P.enter, L: Layout = LAYOUT): Timeline {
-  const rnd = mulberry32(seed), RR = (a: number, b: number) => a + rnd() * (b - a);   // only used to keep parity of the draw order
-  const r2 = mulberry32((seed ^ 0x9e3779b9) >>> 0), R2 = (a: number, b: number) => a + r2() * (b - a);
-  const sp = springSampler(p.spring), D = sp.baseMs, mid = (L.rest.length - 1) / 2;
-  const items = L.rest.map((d, j) => {
-    const side = j < mid ? -1 : j > mid ? 1 : 0;
-    const delay = R2(0, 1) * p.stagger * 3;
-    RR(0, 1); RR(-1, 1); RR(-1, 1);
+/* ---------- ENTER: user opens the AI Tutor tab ---------- */
+export function enter(seed = (Math.random() * 2 ** 31) | 0, p = P.enter, L = REST): Timeline {
+  const rnd = mulberry32(seed), r2 = mulberry32((seed ^ 0x9e3779b9) >>> 0), R2 = (a: number, b: number) => a + r2() * (b - a);
+  const sp = capped(p.spring), D = visMs(p.spring) * 1.6, mid = (L.length - 1) / 2;
+  const items = L.map((d, j) => {
+    const side = j < mid ? -1 : j > mid ? 1 : 0, dly = R2(0, 1) * p.stagger * 3;
+    rnd(); rnd(); rnd();                                         // unused draws, keep the order
     const hx = (R2(0, 1) < .5 ? -1 : 1) * (130 + R2(0, 1) * 150), vy = side * (110 + R2(0, 1) * 140);
     const tilt = (R2(0, 1) < .5 ? -1 : 1) * (16 + R2(0, 1) * 30) * p.rand;
-    return { d, delay, sx: d.cx + hx, sy: d.cy + vy, sr: d.r + tilt };
+    return { d, dly, sx: d.cx + hx, sy: d.cy + vy, sr: d.r + tilt };
   });
-  const motionEnd = Math.max(...items.map((it) => it.delay + D)) + 100;
-  const duration = Math.max(motionEnd, p.textAt + 500);
-  const at = (t: number): Frame => ({
-    blocks: items.map((it) => { const e = sp.ease((t - it.delay) / D);
-      return { cx: it.sx + (it.d.cx - it.sx) * e, cy: it.sy + (it.d.cy - it.sy) * e, rot: it.sr + (it.d.r - it.sr) * e, scale: 1,
-               opacity: bezOpacity((t - it.delay) / 350) }; }),
-    intro: clamp((t - p.textAt) / 450, 0, 1), student: 0, studentRise: 14, tutor: 0, tutorDone: false, pressed: -1,
-  });
-  return withTap({ duration, motionEnd, at }, p.tap, p.total);
+  const motion = Math.max(...items.map((it) => it.dly + D));
+  const raw: Raw = { motionEnd: motion + 100, duration: Math.max(motion + 100, p.textAt + 500),
+    at: (t) => ({ blocks: items.map((it) => { const e = sp.at(t - it.dly);
+        return { cx: it.sx + (it.d.cx - it.sx) * e, cy: it.sy + (it.d.cy - it.sy) * e, r: it.sr + (it.d.r - it.sr) * e, s: 1, o: bezOpacity((t - it.dly) / 350) }; }),
+      intro: clamp((t - p.textAt) / 450, 0, 1), stu: 0, tut: 0, done: false }) };
+  return withTap(raw, p.tap, p.total, false);
 }
 
-/* ---------- DESKTOP HOVER WIGGLE (pointer devices only) ----------
+/* ---------- OPEN: user taps block i (it flies into the student message and becomes its text) ---------- */
+export function open(i: number, seed = (Math.random() * 2 ** 31) | 0, p = P.open, L = REST): Timeline {
+  const rnd = mulberry32(seed), RR = (a: number, b: number) => a + rnd() * (b - a), td = L[i];
+  const TX = GEO.msgTextLeft - GEO.labelLeft + BLOCK.w / 2, TY = GEO.msgTextCy;
+  const fx = capped(p.flyX), fy = capped(p.flyY), F = Math.max(visMs(p.flyX), visMs(p.flyY)), flightEnd = Math.max(fx.end, fy.end);
+  const surfAt = F * p.surfAt / 100, surfD = Math.max(1, F * p.surfDur / 100), txtAt = F * p.textAt / 100, txtD = Math.max(1, F * p.textDur / 100);
+  const metaAt = F * p.metaAt / 100, tutAt = F + p.tutorDelay, straight = Math.max(.01, p.straighten / 100), g = p.gravity;
+  const others = L.map((_, j) => j).filter((j) => j !== i).map((j) => {
+    const d = L[j], sd = rnd(), sr = RR(-1, 1), dr = RR(-1, 1), st = rnd();            // draw order matters for parity
+    const dly = p.ripple * Math.abs(j - i) + st * p.start, sg = sd < .5 ? 1 : -1, vy = p.kick;
+    const tau = (-vy + Math.sqrt(vy * vy + 2 * g * Math.max(GEO.offscreen - d.cy, 0))) / g + .1;
+    return { j, end: dly + tau, at: faller(d, dly, vy, dr * p.drift, sg * p.spin * (1 + sr * p.spinRand / 100), sg, p.wobble, g) };
+  });
+  const K = GEO.msgFont / GEO.chipFont, doneAt = p.loading > 0 ? tutAt + p.loading : Infinity;
+  const motionEnd = Math.max(flightEnd, metaAt + p.metaFade, ...others.map((n) => n.end)) + 100;
+  const raw: Raw = { motionEnd, duration: Math.max(motionEnd, isFinite(doneAt) ? doneAt + 500 : tutAt + 1200),
+    at: (t) => {
+      const pf = clamp(t / F, 0, 1), landed = t >= flightEnd, txe = bezOpacity(clamp((t - txtAt) / txtD, 0, 1)), blocks: Pose[] = [];
+      blocks[i] = { cx: td.cx + (TX - td.cx) * fx.at(t), cy: td.cy + (TY - td.cy) * fy.at(t), r: td.r * (1 - bezMsg(clamp(pf / straight, 0, 1))),
+                    s: 1 + p.lift / 100 * Math.sin(Math.PI * pf), o: landed ? 0 : 1 };
+      for (const n of others) blocks[n.j] = n.at(t);
+      return { blocks, intro: 1 - clamp(t / 450, 0, 1), rise: p.metaRise, stu: clamp((t - metaAt) / Math.max(1, p.metaFade), 0, 1), stuText: landed ? 1 : 0,
+               tut: clamp((t - tutAt) / 600, 0, 1), done: t >= doneAt,
+               morph: { i, surface: 1 - bezOpacity(clamp((t - surfAt) / surfD, 0, 1)), chip: 1 - txe, chipScale: 1 + (K - 1) * txe, msg: txe, msgScale: 1 / K + (1 - 1 / K) * txe } };
+    } };
+  return withTap(raw, p.tap, p.total, true);
+}
+
+/* ---------- BACK: user taps "+" in the chat (also BACK OUT, see below) ----------
+ * Blocks rise in from just below the screen (lowest first), chat fades out, intro fades back in, keyboard (if up) goes down. */
+export function back(from: Frame, seed = (Math.random() * 2 ** 31) | 0, p = P.back, L = REST): Timeline {
+  const rnd = mulberry32(seed), RR = (a: number, b: number) => a + rnd() * (b - a);
+  const sp = capped(p.spring), D = visMs(p.spring) * 1.6, N = L.length;
+  const items = L.map((d, j) => {
+    const dly = (N - 1 - j) * p.stagger * 1.3 + p.blocksAt;
+    RR(0, 1); const rot = RR(-1, 1) * 80 * p.rand, xo = RR(-1, 1);                      // first draw unused, keep the order
+    return { d, dly, sx: d.cx + xo * 170, sy: 910 + RR(0, 1) * 60 + j * 14, sr: d.r + rot * .6 };
+  });
+  const introAt = D * p.introAt / 100, motion = Math.max(...items.map((it) => it.dly + D)), kb0 = from.kb ?? 0;
+  const raw: Raw = { motionEnd: motion + 100, duration: Math.max(motion + 100, introAt + p.introIn + 50, 500),
+    at: (t) => ({ ...(kb0 ? { kb: kb0 * (1 - KB.at(t)) } : {}),
+      blocks: items.map((it) => { const e = sp.at(t - it.dly);
+        return { cx: it.sx + (it.d.cx - it.sx) * e, cy: it.sy + (it.d.cy - it.sy) * e, r: it.sr + (it.d.r - it.sr) * e, s: 1, o: 1 }; }),
+      intro: from.intro + (1 - from.intro) * clamp((t - introAt) / p.introIn, 0, 1),
+      stu: from.stu * (1 - clamp(t / p.chatOut, 0, 1)), tut: from.tut * (1 - clamp(t / p.chatOut, 0, 1)), done: from.done }) };
+  return withTap(raw, p.tap, p.total, false);
+}
+/** BACK OUT: leaving the field without sending (tap outside, keyboard swiped down, app switch). Identical to back(), started
+ *  from the Focus state: blocks rise back in, keyboard goes down, the intro (still visible) stays. */
+export const backOut = (from: Frame, seed?: number) => back(from, seed);
+
+/* ---------- FOCUS: user taps the message field ----------
+ * Keyboard slides up right away; the blocks let go `blocksAt` ms later, lowest block first (`ripple` ms apart), and fall. */
+export function focus(seed = (Math.random() * 2 ** 31) | 0, p = P.focus, L = REST): Timeline {
+  const rnd = mulberry32(seed), RR = (a: number, b: number) => a + rnd() * (b - a), g = p.gravity, N = L.length;
+  const ns = L.map((d, j) => {
+    const sd = rnd(), sr = RR(-1, 1), dr = RR(-1, 1), dly = p.blocksAt + p.ripple * (N - 1 - j), sg = sd < .5 ? 1 : -1, vy = p.kick;
+    const tau = (-vy + Math.sqrt(vy * vy + 2 * g * Math.max(GEO.offscreen - d.cy, 0))) / g + .1;
+    return { end: dly + tau * 1000, at: faller(d, dly, vy, dr * p.drift, sg * p.spin * (1 + sr * .55), sg, 7, g) };
+  });
+  const motionEnd = Math.max(KB.end, ...ns.map((n) => n.end)) + 60;
+  const raw: Raw = { motionEnd, duration: motionEnd + 200,
+    at: (t) => ({ blocks: ns.map((n) => n.at(t)), intro: 1, stu: 0, tut: 0, done: false, kb: KB.at(t) }) };
+  return withTap(raw, p.tap, p.total, false);
+}
+
+/* ---------- SEND: user sends a typed message (keyboard stays up) ----------
+ * The text lifts out of the field and lands on the student message line on two springs (Y up, X left: slight arc). */
+export function send(text: string, p = P.send, L = REST): Timeline {
+  const fx = capped(p.flyX), fy = capped(p.flyY), F = Math.max(visMs(p.flyX), visMs(p.flyY)), flightEnd = Math.max(fx.end, fy.end);
+  const x0 = GEO.fieldTextLeft, y0 = GEO.fieldTextCy + GEO.kbInputDy, x1 = GEO.msgTextLeft, y1 = GEO.msgTextCy;
+  const metaAt = F * p.metaAt / 100, tutAt = F + p.tutorDelay, motionEnd = Math.max(flightEnd, metaAt + p.metaFade) + 100;
+  const raw: Raw = { motionEnd, duration: Math.max(motionEnd, tutAt + 1200),
+    at: (t) => { const landed = t >= flightEnd;
+      return { blocks: L.map((d) => ({ cx: d.cx, cy: 1100, r: d.r, s: 1, o: 0 })), intro: 1 - clamp(t / 450, 0, 1), rise: p.metaRise,
+        stu: clamp((t - metaAt) / Math.max(1, p.metaFade), 0, 1), stuText: landed ? 1 : 0, tut: clamp((t - tutAt) / 600, 0, 1), done: false, kb: 1,
+        fly: { x: x0 + (x1 - x0) * fx.at(t), cy: y0 + (y1 - y0) * fy.at(t), o: landed ? 0 : 1, text } }; } };
+  return withTap(raw, p.tap, p.total, false);
+}
+
+/* ---------- DESKTOP HOVER WIGGLE (pointer devices only; never on its own) ----------
  * On pointer-enter: ONE random jolt, then it springs back. The hovered element also gets a light grey fill (#ececec).
  * Jolt: transition to the offset in 180 ms, cubic-bezier(.2,.9,.3,1.2). After 110 ms: return to 0 in 500 ms, cubic-bezier(.2,1.4,.4,1).
  * On pointer-leave: return immediately (same return curve). Not active while an animation runs / after a block was tapped. */
@@ -1617,91 +1771,91 @@ export function wiggleOffset(rnd: () => number = Math.random, amount = P.wiggle)
 }
 
 /* ---------- usage (web) ----------
-const tl = open(1);                       // user tapped block 1
-const t0 = performance.now();
-(function frame(now: number) {
-  const t = now - t0, f = tl.at(t);
-  f.blocks.forEach((b, j) => { const el = blockEls[j];
-    el.style.transform = `translate(${b.cx - BLOCK.w / 2}px, ${b.cy - BLOCK.h / 2}px) rotate(${b.rot}deg) scale(${b.scale})`;
-    el.style.opacity = String(b.opacity); el.classList.toggle('pressed', f.pressed === j && t > 60); });
-  introEl.style.opacity = String(f.intro);
-  studentEl.style.opacity = String(f.student); studentEl.style.transform = `translateY(${f.studentRise * (1 - bezMsg(f.student))}px)`;
-  if (t < tl.duration) requestAnimationFrame(frame);
-})(t0);
-// Note: scale the artboard (402 px wide) with one CSS transform / device-width factor, never per element.
+let tl = open(1), t0 = performance.now();                  // user tapped block 1
+(function tick(now: number) { const t = now - t0; setFrame(tl.at(t)); if (t < tl.duration) requestAnimationFrame(tick); })(t0);
+// "+" later: tl = back(tl.at(now - t0)); t0 = now; ...    // back starts from what is on screen
+// Field: tl = focus(); ... leave without sending: tl = backOut(tl.at(t)); ... send: tl = send(text); then "+": tl = back(tl.at(t))
+// <AiTutorScreen frame={frame} tapped={1} prompt={text} />  // the screen code renders the frame
 */
-
 ````
 ````dart motion:ref-dart
-// AI Tutor use-case blocks – motion model (V2, final values).
-// Pure functions of time: `at(tMs)` -> poses. Port of ai-tutor-blocks.ts (identical numbers; see test-vectors.json).
-// ELEMENT CONTRACT: the engine never touches content, size or styling. It only outputs a pose per element index
-// (centre x/y, rotation, scale, opacity) plus opacity/translateY for three text layers (intro, student, tutor).
-// Swap the elements freely (other cards, any N); give the engine their rest poses via `Layout`.
-// Artboard: 402 x 874 logical px (scale the whole artboard once by width / 402). Block: 231.5 x 50.
-// Angles in degrees, time in ms. Drive with a Ticker / AnimationController (see AiTutorBlocksView below).
-import 'dart:async';
+// AI Tutor use-case blocks – motion model (V3, final values). Port of the TypeScript reference (motion:ref-ts), same numbers.
+// Pure functions of time: at(tMs) -> ScreenFrame, the exact frame the screen code (motion:screen-dart) renders.
+// Save the screen code as ai_tutor_screen.dart next to this file (or change the import).
+//
+// Animations (every one starts with the user action: `tap` ms finger down, then the motion):
+//   enter()          user opens the AI Tutor tab: blocks arrive near their place, intro text last
+//   open(i)          user taps block i: it flies into the student message and becomes its text; the others fall
+//   back(from)       user taps "+" in the chat: chat fades, blocks rise back in from below, intro returns
+//   focus()          user taps the message field: keyboard slides up, all blocks break away (bottom first)
+//   backOut(from)    user leaves the field without sending: same as back(), keyboard goes down, intro stays
+//   send(text)       user sends a typed message: the text lifts out of the field and lands on the student message line
+// `from` = the frame on screen when the user acted (e.g. open(...).at(t)).
+// Artboard 402 x 874 logical px (scale the whole artboard once by width / 402). Angles in degrees, time in ms.
+// Check against the test vectors in the manifest (±0.01); the TS port passes them, this file mirrors it line by line.
 import 'dart:math' as math;
 import 'package:flutter/animation.dart' show Cubic;
-import 'package:flutter/material.dart';
-import 'package:flutter/physics.dart';
-import 'package:flutter/scheduler.dart';
-
-const artW = 402.0, artH = 874.0, blockW = 231.5, blockH = 50.0;   // artboard + the default block size (for positioning only)
+import 'ai_tutor_screen.dart' show Pose, Morph, Fly, ScreenFrame;
 
 class Rest { final double cx, cy, r; const Rest(this.cx, this.cy, this.r); }
-/// Where the elements rest, and where the tapped element lands (centre of its pose, artboard px).
-class Layout { final List<Rest> rest; final double landingX, landingY; const Layout(this.rest, this.landingX, this.landingY); }
-const defaultLayout = Layout([   // tower at rest (top -> bottom); any number of elements works
-  Rest(200.7, 434.9, -2), Rest(180.7, 490.4, 0), Rest(200.7, 546.4, 2), Rest(219.7, 601.9, -4), Rest(200.7, 658.0, -2),
-], 257.5, 164.8);   // landing = next to the student message
-
-/// Spring either by (visualDuration s, bounce) or explicit physics. Same maths as Motion's spring().
-class SpringCfg {
-  final double stiffness, damping, mass, baseMs;
-  const SpringCfg._(this.stiffness, this.damping, this.mass, this.baseMs);
-  factory SpringCfg.visual(double visualDuration, double bounce) {
-    final z = bounce >= 0 ? 1 - bounce : 1 / (1 + bounce);
-    final root = 2 * math.pi / (visualDuration * 1.2), k = root * root;
-    return SpringCfg._(k, 2 * z * math.sqrt(k), 1, visualDuration * 1000 * 1.6);
-  }
-  factory SpringCfg.physics(double stiffness, double damping, double mass) => SpringCfg._(stiffness, damping, mass, 0.8 * 1000 * 1.6);
-  /// progress 0..1 over the animation's time base -> eased 0..1 (may overshoot)
-  double Function(double) sampler() {
-    final sim = SpringSimulation(SpringDescription(mass: mass, stiffness: stiffness, damping: damping), 0, 1, 0);
-    return (p) => p >= 1 ? 1 : (p <= 0 ? 0 : sim.x(p * baseMs / 1000));
-  }
+/// Where the elements rest (tower, top -> bottom). Any number of elements works.
+const rest = [Rest(200.7, 434.9, -2), Rest(180.7, 490.4, 0), Rest(200.7, 546.4, 2), Rest(219.7, 601.9, -4), Rest(200.7, 658.0, -2)];
+const blockW = 231.5;
+/// Measured geometry (artboard px).
+class Geo {
+  static const msgTextLeft = 68.0, msgTextCy = 163.6;      // student message text line: left edge, line centre
+  static const labelLeft = 44.0, chipFont = 12.0, msgFont = 14.0;
+  static const fieldTextLeft = 81.0, fieldTextCy = 755.0;  // text in the message field (keyboard down)
+  static const kbInputDy = -245.0;                         // input bar offset when the keyboard is up
+  static const kbSpring = Spring.visual(0.38, 0);          // stand-in for the OS keyboard slide (use the real inset in the app)
+  static const offscreen = 990.0;
 }
 
-/// Final tuned values (V2). Change here only.
+/// Spring by (visualDuration s, bounce) or explicit physics.
+class Spring {
+  final double? visualDuration, bounce, stiffness, damping, mass;
+  const Spring.visual(double this.visualDuration, double this.bounce) : stiffness = null, damping = null, mass = null;
+  const Spring.physics(double this.stiffness, double this.damping, double this.mass) : visualDuration = null, bounce = null;
+  double get visMs => (visualDuration ?? .8) * 1000;
+}
+
+class EnterP { final double tap, total, stagger, rand, textAt; final Spring spring;
+  const EnterP({required this.tap, required this.total, required this.stagger, required this.rand, required this.textAt, required this.spring}); }
+class OpenP { final double tap, total, straighten, lift, surfAt, surfDur, textAt, textDur, metaAt, metaFade, metaRise, tutorDelay, loading,
+    ripple, start, kick, gravity, spin, spinRand, drift, wobble; final Spring flyX, flyY;
+  const OpenP({required this.tap, required this.total, required this.flyX, required this.flyY, required this.straighten, required this.lift,
+    required this.surfAt, required this.surfDur, required this.textAt, required this.textDur, required this.metaAt, required this.metaFade,
+    required this.metaRise, required this.tutorDelay, required this.loading, required this.ripple, required this.start, required this.kick,
+    required this.gravity, required this.spin, required this.spinRand, required this.drift, required this.wobble}); }
+class BackP { final double tap, total, stagger, rand, blocksAt, introAt, introIn, chatOut; final Spring spring;
+  const BackP({required this.tap, required this.total, required this.stagger, required this.rand, required this.blocksAt, required this.introAt,
+    required this.introIn, required this.chatOut, required this.spring}); }
+class FocusP { final double tap, total, blocksAt, ripple, kick, gravity, spin, drift;
+  const FocusP({required this.tap, required this.total, required this.blocksAt, required this.ripple, required this.kick, required this.gravity,
+    required this.spin, required this.drift}); }
+class SendP { final double tap, total, metaAt, metaFade, metaRise, tutorDelay; final Spring flyX, flyY;
+  const SendP({required this.tap, required this.total, required this.flyX, required this.flyY, required this.metaAt, required this.metaFade,
+    required this.metaRise, required this.tutorDelay}); }
+
+/// Final tuned values (V3). Change here only.
 // <<PARAMS
-class OpenP {
-  static const tap = 170.0, total = 1800.0, move = 420.0, morphAt = 0.23, rise = 68.0, gravity = 3500.0, kick = -10.0,
-      spin = 235.0, spinRand = 55.0, drift = 310.0, start = 0.0, wobble = 7.0, flySpin = 58.0, arc = 0.0, ripple = 70.0, loading = 1800.0;
-  static final spring = SpringCfg.physics(101, 15, 3.4);
+class P {
+  static const enter = EnterP(tap: 150.0, total: 1190.0, stagger: 40.0, rand: 0.67, textAt: 190.0, spring: Spring.visual(0.25, 0.25));
+  static const open = OpenP(tap: 150.0, total: 1500.0, flyX: Spring.visual(0.62, 0.06), flyY: Spring.visual(0.55, 0.12), straighten: 60.0, lift: 5.0, surfAt: 25.0, surfDur: 45.0, textAt: 35.0, textDur: 30.0, metaAt: 72.0, metaFade: 240.0, metaRise: 8.0, tutorDelay: 350.0, loading: 1800.0, ripple: 70.0, start: 0.0, kick: -10.0, gravity: 3500.0, spin: 235.0, spinRand: 55.0, drift: 310.0, wobble: 7.0);
+  static const back = BackP(tap: 150.0, total: 1200.0, stagger: 70.0, rand: 1.0, blocksAt: 0.0, introAt: 45.0, introIn: 450.0, chatOut: 450.0, spring: Spring.visual(0.8, 0.2));
+  static const focus = FocusP(tap: 150.0, total: 0.0, blocksAt: 40.0, ripple: 35.0, kick: -60.0, gravity: 3500.0, spin: 200.0, drift: 220.0);
+  static const send = SendP(tap: 150.0, total: 0.0, flyX: Spring.visual(0.62, 0.06), flyY: Spring.visual(0.55, 0.12), metaAt: 72.0, metaFade: 240.0, metaRise: 8.0, tutorDelay: 350.0);
+  static const wiggle = 0.4;
 }
-class BackP { static const tap = 240.0, total = 1200.0, stagger = 70.0, rand = 1.0; static final spring = SpringCfg.visual(0.8, 0.2); }
-class EnterP { static const tap = 240.0, total = 1190.0, stagger = 95.0, rand = 0.67, textAt = 190.0; static final spring = SpringCfg.visual(0.25, 0.25); }
-const wiggleAmount = 0.4;   // desktop hover wiggle strength (0 = off)
 // PARAMS>>
 
-class Pose { final double cx, cy, rot, scale, opacity; const Pose(this.cx, this.cy, this.rot, this.scale, this.opacity); }
-class Frame {
-  final List<Pose> blocks;      // index = block index (0 = top)
-  final double intro;           // headline + illustration + subtitle opacity
-  final double student, studentRise;  // student message opacity; translateY = rise * (1 - bezMsg(opacity))
-  final double tutor;           // tutor message opacity (translateY 14)
-  final bool tutorDone;         // false = loading dots, true = reply text
-  final int pressed;            // tapped (dark) block index, -1 = none
-  const Frame(this.blocks, this.intro, this.student, this.studentRise, this.tutor, this.tutorDone, this.pressed);
-  Frame withPressed(int p) => Frame(blocks, intro, student, studentRise, tutor, tutorDone, p);
-}
-class Timeline { final double duration; final Frame Function(double) at; const Timeline(this.duration, this.at); }
+class Timeline { final double duration, motionEnd; final ScreenFrame Function(double t) at; const Timeline(this.duration, this.motionEnd, this.at); }
 
+/* ---------- helpers ---------- */
 double _clamp(double v, double a, double b) => math.max(a, math.min(b, v));
-const bezOpacity = Cubic(.25, .1, .25, 1);   // Flutter's Cubic is the same CSS cubic-bezier
-const bezMsg = Cubic(.2, .8, .2, 1);
-double _bez(Cubic c, double x) => x <= 0 ? 0 : (x >= 1 ? 1 : c.transform(x));
+const _bezOpacity = Cubic(.25, .1, .25, 1), _bezMsg = Cubic(.2, .8, .2, 1);   // Flutter's Cubic = CSS cubic-bezier
+double bezOpacity(double x) => x <= 0 ? 0 : (x >= 1 ? 1 : _bezOpacity.transform(x));
+double bezMsg(double x) => x <= 0 ? 0 : (x >= 1 ? 1 : _bezMsg.transform(x));
 
 // mulberry32 – 32-bit safe (also on Flutter web, where ints are doubles)
 int _imul(int a, int b) { a &= 0xFFFFFFFF; b &= 0xFFFFFFFF; final ah = a >>> 16, al = a & 0xFFFF;
@@ -1713,144 +1867,168 @@ double Function() mulberry32(int seed) {
     var t = a;
     t = _imul(t ^ (t >>> 15), t | 1);
     t = (t ^ ((t + _imul(t ^ (t >>> 7), t | 61)) & 0xFFFFFFFF)) & 0xFFFFFFFF;
-    return (((t ^ (t >>> 14)) & 0xFFFFFFFF)) / 4294967296.0;
+    return ((t ^ (t >>> 14)) & 0xFFFFFFFF) / 4294967296.0;
   };
 }
+int _randomSeed() => math.Random().nextInt(1 << 31);
 
-/// user action first (tapMs), then the animation, time-scaled so its motion lasts `totalMs`
-Timeline _withTap(double duration, double motionEnd, Frame Function(double) base, double tapMs, double totalMs, [int block = -1]) {
-  final f = totalMs > 0 ? totalMs / motionEnd : 1.0;
-  return Timeline(duration * f + tapMs, (t) => base(math.max(0, t - tapMs) / f).withPressed(block >= 0 && t >= 60 ? block : -1));
-}
-
-// ---------- OPEN: user taps block i ----------
-Timeline openAnim(int i, {int? seed, Layout layout = defaultLayout}) {
-  final rest = layout.rest;
-  final rnd = mulberry32(seed ?? math.Random().nextInt(1 << 31));
-  double rr(double a, double b) => a + rnd() * (b - a);
-  final td = rest[i]; final tx = layout.landingX, ty = layout.landingY;   // where the tapped block lands (next to the student message)
-  final sp = OpenP.spring.sampler(), mD = OpenP.spring.baseMs, g = OpenP.gravity, mAt = OpenP.morphAt;
-  final msgAt = OpenP.move * mAt, fadeD = OpenP.move * (1 - mAt), tutAt = msgAt + 850;
-  final others = <_Fall>[];
-  for (var j = 0; j < rest.length; j++) {
-    if (j == i) continue;
-    final d = rest[j], sd = rnd(), sr = rr(-1, 1), dr = rr(-1, 1), st = rnd();   // draw order matters for parity
-    final delay = OpenP.ripple * (j - i).abs() + st * OpenP.start, vy = OpenP.kick, sg = sd < .5 ? 1.0 : -1.0;
-    final w = sg * OpenP.spin * (1 + sr * OpenP.spinRand / 100), vx = dr * OpenP.drift;
-    final tau = (-vy + math.sqrt(vy * vy + 2 * g * math.max(990 - d.cy, 0))) / g + .1;
-    others.add(_Fall(j, d, delay, vy, vx, w, sg, delay + tau));
+/// Spring 0 -> 1 by elapsed ms. Same maths as Motion's spring() (motion.dev), including its rest snap
+/// (value becomes exactly 1 once speed <= 0.01/s and distance <= 0.005). Returns 0 for ms <= 0.
+double Function(double) spring(Spring c) {
+  double k, d, m = 1; var timeDefined = false;
+  if (c.visualDuration != null) {
+    final b = c.bounce!, z = b < 0 ? 1 / math.max(1 + b, .05) : math.max(1 - b, .05), root = 2 * math.pi / (c.visualDuration! * 1.2);
+    k = root * root; d = 2 * z * math.sqrt(k); timeDefined = true;
+  } else { k = c.stiffness!; d = c.damping!; m = c.mass!; }
+  final u = d / (2 * math.sqrt(k * m)), w = math.sqrt(k / m) / 1000, g = u * w;   // per ms
+  late double Function(double) pos, vel;
+  if (u < 1) {
+    final s = w * math.sqrt(1 - u * u), A = g / s, sinC = g * A + s, cosC = g - A * s;
+    pos = (t) => 1 - math.exp(-g * t) * (A * math.sin(s * t) + math.cos(s * t));
+    vel = (t) => math.exp(-g * t) * (sinC * math.sin(s * t) + cosC * math.cos(s * t));
+  } else if (u == 1) {
+    pos = (t) => 1 - math.exp(-w * t) * (1 + w * t);
+    vel = (t) => math.exp(-w * t) * (w * w * t);
+  } else {
+    final s = w * math.sqrt(u * u - 1), a = g - s, b = g + s, cut = s < 1 || timeDefined ? double.infinity : 300 / s;
+    double C(double x, double t) => math.exp(t > cut ? (g - x) * cut - g * t : -x * t);
+    final X = g / s, S = (1 + X) / 2, F = (1 - X) / 2;
+    pos = (t) => 1 - S * C(a, t) - F * C(b, t);
+    vel = (t) => a * S * C(a, t) + b * F * C(b, t);
   }
-  final motionEnd = math.max(mD, others.map((n) => n.end).reduce(math.max)) + 100;
-  final doneAt = tutAt + OpenP.loading;
-  final duration = math.max(motionEnd, doneAt + 500);
-  Frame at(double t) {
-    final blocks = List<Pose>.filled(rest.length, const Pose(0, 0, 0, 1, 1));
-    final e = sp(_clamp(t / mD, 0, 1)), pc = _clamp(e, 0, 1), pb = math.sin(math.pi * pc);
-    blocks[i] = Pose(td.cx + (tx - td.cx) * e - OpenP.arc * pb, td.cy + (ty - td.cy) * e, td.r * (1 - pc) - OpenP.flySpin * pc,
-        1 + .07 * math.sin(math.pi * _clamp(t / mD, 0, 1)), 1 - _clamp((t - msgAt) / fadeD, 0, 1));
-    for (final n in others) {
-      final u = math.max(0, (t - n.delay) / 1000), q = .22 * (1 - math.exp(-u / .22));   // spin + drift ease in
-      blocks[n.j] = Pose(n.d.cx + n.vx * q * 1.6, n.d.cy + n.vy * u + .5 * g * u * u,
-          n.d.r + n.w * (u - q) + OpenP.wobble * n.sg * math.sin(u * 18) * math.exp(-u * 7), 1, 1);
-    }
-    return Frame(blocks, 1 - _clamp(t / 450, 0, 1), _clamp((t - msgAt) / (fadeD + 250), 0, 1), OpenP.rise,
-        _clamp((t - tutAt) / 600, 0, 1), t >= doneAt, -1);
+  return (ms) { if (ms <= 0) return 0.0; final p = pos(ms); return (vel(ms) * 1000).abs() <= .01 && (1 - p).abs() <= .005 ? 1.0 : p; };
+}
+/// spring that is exactly 1 after 1.6 x its visual duration
+class _Capped { final double Function(double) f; final double end; _Capped(Spring c) : f = spring(c), end = c.visMs * 1.6;
+  double at(double t) => t >= end ? 1.0 : f(t); }
+final _kb = _Capped(Geo.kbSpring);
+
+/// Raw frame without `pressed`; withTap adds it.
+typedef _Raw = ScreenFrame Function(double t, bool pressed);
+/// user action first (tap ms), then the motion, optionally time-scaled so the motion lasts `total` ms (0 = natural)
+Timeline _withTap(double duration, double motionEnd, _Raw at, double tap, double total, bool pressBlock) {
+  final f = total > 0 && motionEnd > 0 ? total / motionEnd : 1.0;
+  return Timeline(duration * f + tap, motionEnd * f + tap, (t) => at(math.max(0, t - tap) / f, pressBlock && t >= 60));
+}
+/// falling block (open: the untapped ones; focus: all of them)
+Pose Function(double) _faller(Rest d, double dly, double vy, double vx, double w, double sg, double wobble, double g) => (t) {
+  final u = math.max(0.0, (t - dly) / 1000), q = .22 * (1 - math.exp(-u / .22));
+  return Pose(d.cx + vx * q * 1.6, d.cy + vy * u + .5 * g * u * u, d.r + w * (u - q) + wobble * sg * math.sin(u * 18) * math.exp(-u * 7), 1, 1);
+};
+double _tau(double vy, double g, double cy) => (-vy + math.sqrt(vy * vy + 2 * g * math.max(Geo.offscreen - cy, 0))) / g + .1;
+double _max(Iterable<double> xs) => xs.reduce(math.max);
+
+/* ---------- ENTER: user opens the AI Tutor tab ---------- */
+Timeline enter({int? seed, EnterP p = P.enter, List<Rest> L = rest}) {
+  final s0 = seed ?? _randomSeed(), rnd = mulberry32(s0), r2 = mulberry32((s0 ^ 0x9e3779b9) & 0xFFFFFFFF);
+  double R2(double a, double b) => a + r2() * (b - a);
+  final sp = _Capped(p.spring), D = p.spring.visMs * 1.6, mid = (L.length - 1) / 2;
+  final items = <({Rest d, double dly, double sx, double sy, double sr})>[];
+  for (var j = 0; j < L.length; j++) {
+    final d = L[j], side = j < mid ? -1 : (j > mid ? 1 : 0), dly = R2(0, 1) * p.stagger * 3;
+    rnd(); rnd(); rnd();                                             // unused draws, keep the order
+    final hx = (R2(0, 1) < .5 ? -1 : 1) * (130 + R2(0, 1) * 150), vy = side * (110 + R2(0, 1) * 140);
+    final tilt = (R2(0, 1) < .5 ? -1 : 1) * (16 + R2(0, 1) * 30) * p.rand;
+    items.add((d: d, dly: dly, sx: d.cx + hx, sy: d.cy + vy, sr: d.r + tilt));
   }
-  return _withTap(duration, motionEnd, at, OpenP.tap, OpenP.total, i);
+  final motion = _max(items.map((it) => it.dly + D));
+  return _withTap(math.max(motion + 100, p.textAt + 500), motion + 100, (t, pressed) => ScreenFrame(
+    blocks: [for (final it in items) () { final e = sp.at(t - it.dly);
+      return Pose(it.sx + (it.d.cx - it.sx) * e, it.sy + (it.d.cy - it.sy) * e, it.sr + (it.d.r - it.sr) * e, 1, bezOpacity((t - it.dly) / 350)); }()],
+    intro: _clamp((t - p.textAt) / 450, 0, 1), stu: 0, tut: 0, done: false, pressed: pressed), p.tap, p.total, false);
 }
-class _Fall { final int j; final Rest d; final double delay, vy, vx, w, sg, end; _Fall(this.j, this.d, this.delay, this.vy, this.vx, this.w, this.sg, this.end); }
 
-// ---------- BACK: user taps "+" while the chat is open ----------
-Timeline backAnim({int? seed, Layout layout = defaultLayout}) {
-  final rest = layout.rest;
-  final rnd = mulberry32(seed ?? math.Random().nextInt(1 << 31));
-  double rr(double a, double b) => a + rnd() * (b - a);
-  final sp = BackP.spring.sampler(), D = BackP.spring.baseMs, n = rest.length;
-  final items = <_In>[];
-  for (var j = 0; j < n; j++) {
-    final d = rest[j], delay = (n - 1 - j) * BackP.stagger * 1.3;       // lowest block first
-    rr(0, 1); final rot = rr(-1, 1) * 80 * BackP.rand, xo = rr(-1, 1);   // dist (unused), rot, xo
-    items.add(_In(d, delay, d.cx + xo * 170, 910 + rr(0, 1) * 60 + j * 14, d.r + rot * .6));
+/* ---------- OPEN: user taps block i (it flies into the student message and becomes its text) ---------- */
+Timeline open(int i, {int? seed, OpenP p = P.open, List<Rest> L = rest}) {
+  final rnd = mulberry32(seed ?? _randomSeed()); double rr(double a, double b) => a + rnd() * (b - a);
+  final td = L[i], tx = Geo.msgTextLeft - Geo.labelLeft + blockW / 2, ty = Geo.msgTextCy;
+  final fx = _Capped(p.flyX), fy = _Capped(p.flyY), F = math.max(p.flyX.visMs, p.flyY.visMs), flightEnd = math.max(fx.end, fy.end);
+  final surfAt = F * p.surfAt / 100, surfD = math.max(1.0, F * p.surfDur / 100), txtAt = F * p.textAt / 100, txtD = math.max(1.0, F * p.textDur / 100);
+  final metaAt = F * p.metaAt / 100, tutAt = F + p.tutorDelay, straight = math.max(.01, p.straighten / 100), g = p.gravity;
+  final others = <({int j, double end, Pose Function(double) at})>[];
+  for (var j = 0; j < L.length; j++) { if (j == i) continue;
+    final d = L[j], sd = rnd(), sr = rr(-1, 1), dr = rr(-1, 1), st = rnd();            // draw order matters for parity
+    final dly = p.ripple * (j - i).abs() + st * p.start, sg = sd < .5 ? 1.0 : -1.0, vy = p.kick;
+    others.add((j: j, end: dly + _tau(vy, g, d.cy), at: _faller(d, dly, vy, dr * p.drift, sg * p.spin * (1 + sr * p.spinRand / 100), sg, p.wobble, g)));
   }
-  final introAt = D * .45, motionEnd = items.map((it) => it.delay + D).reduce(math.max) + 100;
-  final duration = math.max(motionEnd, math.max(introAt + 500, 500));
-  Frame at(double t) => Frame([
-        for (final it in items) () { final e = sp((t - it.delay) / D);
-          return Pose(it.sx + (it.d.cx - it.sx) * e, it.sy + (it.d.cy - it.sy) * e, it.sr + (it.d.r - it.sr) * e, 1, 1); }()
-      ], _clamp((t - introAt) / 450, 0, 1), 1 - _clamp(t / 450, 0, 1), 14, 1 - _clamp(t / 450, 0, 1), true, -1);
-  return _withTap(duration, motionEnd, at, BackP.tap, BackP.total);
+  final K = Geo.msgFont / Geo.chipFont, doneAt = p.loading > 0 ? tutAt + p.loading : double.infinity;
+  final motionEnd = _max([flightEnd, metaAt + p.metaFade, ...others.map((n) => n.end)]) + 100;
+  return _withTap(math.max(motionEnd, doneAt.isFinite ? doneAt + 500 : tutAt + 1200), motionEnd, (t, pressed) {
+    final pf = _clamp(t / F, 0, 1), landed = t >= flightEnd, txe = bezOpacity(_clamp((t - txtAt) / txtD, 0, 1));
+    final blocks = List<Pose>.filled(L.length, const Pose(0, 0, 0, 1, 1));
+    blocks[i] = Pose(td.cx + (tx - td.cx) * fx.at(t), td.cy + (ty - td.cy) * fy.at(t), td.r * (1 - bezMsg(_clamp(pf / straight, 0, 1))),
+        1 + p.lift / 100 * math.sin(math.pi * pf), landed ? 0.0 : 1.0);
+    for (final n in others) { blocks[n.j] = n.at(t); }
+    return ScreenFrame(blocks: blocks, intro: 1 - _clamp(t / 450, 0, 1), rise: p.metaRise, stu: _clamp((t - metaAt) / math.max(1, p.metaFade), 0, 1),
+        stuText: landed ? 1.0 : 0.0, tut: _clamp((t - tutAt) / 600, 0, 1), done: t >= doneAt, pressed: pressed,
+        morph: Morph(i, 1 - bezOpacity(_clamp((t - surfAt) / surfD, 0, 1)), 1 - txe, 1 + (K - 1) * txe, txe, 1 / K + (1 - 1 / K) * txe));
+  }, p.tap, p.total, true);
 }
 
-// ---------- ENTER: user opens the AI Tutor tab (blocks arrive near their place, text last) ----------
-Timeline enterAnim({int? seed, Layout layout = defaultLayout}) {
-  final rest = layout.rest;
-  final s = seed ?? math.Random().nextInt(1 << 31);
-  final rnd = mulberry32(s); double rr(double a, double b) => a + rnd() * (b - a);       // kept only for parity of draw order
-  final r2 = mulberry32((s ^ 0x9e3779b9) & 0xFFFFFFFF); double r2r(double a, double b) => a + r2() * (b - a);
-  final sp = EnterP.spring.sampler(), D = EnterP.spring.baseMs, mid = (rest.length - 1) / 2;
-  final items = <_In>[];
-  for (var j = 0; j < rest.length; j++) {
-    final d = rest[j], side = j < mid ? -1.0 : (j > mid ? 1.0 : 0.0);
-    final delay = r2r(0, 1) * EnterP.stagger * 3;
-    rr(0, 1); rr(-1, 1); rr(-1, 1);
-    final hx = (r2r(0, 1) < .5 ? -1 : 1) * (130 + r2r(0, 1) * 150), vy = side * (110 + r2r(0, 1) * 140);
-    final tilt = (r2r(0, 1) < .5 ? -1 : 1) * (16 + r2r(0, 1) * 30) * EnterP.rand;
-    items.add(_In(d, delay, d.cx + hx, d.cy + vy, d.r + tilt));
+/* ---------- BACK: user taps "+" in the chat (also BACK OUT) ----------
+   Blocks rise in from just below the screen (lowest first), chat fades out, intro fades back in, keyboard (if up) goes down. */
+Timeline back(ScreenFrame from, {int? seed, BackP p = P.back, List<Rest> L = rest}) {
+  final rnd = mulberry32(seed ?? _randomSeed()); double rr(double a, double b) => a + rnd() * (b - a);
+  final sp = _Capped(p.spring), D = p.spring.visMs * 1.6, N = L.length;
+  final items = <({Rest d, double dly, double sx, double sy, double sr})>[];
+  for (var j = 0; j < N; j++) {
+    final d = L[j], dly = (N - 1 - j) * p.stagger * 1.3 + p.blocksAt;
+    rr(0, 1); final rot = rr(-1, 1) * 80 * p.rand, xo = rr(-1, 1);                    // first draw unused, keep the order
+    items.add((d: d, dly: dly, sx: d.cx + xo * 170, sy: 910 + rr(0, 1) * 60 + j * 14, sr: d.r + rot * .6));
   }
-  final motionEnd = items.map((it) => it.delay + D).reduce(math.max) + 100;
-  final duration = math.max(motionEnd, EnterP.textAt + 500);
-  Frame at(double t) => Frame([
-        for (final it in items) () { final e = sp((t - it.delay) / D);
-          return Pose(it.sx + (it.d.cx - it.sx) * e, it.sy + (it.d.cy - it.sy) * e, it.sr + (it.d.r - it.sr) * e, 1, _bez(bezOpacity, (t - it.delay) / 350)); }()
-      ], _clamp((t - EnterP.textAt) / 450, 0, 1), 0, 14, 0, false, -1);
-  return _withTap(duration, motionEnd, at, EnterP.tap, EnterP.total);
+  final introAt = D * p.introAt / 100, motion = _max(items.map((it) => it.dly + D)), kb0 = from.kb;
+  return _withTap(math.max(math.max(motion + 100, introAt + p.introIn + 50), 500), motion + 100, (t, pressed) => ScreenFrame(
+    kb: kb0 > 0 ? kb0 * (1 - _kb.at(t)) : 0.0,
+    blocks: [for (final it in items) () { final e = sp.at(t - it.dly);
+      return Pose(it.sx + (it.d.cx - it.sx) * e, it.sy + (it.d.cy - it.sy) * e, it.sr + (it.d.r - it.sr) * e, 1, 1); }()],
+    intro: from.intro + (1 - from.intro) * _clamp((t - introAt) / p.introIn, 0, 1),
+    stu: from.stu * (1 - _clamp(t / p.chatOut, 0, 1)), tut: from.tut * (1 - _clamp(t / p.chatOut, 0, 1)), done: from.done, pressed: pressed),
+    p.tap, p.total, false);
 }
-class _In { final Rest d; final double delay, sx, sy, sr; _In(this.d, this.delay, this.sx, this.sy, this.sr); }
+/// BACK OUT: leaving the field without sending (tap outside, keyboard swiped down, app switch). Identical to back(),
+/// started from the Focus state: blocks rise back in, keyboard goes down, the intro (still visible) stays.
+Timeline backOut(ScreenFrame from, {int? seed}) => back(from, seed: seed);
 
-// ---------- DESKTOP HOVER WIGGLE (pointer devices only: web/desktop) ----------
-// On pointer-enter: ONE random jolt, then it springs back; the hovered element gets a light grey fill (#ececec).
-// Jolt: to the offset in 180 ms, Cubic(.2,.9,.3,1.2). After 110 ms: back to 0 in 500 ms, Cubic(.2,1.4,.4,1). On exit: back immediately.
-// Disable while an animation runs / after a block was tapped (`enabled: false`).
-class HoverWiggle extends StatefulWidget {
-  const HoverWiggle({super.key, required this.child, this.enabled = true, this.amount = wiggleAmount});
-  final Widget child; final bool enabled; final double amount;
-  @override State<HoverWiggle> createState() => _HoverWiggleState();
-}
-class _HoverWiggleState extends State<HoverWiggle> {
-  final _rnd = math.Random(); Offset _o = Offset.zero; double _rot = 0; bool _jolt = true; Timer? _t;
-  void _enter() { if (!widget.enabled || widget.amount <= 0) return; final a = widget.amount;
-    setState(() { _jolt = true; _o = Offset((_rnd.nextDouble() * 2 - 1) * 5 * a, (_rnd.nextDouble() * 2 - 1) * 4 * a); _rot = (_rnd.nextDouble() * 2 - 1) * 5 * a; });
-    _t?.cancel(); _t = Timer(const Duration(milliseconds: 110), _settle); }
-  void _settle() { if (mounted) setState(() { _jolt = false; _o = Offset.zero; _rot = 0; }); }
-  @override void dispose() { _t?.cancel(); super.dispose(); }
-  @override Widget build(BuildContext c) => MouseRegion(
-        onEnter: (_) => _enter(), onExit: (_) { _t?.cancel(); _settle(); },
-        child: AnimatedContainer(
-          duration: Duration(milliseconds: _jolt ? 180 : 500), curve: _jolt ? const Cubic(.2, .9, .3, 1.2) : const Cubic(.2, 1.4, .4, 1),
-          transformAlignment: Alignment.center,
-          transform: Matrix4.identity()..translate(_o.dx, _o.dy)..rotateZ(_rot * math.pi / 180), child: widget.child));
+/* ---------- FOCUS: user taps the message field ----------
+   Keyboard slides up right away; the blocks let go `blocksAt` ms later, lowest block first (`ripple` ms apart), and fall. */
+Timeline focus({int? seed, FocusP p = P.focus, List<Rest> L = rest}) {
+  final rnd = mulberry32(seed ?? _randomSeed()); double rr(double a, double b) => a + rnd() * (b - a);
+  final g = p.gravity, N = L.length;
+  final ns = <({double end, Pose Function(double) at})>[];
+  for (var j = 0; j < N; j++) {
+    final d = L[j], sd = rnd(), sr = rr(-1, 1), dr = rr(-1, 1), dly = p.blocksAt + p.ripple * (N - 1 - j), sg = sd < .5 ? 1.0 : -1.0, vy = p.kick;
+    ns.add((end: dly + _tau(vy, g, d.cy) * 1000, at: _faller(d, dly, vy, dr * p.drift, sg * p.spin * (1 + sr * .55), sg, 7, g)));
+  }
+  final motionEnd = _max([_kb.end, ...ns.map((n) => n.end)]) + 60;
+  return _withTap(motionEnd + 200, motionEnd, (t, pressed) => ScreenFrame(blocks: [for (final n in ns) n.at(t)], intro: 1, stu: 0, tut: 0, done: false,
+      kb: _kb.at(t), pressed: pressed), p.tap, p.total, false);
 }
 
-// ---------- usage ----------
-// Wrap the 402 x 874 artboard in FittedBox / Transform.scale(width / 402). Render each block as a widget of 231.5 x 50:
-//   Positioned(left: p.cx - blockW / 2, top: p.cy - blockH / 2,
-//     child: Opacity(opacity: p.opacity, child: Transform(alignment: Alignment.center,
-//       transform: Matrix4.identity()..rotateZ(p.rot * math.pi / 180)..scale(p.scale), child: BlockCard(...))))
-// Student message: Opacity(frame.student) + Transform.translate(Offset(0, frame.studentRise * (1 - bezMsg.transform(frame.student)))).
-// Tapped block (frame.pressed == index): dark background, white label + icon, stays dark until it has faded out.
-class AiTutorTimelineDriver extends StatefulWidget {
-  const AiTutorTimelineDriver({super.key, required this.timeline, required this.builder});
-  final Timeline timeline;
-  final Widget Function(BuildContext, Frame) builder;
-  @override State<AiTutorTimelineDriver> createState() => _DriverState();
-}
-class _DriverState extends State<AiTutorTimelineDriver> with SingleTickerProviderStateMixin {
-  late final Ticker _ticker; double _t = 0;
-  @override void initState() { super.initState();
-    _ticker = createTicker((d) { final t = d.inMicroseconds / 1000; setState(() => _t = math.min(t, widget.timeline.duration));
-      if (t >= widget.timeline.duration) _ticker.stop(); })..start(); }
-  @override void dispose() { _ticker.dispose(); super.dispose(); }
-  @override Widget build(BuildContext c) => widget.builder(c, widget.timeline.at(_t));
+/* ---------- SEND: user sends a typed message (keyboard stays up) ----------
+   The text lifts out of the field and lands on the student message line on two springs (Y up, X left: slight arc). */
+Timeline send(String text, {SendP p = P.send, List<Rest> L = rest}) {
+  final fx = _Capped(p.flyX), fy = _Capped(p.flyY), F = math.max(p.flyX.visMs, p.flyY.visMs), flightEnd = math.max(fx.end, fy.end);
+  const x0 = Geo.fieldTextLeft, y0 = Geo.fieldTextCy + Geo.kbInputDy, x1 = Geo.msgTextLeft, y1 = Geo.msgTextCy;
+  final metaAt = F * p.metaAt / 100, tutAt = F + p.tutorDelay, motionEnd = math.max(flightEnd, metaAt + p.metaFade) + 100;
+  return _withTap(math.max(motionEnd, tutAt + 1200), motionEnd, (t, pressed) { final landed = t >= flightEnd;
+    return ScreenFrame(blocks: [for (final d in L) Pose(d.cx, 1100, d.r, 1, 0)], intro: 1 - _clamp(t / 450, 0, 1), rise: p.metaRise,
+        stu: _clamp((t - metaAt) / math.max(1, p.metaFade), 0, 1), stuText: landed ? 1.0 : 0.0, tut: _clamp((t - tutAt) / 600, 0, 1), done: false, kb: 1,
+        fly: Fly(x0 + (x1 - x0) * fx.at(t), y0 + (y1 - y0) * fy.at(t), landed ? 0.0 : 1.0, text), pressed: pressed); }, p.tap, p.total, false);
 }
 
+/* ---------- DESKTOP HOVER WIGGLE (pointer devices only; never on its own) ----------
+   On pointer-enter: ONE random jolt, then it springs back; hovered element fill #ececec.
+   Jolt 180 ms Cubic(.2,.9,.3,1.2); after 110 ms return in 500 ms Cubic(.2,1.4,.4,1). On pointer-leave return immediately.
+   Not active while an animation runs / after a block was tapped. */
+({double dx, double dy, double rot}) wiggleOffset([double Function()? rnd, double amount = P.wiggle]) {
+  final r = rnd ?? math.Random().nextDouble;
+  return (dx: (r() * 2 - 1) * 5 * amount, dy: (r() * 2 - 1) * 4 * amount, rot: (r() * 2 - 1) * 5 * amount);   // px, px, deg
+}
+
+/* ---------- usage (Flutter) ----------
+   final ticker = createTicker((elapsed) => setState(() => frame = tl.at(elapsed.inMicroseconds / 1000)));
+   tl = open(1); ticker.start();                       // user tapped block 1
+   // "+" later: tl = back(frame); restart the ticker  // back starts from what is on screen
+   // AiTutorScreen(frame: frame, tapped: 1, prompt: text)
+*/
 ````
