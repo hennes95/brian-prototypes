@@ -1,5 +1,9 @@
 # Feature workbench shell: changelog
 
+## 1.0.5 (23.11.26)
+- Threads on Claude's proposals: ↩ next to ✓ ✕ (or the blue counter) opens a popover anchored below the proposal with messages, revised version, Accept / Decline and one input (reply, or an optional reason when declining). Replies waiting for Claude count in the yellow counter. Stored in `S.threads`.
+- The blue counter now opens the next proposal's thread; ↑ ↓ in the popover step through all open proposals.
+
 ## 1.0.4 (20.11.26)
 - Clicking the yellow comment counter also turns the comment layer (Agentation) on, so its markers are visible when it jumps to a comment. Already on: unchanged.
 
