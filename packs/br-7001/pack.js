@@ -30,7 +30,7 @@ const DOCS = {
   rules: ul("<b>R1</b> Use-case blocks use the block component of the course map activities (with the dots)",
     "<b>R2</b> Tapping a block creates a new thread, named after the use case, and sends its prompt",
     "<b>R3</b> Starting from the message field keeps today's logic (thread name etc.)",
-    ai("<b>R4</b> Whatever starts the chat flies into the student message; everything else leaves"),
+    "<b>R4</b> Whatever starts the chat flies into the student message; everything else crumbles/falls down",
     ai("<b>R5</b> Focusing the field clears the blocks; leaving without sending brings them back"),
     ai("<b>R6</b> No idle animation: blocks only wiggle on hover (desktop), never on their own")),
   edges: ul(["No activities in the course, or the student hasn't studied anything yet", "Only show \"Explain a topic\""],
@@ -39,19 +39,22 @@ const DOCS = {
     ai("Keyboard closed by the system (e.g. app switch) while focused: blocks come back like \"back out\"")),
   ds: ul("New component: Use-case block (icon + short description); icon mapping in Figma"),
   questions: ul("Can the tutor link specific activities that open when tapped? (Jaap)",
-    ai("Tooltip copy for the awareness tooltip (proposal in the Tooltip state)"),
     ai("Ticket says \"default animation pauses when the field is focused\": replaced by R5 (blocks leave on focus). OK?"),
+    ai("Desktop shortcuts: design shows ⌘1–5, ticket says 1–4; with 3 blocks in scope it would be ⌘1–3. Which?"),
+    ai("Enter: the design fades text in first, then the blocks; the Animation Workbench builds blocks first, text last. Which order?"),
+    ai("Prototype: the header still says AI-Tutor after a block is tapped; the design shows the thread name"),
     ai("Ticket lists an ongoing idle wiggle (\"default animation\"): dropped, the only wiggle is on hover (desktop). Update the ticket?"))
 };
 const STATE_DOCS = {
-  "idle-rest": ul(["Entering the tab plays the reveal", MOTION("Enter")], ai("No idle animation afterwards: the blocks rest"), "Use-case blocks (#1) under the intro (#2)", "Input field (#3) and send (#4) as in chat", ["Desktop: a block wiggles once when the pointer enters it (hover); shortcut 1–4 opens it"]),
-  "idle-none": ul("Course has no activities, or the student hasn't studied yet", "Only \"Explain a topic\" (#1)"),
-  "idle-tip": ul(["Awareness tooltip (#5) above the AI Tutor tab", "For students who never used the AI Tutor, or not in the last 3 months"], "Hides on any tap or on the AI Tutor tab",
-    ai("Copy proposal: \"New: your AI Tutor knows your progress\" / \"Ask it for a study plan or your knowledge gaps.\"")),
-  "focus-kb": ul(ai("Tapping the field (#3) brings up the keyboard (#6)"), ai(["All blocks break away while the keyboard slides up", "Same break-away as the untapped blocks in Open", MOTION("Focus")]), ai("Intro stays, so the screen doesn't look empty"), ai(["Tapping outside or closing the keyboard: blocks come back", MOTION("Back out")])),
-  "focus-typed": ul(ai("Student types (#3); send (#4) becomes active"), ai("Send → Chat · from the field")),
-  "chat-block": ul(["Tapped block flies up and lands on the student message (#7)", MOTION("Open")], "Other blocks fall away, intro fades", "Tutor message (#8) shows the typing dots, then streams", "Thread is named after the use case", ["+ (new chat) goes back to the empty state", MOTION("Back")]),
-  "chat-send": ul(ai(["Typed text lifts out of the field and lands on the student message (#7)", "Same springs as Open", MOTION("Send")]), ai("Intro fades; avatar, name and tutor dots (#8) fade in"), ai("Keyboard stays open, as in other chats"))
+  "idle-rest": ul(["Entering the tab: illustration and text fade in first, then the blocks fly in from random positions with some spin and settle into the tower", MOTION("Enter")], ai("No idle animation afterwards: the blocks rest"), "Use-case blocks under the intro", "Input field and send as in chat", ["Desktop: a block wiggles once when the pointer enters it (hover)", "Desktop: shortcut ⌘1–5 opens a block; the number shows on the block (mobile/tablet: no number)"]),
+  "idle-none": ul("Course has no activities, or the student hasn't studied yet", "Only \"Explain a topic\""),
+  "idle-tip": ul(["In-app tooltip telling students the AI Tutor improved", "Shown on another tab, pointing at the AI Tutor tab"], "The AI Tutor tab icon is highlighted",
+    ["Copy (design)", "<b>AI Tutor just got an upgrade</b>", "It now creates study plans and shows your knowledge gaps."],
+    ["Who sees it", "Students who never used the AI Tutor", "Students who haven't used it in the last 3 months"], "Hides on any tap or on the AI Tutor tab"),
+  "focus-kb": ul("Tapping the field brings up the keyboard", ["All blocks break away while the keyboard slides up", ai("Same break-away as the untapped blocks in Open"), ai(MOTION("Focus"))], ai("Intro stays, so the screen doesn't look empty"), ai(["Tapping outside or closing the keyboard: blocks come back", MOTION("Back out")])),
+  "focus-typed": ul(ai("Student types; send becomes active"), ai("Send → Chat · from the field")),
+  "chat-block": ul(["Tapped block flies up and lands on the student message", MOTION("Open")], ["The header shows the new thread's name", "Create study plan · Show knowledge gaps · Explain a topic"], "Other blocks fall away, intro fades", "Tutor message shows the typing dots, then streams", "Thread is named after the use case", ["+ (new chat) goes back to the empty state", MOTION("Back")]),
+  "chat-send": ul(ai(["Typed text lifts out of the field and lands on the student message", "Same springs as Open", MOTION("Send")]), ai("Intro fades; avatar, name and tutor dots fade in"), ai("Keyboard stays open, as in other chats"))
 };
 const MODES = [
   { id:"idle", name:"Empty state", figma:FIG("12115-80"), states:[["idle-rest","Use-case blocks"],["idle-none","No activities yet"],["idle-tip","Awareness tooltip"]] },
@@ -78,7 +81,7 @@ function screen(stateId, variant, m){
   const mode = stateId.split("-")[0];
   let blocks = "", chat = "", extra = "";
   if (mode === "idle") blocks = a7Blocks(variant, stateId === "idle-none" ? [3] : null);
-  if (stateId === "idle-tip") extra = `<div class="a7-tip" data-el="a7.tip" data-label="Awareness tooltip"><b>New: your AI Tutor knows your progress</b>Ask it for a study plan or your knowledge gaps.</div>`;
+  if (stateId === "idle-tip"){ root += " away"; extra = `<div class="a7-tip" data-el="a7.tip" data-label="Awareness tooltip"><b>AI Tutor just got an upgrade</b>It now creates study plans and shows your knowledge gaps.</div>`; }
   if (mode === "focus"){ root += " kb"; extra = KB + `<div class="a7-hit" data-act="blur"></div>`; }
   if (mode === "chat"){ const msg = stateId === "chat-send" ? (m.typed || A7_TYPED) : A7_LABELS[m.block == null ? 0 : m.block];
     chat = A7_CHAT.replace("__MSG__", esc(msg)).replace('class="msg student"','class="msg student" data-el="a7.student" data-label="Student message"').replace('class="msg tutor"','class="msg tutor" data-el="a7.tutor" data-label="Tutor message"');
@@ -92,6 +95,7 @@ function screen(stateId, variant, m){
        .replace('data-a7="newChat"', 'data-a7="newChat" data-act="plus" data-el="a7.plus" data-label="New chat"');
   if (mode === "focus" && stateId === "focus-typed") h = h.replace(/<input data-a7="txt"[^>]*>/, `<span class="a7-typed">${esc(m.typed || A7_TYPED)}<span class="a7-caret"></span></span>`);
   else if (mode === "focus") h = h.replace(/(<input data-a7="txt"[^>]*>)/, `<span class="a7-typed"><span class="a7-caret"></span></span>`);
+  if (stateId === "idle-tip"){ let n = 0; h = h.replace(/class="tab( active)?"/g, (m0, act) => (++n === 2 ? `class="tab a7-hl${act||""}" data-el="a7.tabhl" data-label="AI Tutor tab (highlighted)"` : m0)); }
   return h.replace(/<\/div>\s*$/, extra + "</div>");
 }
 
