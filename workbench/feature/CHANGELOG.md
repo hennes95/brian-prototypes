@@ -1,5 +1,10 @@
 # Feature workbench shell: changelog
 
+## 1.0.7 (23.11.26)
+- Read / unread for Claude's proposals: unread ones get a blue dot in the margin. A proposal counts as read once its thread was opened or it was hovered for ~1 s; it becomes unread again when Claude answers in its thread. Stored in `S.seen`.
+- Blue counter works like an inbox: filled with a red dot = unread count, jumps to the next unread proposal; all read = outlined, shows the open count.
+- Thread bubbles: filled = Claude answered and you haven't looked, outlined = read.
+
 ## 1.0.6 (23.11.26)
 - Thread input grows up to 7 lines before it scrolls (Enter sends, Shift+Enter new line).
 - ✓ ✕ ↩ only show for the proposal under the pointer or with its thread open; a proposal with messages keeps just its count.
