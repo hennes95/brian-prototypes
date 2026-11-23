@@ -368,3 +368,9 @@ body:not(.proto) .oosa{outline:1px dashed #e0b400;outline-offset:4px;border-radi
 .att.a-doc.a-up .dink{position:absolute;inset:0;clip-path:polygon(0 0,84.7% 0,84.7% 23.7%,98.6% 23.7%,98.6% 97.7%,0 97.7%);pointer-events:none}
 .att.a-doc.a-up .dink .ink{padding:1px;box-sizing:border-box;background-clip:content-box;background-origin:content-box;background-color:transparent}
 .att.a-up .acard{cursor:default}
+/* attachments scroll with the text in the regular field (24.11) */
+.cmp.attscroll:not(.fs) .c-body{display:block;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;margin-left:-8px;margin-right:-8px;padding-left:8px;padding-right:8px;justify-content:initial}
+.cmp.attscroll:not(.fs) .c-body::-webkit-scrollbar{display:none}
+.v-pill.focused.over.attscroll:not(.fs) textarea{padding-top:8.8px}
+.cmp.attscroll:not(.fs) .bar{display:none}
+.cmp.attscroll.scr:not(.fs) .bar{display:block}

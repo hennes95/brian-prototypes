@@ -400,6 +400,17 @@ function growInput(){
   /* decide "over" with the expand icon's space already reserved; otherwise adding the icon re-wraps the text and it flickers at the 7-line threshold */
   const cmp=$("#pwrap .cmp");
   /* turns on when the text (full width) passes 7 lines; once on, it stays on until the text (with the icon's room) fits 7 lines again, so it can't flicker */
+  /* attachments + text scroll together in the regular field (Hannes 24.11): the field keeps its size (attachment row + 7 lines),
+     but once it scrolls, the attachments scroll away with the text so the text gets their room */
+  const body=t.closest(".c-body"), att=body&&body.querySelector(".c-att");
+  cmp?.classList.toggle("attscroll",!!att);
+  if(att){ t.style.overflowY="hidden"; t.style.height="auto"; const cs=getComputedStyle(t); const lines=(t.scrollHeight-parseFloat(cs.paddingTop)-parseFloat(cs.paddingBottom))/LH; const over=lines>MAX+0.5;
+    t.style.height=t.scrollHeight+"px"; const cap=att.offsetHeight+LH*MAX+PAD; body.style.maxHeight=cap+"px"; const scr=body.scrollHeight>cap+1;
+    cmp.classList.toggle("over",over); cmp.classList.toggle("scr",scr);
+    const atEnd=document.activeElement!==t||t.selectionEnd>=t.value.length; if(scr&&atEnd) body.scrollTop=body.scrollHeight;
+    const bar=cmp.querySelector(".bar"); if(bar&&scr){ const sc=ui.scale||1, OFF=46, vis=body.clientHeight/body.scrollHeight, hh=Math.max(16,(body.clientHeight-OFF)*vis); bar.style.top=((body.getBoundingClientRect().top-cmp.getBoundingClientRect().top)/sc+OFF)+"px"; bar.style.height=hh+"px"; const posBar=()=>{ bar.style.transform=`translateY(${(body.scrollTop/(body.scrollHeight-body.clientHeight||1))*(body.clientHeight-OFF-hh)}px)`; }; posBar(); body.onscroll=posBar; }
+    return; }
+  if(body){ body.style.maxHeight=""; body.onscroll=null; } cmp?.classList.remove("scr");
   t.style.height="auto"; const cs=getComputedStyle(t); const lines=(t.scrollHeight-parseFloat(cs.paddingTop)-parseFloat(cs.paddingBottom))/LH; const over=lines>MAX+0.5;
   const h=Math.min(t.scrollHeight,LH*MAX+PAD); t.style.height=h+"px"; t.style.overflowY=over?"auto":"hidden";
   cmp?.classList.toggle("over",over); if(over&&document.activeElement!==t) t.scrollTop=t.scrollHeight;
