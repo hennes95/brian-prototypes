@@ -1,6 +1,12 @@
 {
   "ticket": "BR-7147",
   "title": "Redesign Input Field",
-  "shell": "feature@1.0.0",
-  "notes": "Pinned. Upgrade only after Hannes agrees (see workbench/README.md)."
+  "shell": "feature@1.0.8",
+  "notes": "Upgraded 1.0.0 -> 1.0.8 on 23.11.26 (Hannes agreed). Spec from the 19.11 workbench backup; Notion ticket differences added as Claude proposals (blue). After the workbench was opened, the spec lives in the artifact's database.",
+  "links": {
+    "feature": "https://claude.ai/artifact/SFdRA3hiQiMcfjCadnfLj9",
+    "animation": null,
+    "phone": "https://hennes95.github.io/brian-prototypes/br-7147/",
+    "notion": "https://app.notion.com/p/407fca9f403c8035be80e140aeb3aaa7"
+  }
 }
