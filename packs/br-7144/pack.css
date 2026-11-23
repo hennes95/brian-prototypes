@@ -214,3 +214,6 @@ body.native .vw-hd{padding-top:env(safe-area-inset-top)}
 .ink.inf{animation:inkinf 2.4s steps(1,end) infinite alternate}
 @keyframes inkinf{0%{background-image:radial-gradient(#3a3a3a .8px,transparent 1.1px);background-size:6px 6px}25%{background-image:radial-gradient(#3a3a3a 1.1px,transparent 1.4px);background-size:5px 5px}50%{background-image:radial-gradient(#3a3a3a 1.3px,transparent 1.7px);background-size:4px 4px}75%,100%{background-image:radial-gradient(#3a3a3a 1.5px,transparent 1.9px);background-size:3px 3px}}
 @media (prefers-reduced-motion:reduce){.ink.inf{animation:none;background-image:radial-gradient(#3a3a3a 1.1px,transparent 1.4px);background-size:5px 5px}}
+/* canvas + document: dots keep a little room from the line (Hannes 23.11), less than the photo's frame padding */
+.th-draw .ink,.th-doc .dink .ink{padding:5px;box-sizing:border-box;background-color:transparent;background-clip:content-box;background-origin:content-box}
+.th-draw.ld{background:#fff}
