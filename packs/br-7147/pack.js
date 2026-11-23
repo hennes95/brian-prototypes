@@ -305,7 +305,7 @@ function phoneHTML(st,live={},interactive=true){
     </div>`}
     ${(()=>{ const plus=`<button class="c-plus" ${el("plus","Add attachment (+)")} aria-label="Add attachment">${I.plus(inv?(dark?"#fff":"#2f2f2f"):(v==="pill"&&!dark?"#fff":ink))}</button>`;
       const right=hasText?`<button class="c-right send ${q.typing?"inactive":""}" ${el("send","Send")} aria-label="Send" ${q.typing?'aria-disabled="true"':""}>${I.send}</button>`:`<button class="c-right" ${el("mic","Voice input (reserved)")} aria-label="Voice input">${I.mic}<span class="resv"></span></button>`;
-      const body=`<div class="c-body">${q.attach?`<div class="c-att">${q.attach.map((t,i)=>`<span class="att a-${t}"><span class="acard" data-open="${i}" role="button" aria-label="${ATT_NAME[t]||t}">${ATT[t]}</span>${t==="doc"?`<span class="aname">${ATT_NAME.doc}</span>`:""}<button class="rm" data-rm="${i}" ${el("att-rm-"+i,"Remove attachment "+(i+1))} aria-label="Remove attachment">×</button></span>`).join("")}</div>`:""}<textarea rows="1" placeholder="${quiz?"Something unclear?":disc?"Post a question":diary?"What went well today?":"Ask anything"}" aria-label="Message" ${el("field","Text field")} ${interactive?"":"tabindex=-1"}>${esc(q.text)}</textarea></div>`;
+      const body=`<div class="c-body">${q.attach?`<div class="c-att">${q.attach.map((t,i)=>`<span class="att a-${t}"><span class="acard" data-open="${i}" role="button" aria-label="${ATT_NAME[t]||t}">${ATT[t]}</span><button class="rm" data-rm="${i}" ${el("att-rm-"+i,"Remove attachment "+(i+1))} aria-label="Remove attachment">×</button></span>`).join("")}</div>`:""}<textarea rows="1" placeholder="${quiz?"Something unclear?":disc?"Post a question":diary?"What went well today?":"Ask anything"}" aria-label="Message" ${el("field","Text field")} ${interactive?"":"tabindex=-1"}>${esc(q.text)}</textarea></div>`;
       /* spec (Typing): on focus, + and mic move below the text, the field spans the message width and gets a border */
       /* Figma 12596:173965: while the text fits on one line, the field stays in one row between + and mic/send; it underlines what is typed (solid) on a dashed line. Only when it no longer fits do + and send move below. */
       const uline=`<span class="uline" aria-hidden="true"><i style="width:${Math.min(Math.ceil(textW(q.text||""))+4,inlineFieldW()+8)}px"></i></span>`;
@@ -347,7 +347,7 @@ const SYS={
   edit:{img:"edit",w:402,h:546,spots:[["view-close","Canvas: Close",0,40,56,52],["view-close","Canvas: Save",280,40,122,52]]},
   view:{img:"docview",w:402,h:803,spots:[["view-close","Document viewer: Close",350,16,52,44]]}
 };
-/* names: shown only for documents (thumbnails are unreadable at this size); always used as accessibility label */
+/* names: not shown in the field (Hannes 24.11: too small to read); used as the accessibility label */
 const ATT_NAME={doc:"Rationale Zahlen.pdf",image:"Photo",drawing:"Canvas",loading:"Uploading"};
 function sysSheet(kind,el){ const d=SYS[kind]; if(!d) return ""; const L=d.left||0, wPct=d.w/402*100;
   const spots=d.spots.map(([id,label,x,y,w,h],i)=>`<button class="sys-spot" ${el(id,label)} data-spot="${i}" aria-label="${esc(label)}" style="left:${x/d.w*100}%;top:${y/d.h*100}%;width:${w/d.w*100}%;height:${h/d.h*100}%"></button>`).join("");

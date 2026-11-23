@@ -344,3 +344,4 @@ body:not(.proto) .oosa{outline:1px dashed #e0b400;outline-offset:4px;border-radi
 .phone.hidanim .p-tabs{transition:margin .22s ease}
 .p-tabs{z-index:3}
 @media (prefers-reduced-motion:reduce){.p-head,.phone.hidanim .cmp,.phone.hidanim .p-tabs{transition:opacity .15s}}
+.att.a-doc{margin-bottom:0}
