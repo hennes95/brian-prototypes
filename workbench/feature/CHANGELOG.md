@@ -1,5 +1,8 @@
 # Feature workbench shell: changelog
 
+## 1.1.6 (23.11.26)
+- Grouped proposals per bullet (Hannes 23.11.): a blue line and its blue child lines (nested under it) are one proposal; blue lines next to each other on the same level stay separate.
+
 ## 1.1.5 (23.11.26)
 - Open questions are always the last section (Hannes 23.11.): … → Side effects → Implementation → Open questions. Ticket preview and export use the same order.
 

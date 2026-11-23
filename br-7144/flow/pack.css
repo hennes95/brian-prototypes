@@ -137,7 +137,7 @@ body.native .phone.dark .ci{padding-bottom:calc(12px + env(safe-area-inset-botto
 .tb,.ci,.p-tabs{transition:margin .22s ease,opacity .22s ease}
 .phone.headhidden .tb{margin-top:-84px;opacity:0}
 .phone.cmphidden .ci{margin-bottom:-52px;opacity:0}
-.phone.cmphidden .p-tabs{margin-bottom:-92px}
+/* the tab bar stays when scrolling back; only the input field folds away (Hannes 23.11) */
 @media (prefers-reduced-motion:reduce){.tb,.ci,.p-tabs{transition:opacity .15s}}
 
 /* workbench only: highlight of the current section's component, notes */

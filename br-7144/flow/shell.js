@@ -39,7 +39,7 @@ function merge3(b,l,r){ if(!b) return structuredClone(l); const out=structuredCl
     else if(!jeq(l[k],b[k])) out[k]=structuredClone(l[k]); }
   return out; }
 const syncEl=document.getElementById("sync");
-const SHELL_V="1.1.5"; /* shown next to the save status so a stale tab is visible */
+const SHELL_V="1.1.6"; /* shown next to the save status so a stale tab is visible */
 const setSync=t=>{ syncEl.textContent=t+" · "+SHELL_V; };
 function unwrap(s){ if(!s) return null; if(typeof s.data==="function") return s.data(); if(s.exists===false) return null; return s.data!==undefined?s.data:s; }
 const valid=d=>d&&d.v===2&&Array.isArray(d.modes)&&d.docs;
@@ -608,11 +608,13 @@ window.USE_AGT=true;
    full column width: messages, the revised proposal with its previous versions, Accept / Decline and the only input.
    Decline takes the input as an optional reason. Stored in S.threads[id] = {msgs:[{w:"h"|"c",t,at}], prev:[old texts], status}.
    A reply from Hannes sets wait=true (yellow, counts in the yellow counter) until Claude answers (Claude writes msgs w:"c", revises the span, wait=false). */
-/* 1.1.4: proposal groups. Blue lines that follow each other with no unchanged (white) text in between are one proposal:
+/* 1.1.4 / 1.1.6: proposal groups. A blue line and its blue CHILD lines (nested under it, no unchanged text in between) are one proposal;
+   blue lines next to each other on the same level stay separate proposals (Hannes 23.11).
    one ✓ ✕ ↩, one dot, one thread (the first line's id), accepted or declined together. Nothing changes in the stored spec. */
 function prGroups(sc){ sc=sc||$("#edscroll"); const out=[]; if(!sc) return out; let cur=null, prev=null;
   sc.querySelectorAll(".ed span.ai,.ed .imp").forEach(sp=>{
-    if(cur&&sp.classList.contains("ai")&&prev.classList.contains("ai")&&prev.closest(".ed")===sp.closest(".ed")&&!prev.contains(sp)&&!sp.contains(prev)){
+    const headLi=cur&&cur[0].closest("li"), spLi=sp.closest("li");
+    if(cur&&sp.classList.contains("ai")&&prev.classList.contains("ai")&&prev.closest(".ed")===sp.closest(".ed")&&!prev.contains(sp)&&!sp.contains(prev)&&headLi&&spLi&&headLi!==spLi&&headLi.contains(spLi)){
       const r=document.createRange(); r.setStartAfter(prev); r.setEndBefore(sp); if(!r.toString().replace(/\u200b/g,"").trim()){ cur.push(sp); prev=sp; return; } }
     cur=[sp]; out.push(cur); prev=sp; });
   out.forEach(g=>g.forEach(x=>{ x._grp=g; })); return out; }
