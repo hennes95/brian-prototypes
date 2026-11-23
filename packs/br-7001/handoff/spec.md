@@ -1,6 +1,6 @@
 # BR-7001 · AI Tutor use cases — spec
 
-> Generated from the Feature Workbench at commit `3be97fa`. Same sections as the Notion ticket. Don't edit by hand; change the workbench and export again. Agents start at `HANDOFF.md`.
+> Generated from the Feature Workbench at commit `4d571a6`. Same sections as the Notion ticket. Don't edit by hand; change the workbench and export again. Agents start at `HANDOFF.md`.
 
 ## Brief
 
@@ -111,7 +111,7 @@
   - Create a study plan: the tutor suggests the exercises the student struggled with and should repeat
   - Show my knowledge gaps: the tutor analyses the learning history and gives the knowledge level per key evaluation rubric (later: competencies)
   - Explain a topic: the tutor asks for a topic, then explains it using course material where possible
-- + (new chat) goes back to the empty state
+- \+ (new chat) goes back to the empty state
   - [Motion: Back ↗](https://claude.ai/artifact/E61jktbwanbpFAARpqKe4A)
 
 #### From the field (`chat-send`)

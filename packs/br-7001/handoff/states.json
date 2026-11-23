@@ -1,6 +1,6 @@
 {
   "ticket": "BR-7001",
-  "source": "packs/br-7001 @ 3be97fa",
+  "source": "packs/br-7001 @ 4d571a6",
   "states": [
     {
       "id": "idle-rest",

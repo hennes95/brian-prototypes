@@ -27,7 +27,7 @@ def md(h):
         elif t == '<li>': o.append('\n' + '  '*max(dep-1,0) + '- ')
         elif t == '</li>': pass
         elif t.strip(): o.append(html.unescape(re.sub(r'<[^>]+>', '', t)).strip() if not t.strip().startswith('####') else '\n\n' + t.strip() + '\n')
-    s = ''.join(o); s = re.sub(r'([^\n])\n\n####', r'\1\n\n####', s)
+    s = ''.join(o); s = re.sub(r'(\n\s*- )([+*-] )', r'\1\\\2', s); s = re.sub(r'([^\n])\n\n####', r'\1\n\n####', s)
     return re.sub(r'\n{3,}', '\n\n', s).strip()
 
 t = P.get('title', tk); L = P.get('links', {})
