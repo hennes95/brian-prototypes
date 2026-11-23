@@ -289,3 +289,7 @@ body:not(.proto) .oosa{outline:1px dashed #e0b400;outline-offset:4px;border-radi
    text keeps lining up with the history text, so it gets more room inside the pill; buttons stay 8px in (corners stay concentric) */
 .v-pill{margin-left:10px;margin-right:10px}
 .v-pill.focused textarea,.v-pill.fs textarea{padding-left:6px;padding-right:6px}
+/* Hannes 23.11: with the expand / collapse icon, the text starts below the icon (full width, no side gap for it);
+   once the text scrolls under it, the icon sits on a circle in the field's colour (like the send button) so it stays visible */
+.v-pill.focused.over textarea,.v-pill.fs textarea{padding-top:40px;padding-right:6px}
+.v-pill .c-exp{background:inherit;border-radius:50%}

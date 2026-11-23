@@ -312,7 +312,7 @@ function phoneHTML(st,live={},interactive=true){
       <button ${el("opt-camera","Upload: Camera")}><span class="ic">${I.fCamera}</span>Camera</button>
       <button ${el("opt-gallery","Upload: Gallery")}><span class="ic">${I.fImage}</span>Gallery</button>
       <button ${el("opt-doc","Upload: Document")}><span class="ic">${I.fDoc}</span>Document</button>
-      <button ${el("opt-draw","Upload: Drawing")}><span class="ic">${I.fDraw}</span>Drawing</button></div>`:""}
+      <button ${el("opt-draw","Upload: Canvas")}><span class="ic">${I.fDraw}</span>Canvas</button></div>`:""}
     ${q.picker?sysSheet(q.pickKind||"gallery",el):""}
     ${interactive?(S.pins||[]).filter(p=>p.state===st.id&&(!p.variant||p.variant===ui.variant)&&(p.ctx||"tutor")===ui.context).map((p,i)=>`<button class="cpin" data-pin="${p.id}" style="left:${p.x}px;top:${p.y}px" title="${esc(p.text)}" aria-label="Comment ${i+1}">${i+1}</button>`).join(""):""}
   </div>`;
@@ -339,7 +339,7 @@ const SYS={
   view:{img:"docview",w:402,h:803,spots:[["view-close","Document viewer: Close",350,16,52,44]]}
 };
 /* names: shown only for documents (thumbnails are unreadable at this size); always used as accessibility label */
-const ATT_NAME={doc:"Rationale Zahlen.pdf",image:"Photo",drawing:"Drawing",loading:"Uploading"};
+const ATT_NAME={doc:"Rationale Zahlen.pdf",image:"Photo",drawing:"Canvas",loading:"Uploading"};
 function sysSheet(kind,el){ const d=SYS[kind]; if(!d) return ""; const L=d.left||0, wPct=d.w/402*100;
   const spots=d.spots.map(([id,label,x,y,w,h],i)=>`<button class="sys-spot" ${el(id,label)} data-spot="${i}" aria-label="${esc(label)}" style="left:${x/d.w*100}%;top:${y/d.h*100}%;width:${w/d.w*100}%;height:${h/d.h*100}%"></button>`).join("");
   return `<div class="up-scrim" data-dim="sys" style="background:rgba(0,0,0,.25)"></div><div class="sys-sheet" style="left:${L/402*100}%;width:${wPct}%;bottom:${d.bottom||0}px;aspect-ratio:${d.w}/${d.h};${d.radius?`border-radius:${d.radius}px;`:""}"><img src="assets/${d.img}.png" alt="" draggable="false">${spots}</div>`; }
