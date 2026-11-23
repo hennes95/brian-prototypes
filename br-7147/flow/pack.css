@@ -330,3 +330,8 @@ body:not(.proto) .oosa{outline:1px dashed #e0b400;outline-offset:4px;border-radi
 .att{width:88px;height:52px}
 .a-image .acard{padding:3px 3px 9px}
 .c-att{gap:14px}
+/* Hannes 24.11: attachments are cut off at the field's border (the row runs edge to edge inside the pill, the pill clips it, rounded corners included) */
+.v-pill{overflow:hidden}
+.v-pill .c-att{margin-left:-8px;margin-right:-8px;padding-left:14px;padding-right:14px}
+/* Hannes 24.11: remove button inside the attachment's top left corner */
+.att .rm{top:4px;left:4px;width:18px;height:18px;font-size:11px;line-height:14px;border-width:1px}
