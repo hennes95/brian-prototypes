@@ -61,7 +61,7 @@ async function initDb(){
     try{ DOC.onSnapshot(snap=>{ const r=unwrap(snap); if(!valid(r)||r.updated===lastSaved) return;
       if(saving||tmr) return; /* the next save merges it in */
       S=merge3(base,S,r); base=structuredClone(r);
-      const a=document.activeElement; if(a&&a.closest&&a.closest(".ed,.sec-name")){ needRender=true; setSync("Claude updated · click outside to see it"); return; }
+      const a=document.activeElement; if((a&&a.closest&&a.closest(".ed,.sec-name"))||document.querySelector(".thpop")){ needRender=true; setSync("Claude updated · click outside to see it"); return; }
       render(true); setSync("saved"); }); }catch(e){}
   }catch(e){ console.error("initDb",e); /* 1.0.15: once the stored spec is loaded, never swap it for the local copy (it can hold the pack default) */ if(base){ setSync("saved · live updates off (reload)"); } else { loadLocal(); setSync("offline · local"); } }
 }
@@ -73,7 +73,7 @@ async function flush(){ tmr=null; if(!DOC) return; if(saving){ again=true; retur
     await DOC.set(JSON.parse(JSON.stringify(merged))); base=structuredClone(merged);
     const fromElsewhere=valid(remote)&&!jeq({...merged,updated:0},{...snap,updated:0});
     S=merge3(snap,S,merged); S.updated=merged.updated; dirty=false; setSync("saved");
-    if(fromElsewhere){ const a=document.activeElement; if(a&&a.closest&&a.closest(".ed,.sec-name")) needRender=true; else render(true); }
+    if(fromElsewhere){ const a=document.activeElement; if((a&&a.closest&&a.closest(".ed,.sec-name"))||document.querySelector(".thpop")) needRender=true; else render(true); }
     if(Date.now()-lastSnap>600000){ lastSnap=Date.now(); try{ await DB.doc("history/"+S.updated.replace(/[^0-9T]/g,"")).set({at:S.updated,data:JSON.parse(JSON.stringify(S))}); }catch(e){} } }catch(e){ setSync("save failed · kept locally"); }
   saving=false; if(again){ again=false; flush(); } }
 
@@ -608,12 +608,14 @@ function thWaiting(){ const T=thAll(); return [...document.querySelectorAll("#ed
 function thIds(sc){ let changed=new Set(); sc.querySelectorAll(".ed span.ai,.ed .imp").forEach(sp=>{ if(!sp.dataset.p){ sp.dataset.p=uid("p-"); changed.add(sp.closest(".ed")); } }); changed.forEach(ed=>{ if(ed){ const f=ed.dataset.state?find(ed.dataset.state):null; if(f) f.s.doc=ed.innerHTML; else if(ed.dataset.key) S.docs[ed.dataset.key]=ed.innerHTML; } }); if(changed.size) save(); }
 function thBtn(sp){ const t=sp.dataset.p&&thAll()[sp.dataset.p], n=t?t.msgs.length:0; return `<button class="rp${n?(t.wait?" wait":(thIsUnread(sp)?" yours":" seen")):""}" title="${n?(t.wait?"Waiting for Claude":"Claude answered: your turn"):"Reply"}">${n?`<svg viewBox="0 0 12 12" width="11" height="11" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 2.5h8v5.5H5L2.5 10V2.5z"/></svg>${n}`:"↩"}</button>`; }
 function thDone(sp,status){ const t=sp&&sp.dataset.p&&thAll()[sp.dataset.p]; if(t){ t.status=status; t.wait=false; t.text=sp.textContent; t.at=new Date().toISOString(); } }
-function thClose(){ document.querySelectorAll(".aictl.cur").forEach(x=>x.classList.remove("cur")); document.querySelectorAll(".thpop").forEach(x=>x.remove()); document.querySelectorAll("span.ai.thcur,.imp.thcur").forEach(x=>x.classList.remove("thcur")); }
+/* 1.0.16: a redraw that waited for the popover runs once it is closed (and nobody is typing) */
+function thLateRender(){ const a=document.activeElement; if(needRender&&!tmr&&!saving&&!document.querySelector(".thpop")&&!(a&&a.closest&&a.closest(".ed,.sec-name"))){ needRender=false; render(true); setSync("saved"); } }
+function thClose(){ document.querySelectorAll(".aictl.cur").forEach(x=>x.classList.remove("cur")); document.querySelectorAll(".thpop").forEach(x=>x.remove()); document.querySelectorAll("span.ai.thcur,.imp.thcur").forEach(x=>x.classList.remove("thcur"));  setTimeout(thLateRender,300); }
 const thEsc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 function openThread(sp){
   const sc=$("#edscroll"); if(!sc||!sp||!sp.isConnected) return; thIds(sc); thClose();
   const all=[...sc.querySelectorAll(".ed span.ai,.ed .imp")], i=all.indexOf(sp), id=sp.dataset.p, T=thAll(), t=T[id]||{msgs:[],prev:[]};
-  sp.classList.add("thcur"); thSeen(sp); sc.querySelectorAll(".aictl").forEach(c=>c.classList.toggle("cur",c._sp===sp));
+  sp.classList.add("thcur"); sc.querySelectorAll(".aictl").forEach(c=>c.classList.toggle("cur",c._sp===sp));
   const ed=sp.closest(".ed"), so=sc.getBoundingClientRect(), col=ed.getBoundingClientRect(), rs=sp.getClientRects(), last=rs[rs.length-1];
   const pop=document.createElement("div"); pop.className="thpop"; pop.setAttribute("role","dialog"); pop.setAttribute("aria-label","Thread on this proposal");
   pop.style.top=(last.bottom-so.top+sc.scrollTop+8)+"px"; pop.style.left=(col.left-so.left)+"px"; pop.style.width=Math.min(col.width,560)+"px";
@@ -630,7 +632,9 @@ function openThread(sp){
   inp.addEventListener("input",grow);
   ui._draft=ui._draft||{}; if(ui._draft[id]){ inp.value=ui._draft[id]; setTimeout(grow,0); }
   inp.addEventListener("input",()=>{ ui._draft[id]=inp.value; });
-  const send=()=>{ const v=inp.value.trim(); if(!v) return; T[id]=T[id]||{msgs:[],prev:[]}; T[id].msgs.push({w:"h",t:v,at:new Date().toISOString()}); T[id].wait=true; T[id].text=sp.textContent; delete ui._draft[id]; save(); placeAiCtl(); updateCounters(); openThread(sp); };
+  /* 1.0.16: a thread counts as read only once Hannes starts typing a reply (or sends / accepts / declines), not when it opens */
+  inp.addEventListener("input",()=>{ if(inp.value.trim()) thSeen(sp); });
+  const send=()=>{ const v=inp.value.trim(); if(!v) return; T[id]=T[id]||{msgs:[],prev:[]}; T[id].msgs.push({w:"h",t:v,at:new Date().toISOString()}); T[id].wait=true; T[id].text=sp.textContent; delete ui._draft[id]; thSeen(sp); save(); placeAiCtl(); updateCounters(); openThread(sp); };
   inp.addEventListener("keydown",e=>{ if(e.key==="Enter"&&!e.shiftKey&&!e.isComposing){ e.preventDefault(); e.stopPropagation(); send(); } });
   const step=d=>{ const a=[...sc.querySelectorAll(".ed span.ai,.ed .imp")]; if(!a.length){ thClose(); return; } const j=(a.indexOf(sp)+d+a.length)%a.length; a[j].scrollIntoView({block:"center",behavior:"smooth"}); setTimeout(()=>openThread(a[j]),250); };
   const finish=ok=>{ const why=inp.value.trim(); delete ui._draft[id]; if(why){ T[id]=T[id]||{msgs:[],prev:[]}; T[id].msgs.push({w:"h",t:why,at:new Date().toISOString(),why:!ok}); }
@@ -668,4 +672,4 @@ function thDots(sc){ sc.querySelectorAll(".undot").forEach(x=>x.remove()); const
   thUnread().forEach(sp=>{ const r=sp.getClientRects()[0]; if(!r) return; const ed=sp.closest(".ed"), lr=(ed||sp).getBoundingClientRect(); const d=document.createElement("i"); d.className="undot"; d.title="Not looked at yet";
     d.style.top=(r.top-so.top+sc.scrollTop+r.height/2-3.5)+"px"; d.style.left=(lr.left-so.left-16)+"px"; sc.appendChild(d); }); }
 let thHoverT=null;
-document.addEventListener("pointerover",e=>{ const sp=e.target.closest&&e.target.closest("#edscroll span.ai,#edscroll .ed .imp"); clearTimeout(thHoverT); if(sp&&thIsUnread(sp)) thHoverT=setTimeout(()=>thSeen(sp),1000); });
+/* 1.0.16: hovering no longer marks a proposal as read */

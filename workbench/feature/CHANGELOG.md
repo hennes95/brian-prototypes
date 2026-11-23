@@ -6,6 +6,10 @@
 - New: **Implementation** with the ticket's links (read-only, from `PACK.links`) and the design system changes (moved from their own section).
 - Ticket preview uses the same order. Packs on older shells keep working; they show an empty Implementation link list until `PACK.links` is set.
 
+## 1.0.16 (23.11.26)
+- Threads: opening a thread (or hovering a proposal) no longer marks it read. It counts as read once a reply is typed (first character) or sent, or the proposal is accepted / declined. Doing nothing changes nothing.
+- The thread popover no longer closes on its own: a save or remote update while it is open no longer redraws the spec underneath it; the redraw waits until the popover is closed (✕, Esc, click outside, accept / decline).
+
 ## 1.0.15 (23.11.26)
 - Fix (data loss, the actual trigger of 1.0.14's reset): after loading, the shell called the pack's optional loadPreviews() unguarded. In a pack without it (BR-7144) that threw, the shell fell back to the browser's local copy (which a fresh page had just filled with the pack default) and the next save wrote it over the stored spec.
 - loadPreviews is now optional for real, and once the stored spec is loaded an error never swaps it for the local copy.
