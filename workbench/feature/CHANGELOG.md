@@ -1,5 +1,11 @@
 # Feature workbench shell: changelog
 
+## 1.1.3 (23.11.26)
+- The save status at the top right shows the shell version ("saved · 1.1.3"), so a tab still running an older version is visible at a glance.
+
+## 1.0.18 (23.11.26)
+- The save status at the top right shows the shell version ("saved · 1.0.18"), so a tab still running an older version is visible at a glance.
+
 ## 1.1.2 (23.11.26)
 - Fix: a thread reply (or the reason given with Accept / Decline) could be lost. The popover kept the threads object from when it opened; every save replaces it, so a reply sent after a save went into the old object. Since threads stay open longer (1.0.16 / 1.1.1) this happened often. Send / Accept / Decline now always write into the current threads.
 
