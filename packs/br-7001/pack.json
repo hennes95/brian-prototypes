@@ -1,51 +1,6 @@
 {
   "ticket": "BR-7001",
   "title": "AI Tutor use cases",
-  "shell": "feature@1.0.7",
-  "notes": "Screen code generated from the BR-7001 motion package (build.py). Specs from the Notion ticket; Claude's additions in blue. After the workbench was opened, the spec lives in the artifact's database.",
-  "motionPackage": "br-7001/motion/use-case-blocks/motion-package.md",
-  "transitions": [
-    {
-      "from": "(tab opened)",
-      "trigger": "open AI Tutor tab",
-      "to": "idle-rest",
-      "motion": "enter"
-    },
-    {
-      "from": "idle-rest",
-      "trigger": "tap block",
-      "to": "chat-block",
-      "motion": "open"
-    },
-    {
-      "from": "idle-rest",
-      "trigger": "tap field",
-      "to": "focus-kb",
-      "motion": "focus"
-    },
-    {
-      "from": "focus-kb",
-      "trigger": "type",
-      "to": "focus-typed",
-      "motion": null
-    },
-    {
-      "from": "focus-kb",
-      "trigger": "tap outside | keyboard closes",
-      "to": "idle-rest",
-      "motion": "back (from focus)"
-    },
-    {
-      "from": "focus-typed",
-      "trigger": "send",
-      "to": "chat-send",
-      "motion": "send"
-    },
-    {
-      "from": "chat-block | chat-send",
-      "trigger": "tap + (new thread)",
-      "to": "idle-rest",
-      "motion": "back"
-    }
-  ]
+  "shell": "feature@1.0.8",
+  "notes": "Screen code generated from the BR-7001 motion package (wb2/gen_pack.py). Specs from the Notion ticket; Claude's additions in blue."
 }

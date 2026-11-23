@@ -1,5 +1,9 @@
 # Feature workbench shell: changelog
 
+## 1.0.8 (23.11.26)
+- Controls stay visible for ~0.45 s after the pointer leaves the proposal, so you can reach ↩ / the thread count.
+- The thread count's outline follows the controls' shape (no speech-bubble corner).
+
 ## 1.0.7 (23.11.26)
 - Read / unread for Claude's proposals: unread ones get a blue dot in the margin. A proposal counts as read once its thread was opened or it was hovered for ~1 s; it becomes unread again when Claude answers in its thread. Stored in `S.seen`.
 - Blue counter works like an inbox: filled with a red dot = unread count, jumps to the next unread proposal; all read = outlined, shows the open count.
