@@ -168,8 +168,7 @@ function docSVG(loading){
   const id="dpc"+(++docN), page="M0 0H291.1L316.5 24.8L317.1 178.8H0Z";
   return `<svg class="docsvg" viewBox="0 0 321 183" preserveAspectRatio="none" ${loading?'aria-hidden="true"':'role="img" aria-label="Document"'}>
     <defs><clipPath id="${id}"><path d="${page}"/></clipPath></defs>
-    <path class="dsh" d="M3 3H294.1L319.5 27.8L320.1 181.8H3Z"/>
-    <g clip-path="url(#${id})">${loading?`<rect class="dfill" width="321" height="183"/>`:`<rect width="321" height="183" fill="#fff"/><image href="assets/document.png" width="317.1" height="178.8" preserveAspectRatio="xMidYMid slice"/><rect width="321" height="183" fill="#000" opacity=".03"/>`}</g>
+        <g clip-path="url(#${id})">${loading?`<rect class="dfill" width="321" height="183"/>`:`<rect width="321" height="183" fill="#fff"/><image href="assets/document.png" width="317.1" height="178.8" preserveAspectRatio="xMidYMid slice"/><rect width="321" height="183" fill="#000" opacity=".03"/>`}</g>
     <path class="dln" d="${page}"/>
     <path class="dsh" d="M294 3.3V27.7H319.2Z"/>
     <path class="dfold" d="M291 .3V24.7H316.2Z"/>
@@ -376,6 +375,7 @@ function syncSel(kind){ if(document.body.classList.contains("proto")) return; co
 const pw=document.getElementById("pwrap");
 pw.addEventListener("click",e=>{
   if(e.target.closest(".badge")){ const id=e.target.closest(".badge").dataset.el; const it=document.querySelector(`#pwrap [data-el="${id}"]`); it&&it.scrollIntoView({block:"center",behavior:"smooth"}); return; }
+  const att=e.target.closest(".as"); if(att&&!att.querySelector(".ld")&&!att.closest(".cv")){ openViewer(att,e.target); return; }
   const a=e.target.closest("[data-act]");
   if(a){ const k=a.dataset.act; if(k==="send"){ e.preventDefault(); send(); } else if(k==="plus") addPhoto(); else if(k==="newchat"){ THREAD=[]; WAITING=false; renderStage(); } return; }
   /* workbench: clicking a component jumps to its spec section */
@@ -384,6 +384,57 @@ pw.addEventListener("click",e=>{
 });
 pw.addEventListener("keydown",e=>{ if(e.key==="Enter"&&e.target.matches(".fld input")){ e.preventDefault(); send(); } });
 function go(stateId){ const x=find(stateId); if(!x) return; ui.sel={kind:"state",mode:x.m.id,state:x.s.id}; ui.live={}; render(); scrollToSel(); }
+
+/* ================= attachment viewer (variant D, Hannes 23.11) =================
+   Tap an attachment: the viewer opens on it. Today's viewer plus ‹ › and "2 of 6 files" in the header (only with several files).
+   R5: scrolling down / zooming in folds the header away, scrolling back up / zooming out / one tap brings it back.
+   Swipe left/right: next / previous file. Swipe down on the top bar closes, only from the start position (top, not zoomed). */
+const VW_SRC={doc:{name:"Worksheet.pdf",kind:"doc",pages:3},doc2:{name:"Exercise_4.pdf",kind:"doc",pages:2},image:{name:"line_sketch.jpg",kind:"image",pages:1},image2:{name:"exercise_4.jpg",kind:"image",pages:1},drawing:{name:"Canvas",kind:"drawing",pages:1}};
+function viewerFiles(as,tapped){
+  if(as.classList.contains("as-two")){ const cols=[...as.querySelectorAll(".col")]; return {files:[VW_SRC.doc,VW_SRC.drawing],start:Math.max(0,cols.findIndex(c=>c.contains(tapped)))}; }
+  if(as.classList.contains("as-more")){ const n=parseInt((as.querySelector(".cap")||{}).textContent)||4; const pool=[VW_SRC.doc,VW_SRC.drawing,VW_SRC.doc2,VW_SRC.image,VW_SRC.image2,{...VW_SRC.drawing,name:"Canvas 2"}];
+    return {files:Array.from({length:n},(_,k)=>pool[k%pool.length]),start:0}; }
+  const k=as.classList.contains("as-doc")?"doc":as.classList.contains("as-drawing")?"drawing":"image"; return {files:[VW_SRC[k]],start:0};
+}
+let VW=null;
+function openViewer(as,tapped){ const {files,start}=viewerFiles(as,tapped); VW={files,i:start,eng:false,zoom:false}; drawViewer(); }
+function closeViewer(){ const v=$("#pwrap .vw"); if(!v) return; v.classList.add("out"); setTimeout(()=>{ v.remove(); VW=null; },220); }
+function vwPage(f){ return `<div class="vw-page"><img src="assets/document.png" alt=""><div class="vw-lines"><i style="width:92%"></i><i style="width:85%"></i><i style="width:96%"></i><i style="width:60%"></i><i style="width:88%"></i><i style="width:74%"></i></div><div class="vw-lines"><i style="width:90%"></i><i style="width:80%"></i><i style="width:52%"></i></div></div>`; }
+function drawViewer(dir){
+  const ph=$("#pwrap .phone"); if(!ph||!VW) return; let v=ph.querySelector(".vw");
+  if(!v){ v=document.createElement("div"); v.className="vw"; ph.appendChild(v); wireViewer(v); }
+  const f=VW.files[VW.i], n=VW.files.length, many=n>1;
+  v.innerHTML=`<div class="vw-hd">${STATUS}<div class="vw-row">
+      <div class="vw-nav">${many?`<button data-vw="prev" aria-label="Previous file" ${VW.i===0?"disabled":""}>${VI.l}</button><button data-vw="next" aria-label="Next file" ${VW.i===n-1?"disabled":""}>${VI.r}</button>`:""}</div>
+      <div class="vw-t"><div class="vw-n">${esc(f.name)}</div>${many?`<div class="vw-s">${VW.i+1} of ${n} files</div>`:""}</div>
+      <div class="vw-x"><button data-vw="close" aria-label="Close">${VI.x}</button></div></div></div>
+    <div class="vw-body ${VW.zoom?"zoom":""}"><div class="vw-in ${dir?"from-"+dir:""}">${f.kind==="doc"?Array.from({length:f.pages},()=>vwPage(f)).join(""):`<div class="vw-media"><img src="assets/${f.kind==="drawing"?"drawing":"photo"}.png" alt=""></div>`}</div></div>
+    ${f.kind==="doc"?`<div class="vw-pill"><b class="vw-p">1</b><span> / ${f.pages}</span></div>`:""}`;
+  v.classList.toggle("eng",VW.eng);
+}
+const VI={l:`<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 4l-8 8 8 8"/></svg>`,
+  r:`<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4l8 8-8 8"/></svg>`,
+  x:`<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M5 5l14 14M19 5L5 19"/></svg>`};
+function vwSet(eng){ if(!VW||VW.eng===eng) return; VW.eng=eng; const v=$("#pwrap .vw"); v&&v.classList.toggle("eng",eng); }
+function vwGo(d){ if(!VW) return; const k=VW.i+d; if(k<0||k>=VW.files.length) return; VW.i=k; VW.zoom=false; VW.eng=false; drawViewer(d>0?"r":"l"); }
+function wireViewer(v){
+  let sx=0,sy=0,st=0,fromHd=false,drag=false,moved=false,lastTap=0,lastTop=0;
+  v.addEventListener("click",e=>{ const b=e.target.closest("[data-vw]"); if(!b) return; e.stopPropagation(); const k=b.dataset.vw; if(k==="close") closeViewer(); else vwGo(k==="next"?1:-1); });
+  v.addEventListener("scroll",e=>{ const b=e.target; if(!b.classList||!b.classList.contains("vw-body")||!VW) return; const t=b.scrollTop, d=t-lastTop; lastTop=t;
+    const pages=b.querySelectorAll(".vw-page"); if(pages.length){ let p=1; pages.forEach((pg,k)=>{ if(pg.offsetTop-b.clientHeight/2<=t) p=k+1; }); const el=v.querySelector(".vw-p"); if(el) el.textContent=p; }
+    if(d>6&&t>20) vwSet(true); else if((d<-6||t<10)&&!VW.zoom) vwSet(false); },true);
+  v.addEventListener("pointerdown",e=>{ if(e.target.closest("button")) return; sx=e.clientX; sy=e.clientY; moved=false; const b=v.querySelector(".vw-body");
+    fromHd=!!e.target.closest(".vw-hd"); st=b?b.scrollTop:0; drag=fromHd&&st<5&&!VW.zoom; if(drag) v.setPointerCapture(e.pointerId); });
+  v.addEventListener("pointermove",e=>{ const dx=e.clientX-sx, dy=e.clientY-sy; if(Math.abs(dx)>6||Math.abs(dy)>6) moved=true;
+    if(drag&&dy>0){ v.style.transition="none"; v.style.transform=`translateY(${dy/(ui.scale||1)}px) scale(${Math.max(.85,1-dy/2000)})`; v.style.borderRadius="24px"; } });
+  v.addEventListener("pointerup",e=>{ const dx=e.clientX-sx, dy=e.clientY-sy;
+    if(drag){ drag=false; v.style.transition=""; if(dy>110){ closeViewer(); return; } v.style.transform=""; v.style.borderRadius=""; if(moved) return; }
+    if(e.target.closest("button")) return;
+    if(!VW.zoom&&Math.abs(dx)>60&&Math.abs(dx)>Math.abs(dy)*1.5){ vwGo(dx<0?1:-1); return; }
+    if(!moved&&e.target.closest(".vw-body")){ const now=Date.now();
+      if(now-lastTap<300){ VW.zoom=!VW.zoom; v.querySelector(".vw-body").classList.toggle("zoom",VW.zoom); vwSet(VW.zoom); lastTap=0; return; }
+      lastTap=now; setTimeout(()=>{ if(lastTap===now&&VW) vwSet(!VW.eng); },310); } });
+}
 
 /* ================= stable element numbers ================= */
 const EL_ORDER=["menu","help","close","newchat","speaker","wline","att-image","att-drawing","att-doc","att-multi","att-loading","cite-source","cite-foot","date","brian"];
