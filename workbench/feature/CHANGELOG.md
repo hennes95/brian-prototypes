@@ -1,5 +1,11 @@
 # Feature workbench shell: changelog
 
+## 1.1.1 (23.11.26)
+- 1.1.0 plus the fixes from 1.0.13–1.0.16, which were released in parallel on the 1.0.x line:
+  - Spec reset on load (data loss): the database is only connected once the stored spec is loaded, a save without a loaded spec never overwrites it, the pack's loadPreviews is optional for real, and a loaded spec is never swapped for the local copy.
+  - Threads read only on typing / sending / accept / decline; the popover no longer closes on background saves.
+  - Dark number on the yellow comment badges.
+
 ## 1.1.0 (23.11.26)
 - The spec now has the same sections, in the same order, as the Notion ticket after handover (Hannes 23.11.): Brief → Solution → Edge cases → Side effects → Open questions → Implementation.
 - New: **Side effects** with "Effects on existing data" (`docs.data`) and "Notifications, emails & tracking" (`docs.side`); touchpoints moved here ("other screens affected").
