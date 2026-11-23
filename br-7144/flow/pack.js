@@ -22,22 +22,22 @@ const DEFAULT = {
  docs: {
   brief: `<h2>Problem</h2>`+imp(`<ul><li>Chat is one of our most important experiences at Brian, yet compared with Claude or ChatGPT it leaves much to be desired</li><li>1st ticket for this initiative</li><li>Our chat on the student side has a poor use of space</li><li>The avatars of AI and student on the left reduce horizontal space, which is already limited on the phone</li></ul>`)
    +`<h2>Goal</h2>`+imp(`<ul><li>Update Brian with a contemporary chat layout that follows industry best practice and improves UX<ul><li>1. Make the chat layout more space-efficient and easier to read</li><li>2. Improve visibility of content in the chat</li><li>3. Add a design for bigger screens (tablet/desktop) to use the space better</li><li>4. Harmonize &amp; update all icons</li></ul></li></ul>`)
-   +`<h2>Out of scope</h2>`+imp(`<ul><li>Teacher chat redesign &amp; AI teaching assistant UI (this ticket is student-side only)</li><li>Improve citations and quotes<ul><li>Open split screen / window in window</li><li>Discern online from material source</li><li>Make it more recognizable</li><li>Potentially pictures instead of citations</li></ul></li><li>Improve analysis/review at the end of AI Dialogs (add animation)</li><li>Refine Brian Student UI (align on a direction with Ralph)</li></ul>`)
+   +`<h2>Out of scope</h2>`+imp(`<ul><li>Teacher chat redesign &amp; AI teaching assistant UI (this ticket is student-side only)</li><li>Improve citations and quotes<ul><li>Open split screen / window in window</li><li>Discern online from material source</li><li>Make it more recognizable</li><li>Potentially pictures instead of citations</li></ul></li><li>Improve analysis/review at the end of AI Dialogs (add animation)</li><li>Refine Brian Student UI (align on a direction with Ralph)</li><li>Scrolling back (top bar and input field fold away) → <a href="https://app.notion.com/p/407fca9f403c8035be80e140aeb3aaa7" target="_blank">BR-7147</a> (R4)</li></ul>`)
    +`<h2>Related tickets</h2><h3>Initiative</h3><ul><li><a href="https://app.notion.com/p/3fdfca9f403c8027ad2ec54768ad785b" target="_blank">BR-6975 FE: Improve the Chat</a> (parent)<ul><li>Batch 1<ul><li>BR-7144 Chat History Redesign (this ticket)</li><li><a href="https://app.notion.com/p/407fca9f403c8035be80e140aeb3aaa7" target="_blank">BR-7147 Redesign Input Field</a></li><li><a href="https://app.notion.com/p/407fca9f403c80f6a71ac61ca32b9280" target="_blank">BR-7148 Add tool calls to loading state</a> · done</li></ul></li><li>Batch 2 (no tickets yet)<ul><li>Thread management</li><li>STT</li><li>S2S in the AI Tutor</li><li>Add dialog UI</li><li>Image support in chat</li></ul></li></ul></li></ul>`,
-  rules: imp(`<ul><li>Remove the user avatar</li><li>Remove the Brian avatar, except while Brian is generating an answer (loading state)</li><li>Remove all timestamps (date badges: see Date badges)</li><li>AI and student are now separated by<ul><li>Right indentation of student messages</li><li>Student messages finishing with a line (like the line in a workbook where students put their answers)</li></ul></li><li>Replace all icons in the chat history and top bar with their Nucleo versions</li></ul>`),
+  rules: "",
   edges: imp(`<ul><li>Existing data: re-render all chat histories with the new UI once this goes live (no new asset types or rules, so nothing more to specify)</li><li>Error states for messages and assets: reuse the current logic, no new design</li></ul>`),
   "tp:tutor": `<ul><li>${ai("Light chat with tab bar; date badges shown (prototype default)")}</li></ul>`,
   "tp:dialog": `<ul><li>${ai("Dark chat, opens full screen with ✕, no tab bar; no date badges (badges only in Chatbot and AI Tutor)")}</li></ul>`,
-  "tp:chatbot": `<ul><li>${ai("Light or dark? The ticket groups Chatbot with the AI Tutor (white), BR-7147 shows it dark")}</li></ul>`,
+  "tp:chatbot": `<ul><li>Dark, like the AI Dialog<ul><li>Date badges are shown (badges only in Chatbot and AI Tutor)</li></ul></li></ul>`,
   "tp:diary": imp(`<ul><li>How should we handle the Learning Diary chat?<ul><li>Hannes: package it into a separate ticket (chat between humans, here we look at AI chat UX), or use this layout and add a profile icon on top of the teacher messages</li></ul></li></ul>`),
   ds: `<ul><li>${ai(`Chat_TutorMessage · new · light / AI Dialog, icon row (<a href="${FIG("12491-97445")}" target="_blank">Figma</a>)`)}</li><li>${ai(`Chat_StudentMessage · new · asset slot on top, workbook line (<a href="${FIG("12495-97701")}" target="_blank">Figma</a>)`)}</li><li>${ai(`Image, Drawing, Document · new · sent + loading, light + AI Dialog (<a href="${FIG("12495-98454")}" target="_blank">Figma</a>)`)}</li><li>${ai(`Multiple attachments · new · 2, more, more than 4 (<a href="${FIG("12394-112386")}" target="_blank">Figma</a>)`)}</li><li>${ai(`Citation · new · direct / indirect, 1 or 2 (<a href="${FIG("12487-126")}" target="_blank">Figma</a>)`)}</li><li>${ai(`Navigation Top · changed · shorter, Nucleo icons (<a href="${FIG("12532-146458")}" target="_blank">Figma</a>)`)}</li><li>${ai(`Text styles body-md · changed (<a href="${FIG("12770-69595")}" target="_blank">Figma</a>)`)}</li></ul>`,
   questions: imp(`<ul><li>How should we handle the Learning Diary chat? (see touchpoint Learning Diary)</li><li>How should we handle errors: reuse the current state?<ul><li>Hannes: reuse the current state</li></ul></li></ul>`)
-   +`<ul><li>${ai("Scrolling up hides top bar and input field (Figma note): BR-7147 R4 says the same. Which ticket owns it?")}</li><li>${ai("Ralph's comment of 6.11 asks for the \"tool calling style\" for Ataberk: not in this ticket's scope. Still open here, done, or moved?")}</li></ul>`
+
  },
  modes: [
   {id:"layout",name:"Message layout",status:"open",figma:FIG("12126-163424"),states:[
    {id:"layout-msgs",name:"Tutor & student messages",kind:"layout",links:{},doc:
-    imp(`<ul><li>Mobile: AI message spans the full width, student message is indented on the left (sits on the right)</li></ul>`)
+    imp(`<ul><li>Remove the user avatar</li><li>Remove the Brian avatar, except while Brian is generating an answer (loading state)</li><li>Remove all timestamps (date badges: see Date badges)</li><li>AI and student are now separated by<ul><li>Right indentation of student messages</li><li>Student messages finishing with a line (like the line in a workbook where students put their answers)</li></ul></li><li>Replace all icons in the chat history and top bar with their Nucleo versions</li></ul>`)+imp(`<ul><li>Mobile: AI message spans the full width, student message is indented on the left (sits on the right)</li></ul>`)
     +`<ul><li>${ai("Icon row under AI messages: only read aloud for now (Figma note)")}</li></ul>`}]},
   {id:"dates",name:"Date badges",status:"open",figma:FIG("12126-163571"),states:[
    {id:"dates-multi",name:"Conversation over several days",kind:"dates",links:{},doc:
@@ -57,9 +57,6 @@ const DEFAULT = {
   {id:"loading",name:"Brian is answering",status:"open",figma:FIG("12532-149445"),states:[
    {id:"loading-brian",name:"Generating an answer",kind:"loading",links:{},doc:
     imp(`<ul><li>The Brian avatar only shows while Brian is generating an answer (loading state)</li></ul>`)}]},
-  {id:"scroll",name:"Scrolling back",status:"open",figma:FIG("12117-92"),states:[
-   {id:"scroll-up",name:"Bars fold away",kind:"scroll",links:{},doc:
-    `<ul><li>${ai("Student scrolls up: top bar moves out to the top, input field out to the bottom, to maximize screen space (Figma note)")}</li><li>${ai("Scrolling down brings both back")}</li></ul>`}]},
   {id:"bp",name:"Tablet & desktop",status:"open",figma:FIG("12133-165865"),states:[
    {id:"bp-tablet",name:"Tablet",kind:"tablet",links:{},doc:
     imp(`<ul><li>Specific designs and behaviors per form factor for regular messages and all attachments (details in Figma)</li><li>Indentations double compared to mobile</li><li>Width of the chat history is limited to about 14 words (about 840px in Figma)</li><li>AI message is indented on the right</li><li>Asset sizes are the same as on mobile; only text runs the full width</li></ul>`)},
@@ -75,9 +72,9 @@ const VARIANTS=[{id:"v1",name:"Design V1",figma:FIG("12117-83")}];
 const CONTEXTS=[
  {id:"tutor",name:"AI Tutor",ctx:"tutor",figma:FIG("12126-163424")},
  {id:"dialog",name:"AI Dialog",ctx:"dialog",figma:FIG("12495-101166")},
- {id:"chatbot",name:"Chatbot",ctx:null,note:"Theme open"},
+ {id:"chatbot",name:"Chatbot",ctx:"chatbot"},
  {id:"diary",name:"Learning Diary",ctx:null,note:"Open question"}];
-const isDarkCtx=c=>c==="dialog";
+const isDarkCtx=c=>c==="dialog"||c==="chatbot";   /* Chatbot is dark like the AI Dialog, but keeps date badges (Hannes 23.11) */
 
 /* ================= icons (Figma exports / Nucleo, copied from the BR-7147 pack) ================= */
 const I={
@@ -192,13 +189,13 @@ const brianHTML=g=>`<div class="bl" data-g="${g||""}" ${el("brian","Brian avatar
 function itemHTML(m,dark){
   if(m.t==="t") return tutorHTML(m);
   if(m.t==="s") return studentHTML(m);
-  if(m.t==="tag") return dark?"":`<div class="tagrow" data-g="${m.g||""}"><span class="tag" ${el("date","Date badge","dates")}>${esc(m.text)}</span></div>`;
+  if(m.t==="tag") return ui.context==="dialog"?"":`<div class="tagrow" data-g="${m.g||""}"><span class="tag" ${el("date","Date badge","dates")}>${esc(m.text)}</span></div>`;
   if(m.t==="brian") return brianHTML(m.g);
   return "";
 }
 const STATUS=`<div class="p-status"><span>9:41</span><svg width="66" height="12" viewBox="0 0 66 12" fill="currentColor"><rect x="0" y="7" width="3" height="4" rx=".7"/><rect x="4.5" y="5" width="3" height="6" rx=".7"/><rect x="9" y="3" width="3" height="8" rx=".7"/><rect x="13.5" y="0" width="3" height="11" rx=".7"/><path d="M28 3.2a9 9 0 0 1 12 0l-1.2 1.3a7.2 7.2 0 0 0-9.6 0zM30.4 5.8a5.4 5.4 0 0 1 7.2 0L36.4 7a3.6 3.6 0 0 0-4.8 0zM34 10.6l-1.4-1.5a2 2 0 0 1 2.8 0z"/><rect x="44" y=".5" width="20" height="11" rx="2.7" fill="none" stroke="currentColor"/><rect x="46" y="2.5" width="16" height="7" rx="1.3"/></svg></div>`;
 function topbarHTML(dark){
-  return `<div class="tb"><div class="tb-row">${dark?`<button ${el("help","Help","topbar")} aria-label="Help">${I.help}</button>`:`<button ${el("menu","Chat history","topbar")} aria-label="Chat history">${I.menu}</button>`}<span class="t">${dark?CHAT_DIALOG_TITLE:"AI-Tutor"}</span>${dark?`<button ${el("close","Close","topbar")} aria-label="Close">${I.close}</button>`:`<button data-act="newchat" ${el("newchat","New chat","topbar")} aria-label="New chat">${I.newchat}</button>`}</div></div>`;
+  return `<div class="tb"><div class="tb-row">${dark?`<button ${el("help","Help","topbar")} aria-label="Help">${I.help}</button>`:`<button ${el("menu","Chat history","topbar")} aria-label="Chat history">${I.menu}</button>`}<span class="t">${!dark?"AI-Tutor":ui.context==="chatbot"?"Maths Chatbot":CHAT_DIALOG_TITLE}</span>${dark?`<button ${el("close","Close","topbar")} aria-label="Close">${I.close}</button>`:`<button data-act="newchat" ${el("newchat","New chat","topbar")} aria-label="New chat">${I.newchat}</button>`}</div></div>`;
 }
 /* input field and tab bar as drawn in the BR-7144 frames; the field itself is BR-7147's, so it is only a placeholder here */
 function composerHTML(){
