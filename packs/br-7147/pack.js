@@ -406,7 +406,7 @@ function growInput(){
   const body=t.closest(".c-body"), att=body&&body.querySelector(".c-att");
   cmp?.classList.toggle("attscroll",!!att);
   if(att){ t.style.overflowY="hidden"; t.style.height="auto"; const cs=getComputedStyle(t); const lines=(t.scrollHeight-parseFloat(cs.paddingTop)-parseFloat(cs.paddingBottom))/LH; const over=lines>MAX+0.5;
-    t.style.height=t.scrollHeight+"px"; const cap=att.offsetHeight+LH*MAX+PAD; body.style.maxHeight=cap+"px"; const scr=body.scrollHeight>cap+1;
+    t.style.height=t.scrollHeight+"px"; const cap=att.offsetHeight+LH*MAX+PAD+8; body.style.maxHeight=cap+"px"; const scr=body.scrollHeight>cap+1;
     cmp.classList.toggle("over",over); cmp.classList.toggle("scr",scr);
     const atEnd=document.activeElement!==t||t.selectionEnd>=t.value.length; if(scr&&atEnd) body.scrollTop=body.scrollHeight;
     const bar=cmp.querySelector(".bar"); if(bar&&scr){ const sc=ui.scale||1, OFF=46, vis=body.clientHeight/body.scrollHeight, hh=Math.max(16,(body.clientHeight-OFF)*vis); bar.style.top=((body.getBoundingClientRect().top-cmp.getBoundingClientRect().top)/sc+OFF)+"px"; bar.style.height=hh+"px"; const posBar=()=>{ bar.style.transform=`translateY(${(body.scrollTop/(body.scrollHeight-body.clientHeight||1))*(body.clientHeight-OFF-hh)}px)`; }; posBar(); body.onscroll=posBar; }
