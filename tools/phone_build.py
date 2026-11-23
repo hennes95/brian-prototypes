@@ -7,7 +7,7 @@
 Writes <ticket>/flow/ with
   index.html   fixed loader: always opens the newest app.html (bypasses the ~10 min GitHub Pages cache)
   app.html     dist/<ticket>/index.html with: #prototype as the start route, viewport maximum-scale=1,
-               ticket icons, the Add to Home Screen tutorial, comment tools hidden, ?v=<build> on every local file
+               ticket icons, the Add to Home Screen tutorial, the two-finger switcher (_shared/phonesw.js), comment tools hidden, ?v=<build> on every local file
   shell/pack files and assets from dist/<ticket>/ (agt.js left out: no comments on the phone)
 Icons: node _shared/make_icon.js <ticket>/flow <number> BR Flow (run once; kept between builds).
 """
@@ -45,7 +45,7 @@ html = html.replace("</title>", "</title>" + head, 1)
 for name in ("shell.css", "pack.css", "pack.js", "shell.js"):
     html = html.replace(f'"{name}"', f'"{name}?v={v}"')
 html = re.sub(r"<script>\s*/\* Agentation.*?</script>", "", html, flags=re.S)  # no comment toolbar on the phone
-html = html.replace("</body>", f'<script src="../../_shared/a2hs.js?v={v}" defer></script>\n</body>')
+html = html.replace("</body>", f'<script src="../../_shared/a2hs.js?v={v}" defer></script>\n<script src="../../_shared/phonesw.js?v={v}" defer></script>\n</body>')
 (out / "app.html").write_text(html)
 (out / "index.html").write_text(f"""<!DOCTYPE html>
 <html lang="en"><head><link rel="apple-touch-icon" href="icon-180.png"><link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png"><meta charset="utf-8">
