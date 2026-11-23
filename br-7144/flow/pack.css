@@ -48,7 +48,7 @@ body.native .phone.dark .ci{padding-bottom:calc(12px + env(safe-area-inset-botto
 .wl{height:1px;background:var(--b-ink);transform:scaleY(.75);transform-origin:0 0}
 
 /* hairline helper: 1px border scaled to 0.75 */
-.th-img,.th-draw,.tag,.fld,.th-draw.ld{position:relative}
+.th-img,.th-draw,.tag,.fld{position:relative}
 .th-img::before,.th-draw::before,.tag::before,.fld::before{content:"";position:absolute;left:0;top:0;width:133.334%;height:133.334%;border:1px solid var(--b-ink);transform:scale(.75);transform-origin:0 0;pointer-events:none;box-sizing:border-box;border-radius:inherit}
 .fld::before{border-color:#3a3a3a}
 
@@ -59,21 +59,17 @@ body.native .phone.dark .ci{padding-bottom:calc(12px + env(safe-area-inset-botto
 .th img{display:block;width:100%;height:100%;object-fit:cover}
 .th-img{height:179px;background:#fff;padding:4px 4px 16px;box-sizing:border-box;box-shadow:3px 3px 0 var(--b-ink)}  /* straight, no tilt (Hannes 23.11) */
 .th-img .ph{display:grid;place-items:center;width:100%;height:100%;overflow:hidden}
-.th-img.ld .ph{background:#3a3a3a}
 /* drawing: frame line from CSS (0.75, like every attachment), the render's own 1px frame is cropped off; same 3px hard shadow (Hannes 23.11) */
 .th-draw{height:auto;aspect-ratio:320/188;background:#fff;box-shadow:3px 3px 0 var(--b-ink)}
 .th-draw img{object-fit:fill}
-.th-draw.ld{height:184px;aspect-ratio:auto;box-shadow:none}
-.th-draw.ld::before{display:none}
-.th-draw.ld{background:#3a3a3a;display:grid;place-items:center}
 .th-doc{aspect-ratio:321/183;position:relative}  /* page + fold drawn in docSVG (pack.js), as the Figma Document component */
 .docsvg{position:absolute;inset:0;width:100%;height:100%;overflow:visible;filter:drop-shadow(3px 3px 0 var(--b-ink))}  /* fixed 3px shadow at every size, like the canvas (Hannes 23.11) */
 .docsvg .dsh{fill:var(--b-ink)}
 .docsvg .dln{fill:none;stroke:var(--b-ink);stroke-width:.75;vector-effect:non-scaling-stroke}
 .docsvg .dfold{fill:#fff;stroke:var(--b-ink);stroke-width:.75;stroke-linejoin:round;vector-effect:non-scaling-stroke}
-.docsvg .dfill{fill:#3a3a3a}
-.th-doc .dspin{position:absolute;inset:0;display:grid;place-items:center}
-.bx.dark .th-draw.ld{outline:.75px solid #fff;outline-offset:-.5px}
+/* document loading: dots inside the page, outside the folded corner; the outline and fold stay on top */
+.th-doc .dink{position:absolute;inset:0;clip-path:polygon(0 0,90.6% 0,90.6% 13.5%,98.8% 13.5%,98.8% 97.7%,0 97.7%);pointer-events:none}
+.th-doc .dink .ink{display:block;width:100%;height:100%}
 .spin{width:28px;height:28px;border-radius:50%;border:2px solid #fff;position:relative;box-sizing:border-box;flex:none}
 .spin::after{content:"";position:absolute;inset:4px;border-radius:50%;background:conic-gradient(#fff 0 25%,transparent 0);animation:sp 1s linear infinite}
 @keyframes sp{to{transform:rotate(360deg)}}
@@ -83,14 +79,11 @@ body.native .phone.dark .ci{padding-bottom:calc(12px + env(safe-area-inset-botto
 .as-two .col{flex:1;min-width:0;display:flex;flex-direction:column;align-items:flex-end;gap:12px}
 .as-two .th-doc{height:auto}
 .as-two .th-draw{height:auto}
-.as-two .th-draw.ld,.as-two .th-doc.ld{height:86px;aspect-ratio:auto}
-.as-two .th-draw.ld{outline:.75px solid #3a3a3a;outline-offset:-.5px}
 /* more than two: overlapping stack, count below, "+n" badge above 4 */
 .as-more .stack{display:flex;align-items:flex-start;position:relative;padding-right:3px}
 .as-more .st{width:135px;flex:none;margin-right:-80px;height:91px;aspect-ratio:auto}
 .as-more .st.last{margin-right:0;height:89px;padding:4px 4px 14px}
 .as-more .th-draw.st{height:auto;aspect-ratio:320/188;margin-top:8px}
-.as-more .th-draw.st.ld{height:89px;aspect-ratio:auto;outline:.75px solid #3a3a3a;outline-offset:-.5px}
 .more-n{position:absolute;right:0;bottom:-12px;width:44px;height:44px;box-sizing:border-box;display:grid;place-items:center;background:var(--b-ink);color:var(--b-bg);border:2px solid var(--b-bg);font:800 16px/1 var(--b-font);z-index:2}
 
 /* date badge */
@@ -128,7 +121,7 @@ body.native .phone.dark .ci{padding-bottom:calc(12px + env(safe-area-inset-botto
 .fld .snd{width:30px;height:30px;border-radius:50%;border:0;padding:0;background:#3a3a3a;color:#fff;display:grid;place-items:center;flex:none}
 .fld .snd svg{width:16px;height:16px}
 /* tab bar with the angled top line */
-.p-tabs{height:92px;flex:none;display:flex;justify-content:center;gap:12px;padding-top:10px;padding-bottom:26px;box-sizing:border-box;position:relative;background:var(--b-bg)}
+.p-tabs{height:92px;flex:none;margin-top:-12px;z-index:3;clip-path:polygon(0 11.2px,100% .2px,100% 100%,0 100%);display:flex;justify-content:center;gap:12px;padding-top:10px;padding-bottom:26px;box-sizing:border-box;position:relative;background:var(--b-bg)}
 .p-tabs .tline{position:absolute!important;left:0;top:0;width:100%;height:12px;color:var(--b-ink)}
 .p-tabs button{width:53px;height:53px;border:0;background:none;padding:0;display:grid;place-items:center;position:relative}
 .p-tabs .sel::before{content:"";position:absolute;left:3px;right:4px;bottom:6px;height:22px;border-radius:50%;background:radial-gradient(var(--b-ink) .9px,transparent 1.3px) 0 0/4px 4px;opacity:.55}
@@ -139,6 +132,8 @@ body.native .phone.dark .ci{padding-bottom:calc(12px + env(safe-area-inset-botto
 .tb,.ci,.p-tabs{transition:margin .22s ease,opacity .22s ease}
 .phone.headhidden .tb{margin-top:-84px;opacity:0}
 .phone.cmphidden .ci{margin-bottom:-52px;opacity:0}
+.ci:has(+ .p-tabs){padding-bottom:20px}   /* the tab bar's angled top overlaps 12px; keep the field clear of it */
+.phone.cmphidden .ci:has(+ .p-tabs){margin-bottom:-64px}
 /* the tab bar stays when scrolling back; only the input field folds away (Hannes 23.11) */
 @media (prefers-reduced-motion:reduce){.tb,.ci,.p-tabs{transition:opacity .15s}}
 
@@ -162,16 +157,6 @@ body.proto .cvtog,body.native .cvtog{display:none}
 .cv-empty{display:flex;flex-direction:column;gap:4px;align-items:center;justify-content:center;height:100%;color:#76766f;font:14px var(--ui,system-ui);text-align:center}
 .cv-empty b{color:#1d1d1b}
 
-/* ⚠ MOCK — REPLACE: porthole loader (see MOCK_LOADER in pack.js). White on the dark loading fill. */
-.loader{width:36px;height:36px;display:block;flex:none;position:relative}
-.porthole{width:100%;height:100%;display:block;overflow:visible}
-.porthole .rg{fill:none;stroke:#fff;stroke-width:5}
-.porthole .rv{fill:#fff}
-.porthole .wv.front{fill:#fff;animation:slosh 2.4s linear infinite}
-.porthole .wv.back{fill:rgba(255,255,255,.45);animation:slosh 3.6s linear infinite reverse}
-@keyframes slosh{to{transform:translateX(-100px)}}
-@media (prefers-reduced-motion:reduce){.porthole .wv{animation:none}}
-.as-two .loader,.as-more .loader{width:28px;height:28px}
 /* mocked parts carry data-mock (for agents and the handoff); no visible marker (Hannes 23.11) */
 
 /* attachment viewer (variant D): dark header with ‹ › and "x of y files", today's page pill; folds away per R5 */
@@ -181,14 +166,14 @@ body.proto .cvtog,body.native .cvtog{display:none}
 @keyframes vwin{from{transform:translateY(30px);opacity:0}}
 .vw-hd{position:absolute;left:0;right:0;top:0;z-index:2;background:#3a3a3a;color:#fff;border-bottom:.75px solid #fff;transition:transform .25s ease}
 .vw.eng .vw-hd{transform:translateY(-100%)}
-.vw-row{display:grid;grid-template-columns:92px 1fr 92px;align-items:center;padding:6px 14px 14px}
+.vw-row{display:grid;grid-template-columns:92px 1fr 92px;align-items:center;min-height:48px;padding:0 14px 8px}
 .vw-nav{display:flex}.vw-x{display:flex;justify-content:flex-end}
 .vw-hd button{width:44px;height:44px;border:0;background:none;color:#fff;display:grid;place-items:center;padding:0;cursor:pointer}
 .vw-hd button:disabled{opacity:.3;cursor:default}
-.vw-t{text-align:center;min-width:0;display:flex;flex-direction:column;gap:6px}
+.vw-t{text-align:center;min-width:0;display:flex;flex-direction:column;gap:0}
 .vw-n{font:700 16px/1.4 var(--b-font);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .vw-s{font:400 12px/1.3 Inter,system-ui,sans-serif;letter-spacing:.12px;color:#b1b1b1}  /* Other/caption */
-.vw-body{flex:1;overflow-y:auto;padding:128px 8px 96px;scrollbar-width:none;touch-action:pan-y}
+.vw-body{flex:1;overflow-y:auto;padding:108px 8px 96px;scrollbar-width:none;touch-action:pan-y}
 .vw-body::-webkit-scrollbar{display:none}
 .vw-in{display:flex;flex-direction:column;gap:12px;transition:transform .25s ease;transform-origin:50% 20%}
 .vw-in.from-r{animation:vwr .22s ease}.vw-in.from-l{animation:vwl .22s ease}
@@ -221,3 +206,12 @@ body.native .vw-hd{padding-top:env(safe-area-inset-top)}
 .ia input[type=range]::-moz-range-track{height:6px;background:var(--b-bg);border:.75px solid var(--b-ink)}
 .ia input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:0;background:#75bbf9;border:.75px solid #3a3a3a;box-shadow:2px 2px 0 var(--b-ink)}
 .ia-note{font:500 12px/1.4 var(--b-font);color:var(--b-muted)}
+
+/* ink dots loader (B / B∞), drawn in ink on the attachment's white surface in light and dark */
+.ink{display:block;width:100%;height:100%;background-color:#fff;background-image:radial-gradient(#3a3a3a .8px,transparent 1.1px);background-size:6px 6px}
+.ink.d2{background-image:radial-gradient(#3a3a3a 1.1px,transparent 1.4px);background-size:5px 5px}
+.ink.d3{background-image:radial-gradient(#3a3a3a 1.3px,transparent 1.7px);background-size:4px 4px}
+.ink.d4{background-image:radial-gradient(#3a3a3a 1.5px,transparent 1.9px);background-size:3px 3px}
+.ink.inf{animation:inkinf 2.4s steps(1,end) infinite alternate}
+@keyframes inkinf{0%{background-image:radial-gradient(#3a3a3a .8px,transparent 1.1px);background-size:6px 6px}25%{background-image:radial-gradient(#3a3a3a 1.1px,transparent 1.4px);background-size:5px 5px}50%{background-image:radial-gradient(#3a3a3a 1.3px,transparent 1.7px);background-size:4px 4px}75%,100%{background-image:radial-gradient(#3a3a3a 1.5px,transparent 1.9px);background-size:3px 3px}}
+@media (prefers-reduced-motion:reduce){.ink.inf{animation:none;background-image:radial-gradient(#3a3a3a 1.1px,transparent 1.4px);background-size:5px 5px}}

@@ -155,13 +155,6 @@ let KIND="layout";      // the state being rendered: decides which elements carr
 const el=(id,label,group)=>group&&!group.split(" ").includes(KIND)?"":`data-el="${id}" data-label="${esc(label)}"`;
 const CAP={image:"line_sketch.jpg",drawing:"Canvas",doc:"Worksheet · 3 pages"};   /* "Drawing" is called "Canvas", no date (Hannes 23.11) */
 const LOADCAP={image:"Image · loading…",drawing:"Canvas · loading…",doc:"Document · loading…"};
-/* ⚠ MOCK — REPLACE: Brian's porthole loader (rings, rivets, sloshing liquid), drawn by hand from a screenshot of the app
-   (Hannes 23.11). Not the real asset: take the app's loader (brian-mobile-design-kit / Flutter) when building. */
-const MOCK_LOADER=`<svg class="porthole" viewBox="0 0 100 100" aria-hidden="true"><defs><clipPath id="phc"><circle cx="50" cy="50" r="33"/></clipPath></defs>
- <g clip-path="url(#phc)"><path class="wv back" d="M0 56Q25 49 50 56T100 56T150 56T200 56V100H0Z"/><path class="wv front" d="M0 58Q25 64 50 58T100 58T150 58T200 58V100H0Z"/></g>
- <circle cx="50" cy="50" r="45" class="rg"/><circle cx="50" cy="50" r="35.5" class="rg"/>
- ${[0,1,2,3,4,5,6,7].map(i=>{const a=(i*45+20)*Math.PI/180;return `<circle cx="${(50+40.2*Math.cos(a)).toFixed(1)}" cy="${(50+40.2*Math.sin(a)).toFixed(1)}" r="2.3" class="rv"/>`;}).join("")}</svg>`;
-const spin=`<span class="loader mock" data-mock="Mock: loader drawn from a screenshot, replace with the app's asset" role="img" aria-label="Uploading">${MOCK_LOADER}</span>`;
 /* Document preview, rebuilt from the Figma component (Document, 12495:98485): page with the top-right corner cut off,
    a folded triangle in that corner, thin outline and a hard shadow on page and fold. The image is the component's own image fill. */
 let docN=0;
@@ -169,16 +162,21 @@ function docSVG(loading){
   const id="dpc"+(++docN), page="M0 0H291.1L316.5 24.8L317.1 178.8H0Z";
   return `<svg class="docsvg" viewBox="0 0 321 183" preserveAspectRatio="none" ${loading?'aria-hidden="true"':'role="img" aria-label="Document"'}>
     <defs><clipPath id="${id}"><path d="${page}"/></clipPath></defs>
-        <g clip-path="url(#${id})">${loading?`<rect class="dfill" width="321" height="183"/>`:`<rect width="321" height="183" fill="#fff"/><image href="assets/document.png" width="317.1" height="178.8" preserveAspectRatio="xMidYMid slice"/><rect width="321" height="183" fill="#000" opacity=".03"/>`}</g>
+        <g clip-path="url(#${id})">${loading?`<rect width="321" height="183" fill="#fff"/>`:`<rect width="321" height="183" fill="#fff"/><image href="assets/document.png" width="317.1" height="178.8" preserveAspectRatio="xMidYMid slice"/><rect width="321" height="183" fill="#000" opacity=".03"/>`}</g>
     <path class="dln" d="${page}"/>
     <path class="dsh" d="M294 3.3V27.7H319.2Z"/>
     <path class="dfold" d="M291 .3V24.7H316.2Z"/>
   </svg>`;
 }
+/* Loading = ink dots (variant B, Hannes 23.11): the surface inside the attachment's own boundary fills with dots;
+   frame, line and shadow stay as in the sent state (the document keeps its outline and fold).
+   loading===true → B∞, no progress known: density loops. loading=1…4 → B, density follows the upload, then the file snaps in. */
+const ink=lv=>`<span class="ink ${typeof lv==="number"?"d"+lv:"inf"}" role="img" aria-label="Uploading"></span>`;
 function thumb(k,loading,cls=""){
-  if(k==="image") return `<span class="th th-img ${cls} ${loading?"ld":""}"><span class="ph">${loading?spin:`<img src="assets/photo.png" alt="Photo">`}</span></span>`;
-  if(k==="drawing") return `<span class="th th-draw ${cls} ${loading?"ld":""}">${loading?spin:`<img src="assets/drawing.png" alt="Canvas">`}</span>`;
-  return `<span class="th th-doc ${cls} ${loading?"ld":""}">${docSVG(loading)}${loading?`<span class="dspin">${spin}</span>`:""}</span>`;
+  const ld=loading!==false&&loading!=null;
+  if(k==="image") return `<span class="th th-img ${cls} ${ld?"ld":""}"><span class="ph">${ld?ink(loading):`<img src="assets/photo.png" alt="Photo">`}</span></span>`;
+  if(k==="drawing") return `<span class="th th-draw ${cls} ${ld?"ld":""}">${ld?ink(loading):`<img src="assets/drawing.png" alt="Canvas">`}</span>`;
+  return `<span class="th th-doc ${cls} ${ld?"ld":""}">${docSVG(ld)}${ld?`<span class="dink">${ink(loading)}</span>`:""}</span>`;
 }
 function assetHTML(a,g){
   const id=a.loading?"att-loading":a.k==="two"||a.k==="more"?"att-multi":"att-"+a.k;
@@ -270,7 +268,7 @@ function specimens(kind){
     case "asset-drawing": return [ROW("Drawing · sent",s({k:"drawing"},CHAT[3].text)),ROW("Drawing · loading",s({k:"drawing",loading:true},CHAT[3].text))];
     case "asset-doc": return [ROW("Document · sent",s({k:"doc"},CHAT[7].text)),ROW("Document · loading",s({k:"doc",loading:true},CHAT[7].text))];
     case "asset-multi": return [ROW("2 files",s({k:"two"})),ROW("4 files",s({k:"more",n:4},"Here they are.")),ROW("More than 4",s({k:"more",n:6},"Here they are.")),ROW("2 files · loading",s({k:"two",loading:true}))];
-    case "asset-loading": return [ROW("Image · loading",s({k:"image",loading:true})),ROW("Drawing · loading",s({k:"drawing",loading:true})),ROW("Document · loading",s({k:"doc",loading:true})),ROW("Several · loading",s({k:"more",n:6,loading:true}))];
+    case "asset-loading": return [ROW("B∞ · image, no progress known (loops)",s({k:"image",loading:true})),ROW("B · image, upload half done (then snaps in)",s({k:"image",loading:2})),ROW("Drawing · loading",s({k:"drawing",loading:true})),ROW("Document · loading",s({k:"doc",loading:true})),ROW("Several · loading",s({k:"more",n:6,loading:true}))];
     case "cite-direct": return [ROW("Direct · 1 citation",t({p:[],cite:CHAT[2].cite})),ROW("Direct · 2 citations",t({p:[],cite:CHAT[6].cite}))];
     case "cite-indirect": return [ROW("Indirect · 1 citation",t({p:[],cite:{type:"indirect",t:[CHAT[9].cite.t[0]],src:[CHAT[9].cite.src[0]]}})),ROW("Indirect · 2 citations",t({p:[],cite:CHAT[9].cite}))];
     case "loading": return [ROW("Brian is generating",brianHTML(kind))];
@@ -383,10 +381,11 @@ function send(){
   THREAD.push({t:"s",text:txt}); WAITING=true; renderStage(); syncSel("loading");
   setTimeout(()=>{ WAITING=false; THREAD.push({t:"t",p:[esc(REPLIES[THREAD.filter(x=>x.t==="t").length%REPLIES.length])]}); renderStage(); },1500);
 }
-function addPhoto(){ /* stands in for the upload flow (BR-7147): shows the loading → sent states of an image */
-  if(WAITING) return; const m={t:"s",asset:{k:"image",loading:true},text:"Here is my next sketch."}; THREAD.push(m); renderStage(); syncSel("asset-loading");
-  setTimeout(()=>{ m.asset.loading=false; WAITING=true; renderStage(); syncSel("loading");
-    setTimeout(()=>{ WAITING=false; THREAD.push({t:"t",p:["Got it. That line looks right: it crosses the y-axis at 3."]}); renderStage(); },1500); },1600);
+function addPhoto(){ /* stands in for the upload flow (BR-7147): image loading (B: dots get denser with the upload) → sent */
+  if(WAITING) return; const m={t:"s",asset:{k:"image",loading:1},text:"Here is my next sketch."}; THREAD.push(m); renderStage(); syncSel("asset-loading");
+  const iv=setInterval(()=>{ if(m.asset.loading<4){ m.asset.loading++; const d=[...document.querySelectorAll("#pwrap .ink")].pop(); if(d) d.className="ink d"+m.asset.loading; return; }
+    clearInterval(iv); m.asset.loading=false; WAITING=true; renderStage(); syncSel("loading");
+    setTimeout(()=>{ WAITING=false; THREAD.push({t:"t",p:["Got it. That line looks right: it crosses the y-axis at 3."]}); renderStage(); },1500); },550);
 }
 function syncSel(kind){ if(document.body.classList.contains("proto")) return; const x=flat().find(y=>y.s.kind===kind); if(x&&x.s.id!==ui.sel.state){ ui.sel={kind:"state",mode:x.m.id,state:x.s.id}; renderHeader(); markActive(); renderLeft(); } }
 const pw=document.getElementById("pwrap");
