@@ -41,7 +41,7 @@ body.native .phone.dark .ci{padding-bottom:calc(12px + env(safe-area-inset-botto
 
 /* Chat_StudentMessage: indented, asset slot on top, workbook line under the answer */
 .sm{display:flex;flex-direction:column;align-items:flex-end;gap:24px;padding:12px 24px 12px 64px}
-.sm .ans{display:flex;flex-direction:column;gap:12px;width:100%}
+.sm .ans{display:flex;flex-direction:column;gap:8px;width:100%}
 .sm .tx{overflow-wrap:anywhere}
 .sm.short .ans{width:auto}
 .sm.short .tx{text-align:right}
@@ -60,8 +60,10 @@ body.native .phone.dark .ci{padding-bottom:calc(12px + env(safe-area-inset-botto
 .th-img{height:179px;background:#fff;padding:4px 4px 16px;box-sizing:border-box;transform:rotate(1deg);box-shadow:3px 3px 0 var(--b-ink)}
 .th-img .ph{display:grid;place-items:center;width:100%;height:100%;overflow:hidden}
 .th-img.ld .ph{background:#3a3a3a}
-.th-draw{height:184px;background:#fff}
-.th-draw img{object-fit:contain}
+/* drawing: the canvas render carries its own frame, so the box is exactly the picture (no extra outline); same hard shadow as the image (Hannes 23.11) */
+.th-draw{height:auto;aspect-ratio:320/188;background:#fff;box-shadow:3px 3px 0 var(--b-ink)}
+.th-draw img{object-fit:fill}
+.th-draw.ld{height:184px;aspect-ratio:auto;box-shadow:none}
 .th-draw.ld{background:#3a3a3a;display:grid;place-items:center}
 .th-doc{aspect-ratio:323/188}
 .th-doc img{object-fit:contain}
@@ -75,14 +77,17 @@ body.native .phone.dark .ci{padding-bottom:calc(12px + env(safe-area-inset-botto
 /* two files side by side */
 .as-two{flex-direction:row;gap:8px;align-items:flex-start}
 .as-two .col{flex:1;min-width:0;display:flex;flex-direction:column;align-items:flex-end;gap:12px}
-.as-two .th-doc,.as-two .th-draw{height:86px;aspect-ratio:auto}
-.as-two .th-draw{outline:.75px solid #3a3a3a;outline-offset:-.5px}
+.as-two .th-doc{height:auto}
+.as-two .th-draw{height:auto}
+.as-two .th-draw.ld,.as-two .th-doc.ld{height:86px;aspect-ratio:auto}
+.as-two .th-draw.ld{outline:.75px solid #3a3a3a;outline-offset:-.5px}
 .as-two .th-doc .dshape{height:86px}
 /* more than two: overlapping stack, count below, "+n" badge above 4 */
 .as-more .stack{display:flex;align-items:flex-start;position:relative;padding-right:3px}
 .as-more .st{width:135px;flex:none;margin-right:-80px;height:91px;aspect-ratio:auto}
 .as-more .st.last{margin-right:0;height:89px;padding:4px 4px 14px;transform:rotate(-1deg)}
-.as-more .th-draw.st{height:89px;margin-top:8px;outline:.75px solid #3a3a3a;outline-offset:-.5px}
+.as-more .th-draw.st{height:auto;aspect-ratio:320/188;margin-top:8px}
+.as-more .th-draw.st.ld{height:89px;aspect-ratio:auto;outline:.75px solid #3a3a3a;outline-offset:-.5px}
 .as-more .th-doc.st .dshape{height:91px}
 .more-n{position:absolute;right:0;bottom:-12px;width:44px;height:44px;box-sizing:border-box;display:grid;place-items:center;background:var(--b-ink);color:var(--b-bg);border:2px solid var(--b-bg);font:800 16px/1 var(--b-font);z-index:2}
 
