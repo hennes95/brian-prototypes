@@ -308,3 +308,8 @@ body:not(.proto) .oosa{outline:1px dashed #e0b400;outline-offset:4px;border-radi
 .phone.dark .v-pill.v-pill-light .c-right.send{background:#fff;color:var(--b-ink)}
 .phone.dark .v-pill-light .c-exp{background:var(--b-ink)}
 .phone.dark .v-pill-light .c-plus{background:none}
+/* Hannes 23.11: when the field folds away while scrolling up (R4), the tab bar shows its angled top edge with the stroke again (same as BR-7144) */
+.p-tabs{position:relative;box-sizing:border-box}
+.p-tabs .tline{position:absolute!important;left:0;top:0;width:100%;height:12px;color:var(--b-ink);display:none}
+.phone.cmphidden .p-tabs{margin-top:-12px;z-index:3;clip-path:polygon(0 11.2px,100% .2px,100% 100%,0 100%);background:var(--b-bg)}
+.phone.cmphidden .p-tabs .tline{display:block}
