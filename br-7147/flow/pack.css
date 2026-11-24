@@ -399,3 +399,6 @@ body.native .v-pill.notab:not(.focused){padding-bottom:4px;margin-bottom:calc(10
 .d-empty .d-e1{font-size:16px;font-weight:800;margin-bottom:-4px!important}
 .d-empty p:last-child{max-width:323px}
 .d-rules{margin:13px 0 10px}
+/* remove button: square with the 12px Nucleo Close icon (Hannes 24.11) */
+.att .rm{border-radius:0;display:flex;align-items:center;justify-content:center}
+.att .rm svg{display:block;color:#fff}
