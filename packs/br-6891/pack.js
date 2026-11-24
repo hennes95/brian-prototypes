@@ -77,7 +77,7 @@ function teacherShell(inner, overlay, tab){
   tab = tab || "Course Materials";
   const nav = (ic, label, on) => `<a class="nav-item ${on?"on":""}" href="#"${on?' aria-current="page"':""}>${ic}<span>${label}</span></a>`;
   return `<div class="t-app ds-teacher">
-    <aside class="t-side">
+    <div class="t-side">
       <nav class="t-nav" aria-label="Main">
         <img class="t-logo" src="${IMG_LOGO}" alt="Brian" width="67" height="60">
         <button class="btn ghost t-collapse" aria-label="Collapse menu">${TI.collapse}</button>
@@ -86,10 +86,10 @@ function teacherShell(inner, overlay, tab){
         <div class="t-group">${nav(TI.help,"Help Center")}<a class="nav-item" href="#">${TI.language}<span>English</span>${TI.chevron}</a></div>
       </nav>
       <img class="t-avatar" src="${IMG_AVATAR}" alt="Your profile" width="56" height="56">
-    </aside>
+    </div>
     <main class="t-card">
-      <header class="t-top"><div class="t-title"><div class="t-school body-md-strong">Georg Büchner Gymnasium</div><h1 class="h1">English Grade 7</h1></div>
-        <span class="btn md">${TI.brain}Preview Course in App</span></header>
+      <div class="t-top"><div class="t-title"><div class="t-school body-md-strong">Georg Büchner Gymnasium</div><h1 class="h1">English Grade 7</h1></div>
+        <span class="btn md">${TI.brain}Preview Course in App</span></div>
       <div class="tab-bar t-tabs" role="tablist" aria-label="Course sections">${["Content","Students","Analytics","Course Materials","Settings"].map(t => `<span class="tab ${t===tab?"on":""}">${t}</span>`).join("")}</div>
       ${inner}
     </main>
@@ -122,7 +122,7 @@ function courseMaterials(variant, m){
       <th>Filename</th><th>Uploaded</th><th>Tags</th><th><div class="c-sort">Used In${TI.arrowDown}</div></th>
       <th><div class="c-acc"><span data-el="cm.col" data-label="Column name">${colName}</span><button class="info-icon" data-act="tip" aria-expanded="${!!m.tip}" aria-label="What does hidden mean?" data-el="cm.info" data-label="Info icon">${TI.info}</button>${tip}</div></th>
       <th>Download</th></tr></thead><tbody>${rows}</tbody></table></div>
-    <footer class="t-foot"><button class="btn" data-act="add" data-el="cm.add" data-label="Add Course Material">${TI.add}Add Course Material</button></footer></div>`;
+    <div class="t-foot"><button class="btn" data-act="add" data-el="cm.add" data-label="Add Course Material">${TI.add}Add Course Material</button></div></div>`;
 }
 
 function uploadDialog(){
@@ -207,7 +207,7 @@ function student(m){
   const hidChip = `<button class="chip hid" data-act="st-hid" aria-expanded="${!!m.stPop}" aria-label="Teacher material, can't be opened" data-el="st.chipHidden" data-label="Hidden citation chip">${IC.lock(12)}Teacher material</button>`;
   const visChip = `<button class="chip vis" data-act="st-vis" data-el="st.chipVisible" data-label="Visible citation chip">${IC.file(12)}Irregular verbs list, p. 2</button>`;
   const pop = m.stPop ? `<div class="pop" role="status" data-el="st.pop" data-label="Private note">${IC.lock(16,2.2)}<span>Your teacher keeps this material private. Brian can use it to help you, but you can't open it.</span></div>` : "";
-  const pdf = m.stPdf ? `<div class="pdf"><div class="pdf-sheet"><header><span>Irregular verbs list.pdf · p. 2</span><button class="x-ib" data-act="st-pdf-close" aria-label="Close">${IC.close(18)}</button></header>
+  const pdf = m.stPdf ? `<div class="pdf"><div class="pdf-sheet"><div class="pdf-h"><span>Irregular verbs list.pdf · p. 2</span><button class="x-ib" data-act="st-pdf-close" aria-label="Close">${IC.close(18)}</button></div>
       <div class="pdf-page"><b style="color:#3a3a3a;font-size:14px">Irregular verbs</b><span>be – was/were – been</span><span>do – did – done</span><mark>go – went – gone</mark><span>have – had – had</span><span>see – saw – seen</span></div></div></div>` : "";
   return `<div class="s-app" style="position:relative">
     <div class="s-top"><button class="x-ib" aria-label="Back">${IC.back(20)}</button><div style="display:flex;flex-direction:column"><b style="font-size:16px;font-weight:800">AI Tutor</b><span style="font-size:12px;color:#585858">English Grade 7</span></div></div>
