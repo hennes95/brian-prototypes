@@ -70,21 +70,11 @@
 .fx .sw::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:8px;background:#fff;transition:left .15s}
 .fx .sw.on::after{left:18px}
 /* student app (phone) */
-.fx .s-app{width:390px;height:844px;background:#fff;display:flex;flex-direction:column;font-size:15px;font-weight:500}
-.fx .s-top{display:flex;align-items:center;gap:6px;padding:52px 12px 12px;border-bottom:.75px solid #ddd}
-.fx .s-chat{flex:1;overflow:auto;padding:20px 16px;display:flex;flex-direction:column;gap:18px;line-height:1.55}
-.fx .s-me{align-self:flex-end;max-width:80%;padding:10px 14px;border-radius:16px 16px 4px 16px;background:#c8e9ff;line-height:1.45}
-.fx .chip{display:inline-flex;align-items:center;gap:4px;padding:1px 8px;border:0;border-radius:10px;font-size:13px;font-weight:700;white-space:nowrap;vertical-align:1px;text-decoration:none}
-.fx .chip.vis{background:#c8e9ff;color:#157ec5}
-.fx .chip.hid{background:#eee;color:#3a3a3a}
-.fx .pop{display:flex;gap:10px;padding:12px 14px;border-radius:10px;background:#3a3a3a;color:#fff;font-size:13px;line-height:1.45}
 .fx .pdf{position:absolute;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:flex-end;z-index:4}
 .fx .pdf-sheet{background:#fff;width:100%;height:78%;border-radius:16px 16px 0 0;display:flex;flex-direction:column}
 .fx .pdf-sheet .pdf-h{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:.75px solid #ddd;font-weight:700;font-size:14px}
 .fx .pdf-page{margin:16px;flex:1;border:1px solid #ddd;border-radius:4px;padding:18px;font-size:12px;color:#858585;display:flex;flex-direction:column;gap:8px}
 .fx .pdf-page mark{background:#fff3b0;color:#3a3a3a}
-.fx .s-in{padding:12px 16px 30px;border-top:.75px solid #ddd;display:flex;gap:8px;align-items:center}
-.fx .s-in span{flex:1;height:44px;border:.75px solid #ddd;border-radius:22px;display:flex;align-items:center;padding:0 16px;color:#858585}
 /* device frames on the stage */
 #pwrap .phone{background:#fff;overflow:hidden;position:relative;box-shadow:0 18px 60px rgba(0,0,0,.18)}
 #pwrap .phone.dev-desktop{border-radius:8px}
@@ -93,7 +83,7 @@
 
 
 /* Edit Knowledge Base dialog (Figma 10500:25996 + Uploads Table 10452:224) */
-.fx .kbd{width:1016px}
+.fx .kb-dlg{width:1016px}
 .fx .kbd-h{background:var(--bright-blue);color:var(--white);display:flex;align-items:flex-start;justify-content:space-between}
 .fx .kbd-h h2{margin:0;padding:24px;font-size:24px;line-height:1.2;font-weight:700}
 .fx .kbd-h button{border:0;background:none;color:var(--white);padding:18px 24px 18px 0;display:flex}
@@ -123,7 +113,7 @@
 .fx .kb-doc{display:flex;padding-left:12px}
 .fx .kb-name{padding:6px 12px;font-size:14px;line-height:1.4;font-weight:500;color:var(--dark-grey);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .fx .kb-hid{margin-left:auto;display:flex;color:var(--mono-700)}
-.fx .kb-list.sync .kb-all,.fx .kb-list.sync .kb-rows{opacity:.4}
+.fx .kb-list.kb-synced .kb-all,.fx .kb-list.kb-synced .kb-rows{opacity:.4}
 .fx .ds-teacher input.kb-cb{width:16px;height:16px;flex:0 0 16px}
 .fx .ds-teacher input.kb-cb:checked::after{left:4.5px;top:1.5px;width:4px;height:8px}
 .fx .ds-teacher input.kb-cb:disabled{opacity:1}
@@ -165,3 +155,50 @@
 .fx .ds-teacher input[type=checkbox]:checked::after{left:4.5px;top:1.5px;width:4px;height:8px}
 .fx .ds-teacher .info-icon{width:12px;height:12px}
 .fx .t-table .c-cb{width:28px}
+
+/* Student app · AI Tutor (Figma 10513:30436), 402×874, Nunito Sans */
+.fx .s-app{position:relative;width:402px;height:874px;background:#fff;overflow:hidden;font-family:"Nunito Sans",sans-serif;color:#3a3a3a}
+.fx .s-scroll{position:absolute;inset:0;overflow:auto;padding:83px 0 200px;display:flex;flex-direction:column;gap:8px;scrollbar-width:none}
+.fx .s-me{display:flex;flex-direction:column;align-items:flex-end;gap:24px;padding:12px 24px 12px 64px}
+.fx .s-me p{margin:0;width:100%;font-size:16px;line-height:1.4;font-weight:500}
+.fx .s-wl{display:block;width:100%;height:.75px;background:#3a3a3a;margin-top:-12px}
+.fx .s-asset{display:flex;flex-direction:column;align-items:flex-end;gap:12px}
+.fx .s-asset img{display:block;width:317px;height:auto}
+.fx .s-asset span{font-size:12px;line-height:1.4;color:#858585}
+.fx .s-tutor{display:flex;flex-direction:column;gap:20px;padding:12px 0 4px}
+.fx .s-tc{display:flex;flex-direction:column;gap:12px}
+.fx .s-p{margin:0;padding:0 24px;font-size:15px;line-height:1.4;font-weight:500}
+.fx .s-cit .s-p{padding:0}
+.fx .s-cit{padding:20px 24px 12px;display:flex;flex-direction:column;gap:12px}
+.fx .s-cit-b{gap:8px}
+.fx .s-cit1{display:flex;flex-direction:column;gap:8px;align-items:flex-start}
+.fx .s-quote{display:flex;gap:8px;padding:4px 0}
+.fx .s-quote i{flex:0 0 2px;background:#3a3a3a}
+.fx .s-quote p{margin:0;font-size:15px;line-height:1.4}
+.fx .s-src{border:0;background:none;padding:0;font:inherit;font-size:15px;line-height:1.4;font-weight:500;color:#858585;text-decoration:underline;text-underline-offset:2px;text-align:left;cursor:pointer}
+.fx .s-hidsrc{display:inline-flex;align-items:center;gap:2px;padding:2px 0;font-size:15px;line-height:1.4;font-weight:500;color:#858585}
+.fx .s-hidsrc svg{width:16px;height:16px}
+.fx .s-fn{display:flex;gap:8px;font-size:14px;line-height:1.4;color:#858585}
+.fx .s-fn .s-src{font-size:14px}
+.fx .s-act{padding-left:24px;display:flex;color:#3a3a3a}
+.fx .s-day{display:flex;align-items:center;gap:21px;padding:16px 0}
+.fx .s-day i{flex:1;height:.75px;background:#3a3a3a}
+.fx .s-day span{border:.75px solid #3a3a3a;padding:4px 8px;font-size:12px;line-height:1.4;font-weight:700}
+.fx .s-typing{display:flex;align-items:center;gap:4px;padding:0 24px 16px}
+.fx .s-ava{width:40px;height:40px;border-radius:20px;background:#c8e9ff;border:.75px solid #3a3a3a;margin-right:11px}
+.fx .s-typing i{width:6px;height:6px;border-radius:4px;background:#3a3a3a}
+.fx .s-nav{position:absolute;left:0;top:0;width:402px;background:#fff;padding-bottom:8px;border-bottom:.75px solid #3a3a3a;display:flex;flex-direction:column;gap:12px}
+.fx .s-status{height:40px;display:flex;align-items:flex-end;justify-content:space-between;padding:0 12px 0 30px}
+.fx .s-status b{font-family:Inter,"Nunito Sans",sans-serif;font-size:15px;font-weight:600;line-height:22px}
+.fx .s-status svg{margin-bottom:6px}
+.fx .s-head{display:flex;align-items:center;padding:0 24px}
+.fx .s-head b{flex:1;text-align:center;font-size:16px;line-height:1.4;font-weight:700;padding:12px 24px}
+.fx .s-input{position:absolute;left:0;bottom:88px;width:402px;display:flex;align-items:center;gap:8px;padding:4px 24px}
+.fx .s-plus{flex:0 0 32px;width:32px;height:32px;border-radius:32px;background:#3a3a3a;display:flex;align-items:center;justify-content:center}
+.fx .s-field{flex:1;display:flex;align-items:center;gap:8px;background:#fff;border:.75px solid #3a3a3a;border-radius:50px;padding:6px 6px 6px 12px}
+.fx .s-field span:first-child{flex:1;padding:4px;font-size:14px;line-height:1.4;color:#858585}
+.fx .s-send{flex:0 0 30px;width:30px;height:30px;border-radius:30px;background:#3a3a3a;display:flex;align-items:center;justify-content:center}
+.fx .s-tabbar{position:absolute;left:0;bottom:0;width:402px;height:83px;display:block}
+/* Figma trims text boxes to cap height / baseline (text-box-trim) */
+.fx .s-app p,.fx .s-app .s-src,.fx .s-app .s-hidsrc,.fx .s-fn,.fx .s-day span,.fx .s-field span:first-child,.fx .s-head b,.fx .s-asset span{text-box:trim-both cap alphabetic}
+.fx .s-src{text-decoration:none}

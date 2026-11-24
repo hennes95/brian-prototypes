@@ -1,5 +1,9 @@
 # Feature workbench shell: changelog
 
+## 1.1.8 (24.11.26)
+- Spec comments land on the right line: the counter matches the commented line's own text first, then its neighbours (before / after), then the selected text. No fallback to the first line of the spec any more (it highlighted an unrelated line).
+- Readable in dark mode (Hannes 24.11.): the yellow spec highlight uses dark text, and "Mark as done" in the comment is a yellow button with dark text.
+
 ## 1.1.7 (23.11.26)
 - Comments come from the database, not the browser (Hannes 23.11.): before Agentation reads the page, the shell writes the matching comments from the database into its storage. Markers show in any browser and don't expire after 7 days. New comments keep Agentation's full annotation (`raw`) for that.
 - Markers per variant + surface + screen (page address `#variant-surface-screen`), so a marker only shows on the screen it was placed on.
