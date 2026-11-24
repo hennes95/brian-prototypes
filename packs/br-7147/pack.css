@@ -411,3 +411,7 @@ body.native .v-pill.notab:not(.focused){padding-bottom:4px;margin-bottom:calc(10
 /* Learning Diary header + activities row per Figma: date 24 Bold, "4 activities" 14 Bold */
 .d-head .t{font-size:24px;font-weight:700}
 .y-act{font-size:14px;font-weight:700;align-items:center}
+/* scrolling text always runs to the field's edge and is cut by its shape: the top padding moves inside the scrolling text (Hannes 24.11, global rule) */
+.v-pill.focused:not(.attscroll) .c-body,.v-pill.fs:not(.attscroll) .c-body{margin-top:-8px}
+.v-pill.focused:not(.attscroll) textarea{padding-top:16.8px}
+.v-pill.focused.over:not(.attscroll) textarea,.v-pill.fs:not(.attscroll) textarea{padding-top:48px}
