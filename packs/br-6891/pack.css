@@ -34,10 +34,10 @@
 .fx .c-fn{display:flex;align-items:center;gap:12px;min-width:0}
 .fx .c-doc{position:relative;flex:0 0 24px;width:24px;height:24px;display:flex}
 .fx .c-sort{display:flex;justify-content:space-between;align-items:center;padding-right:8px}
-.fx .c-acc{display:flex;align-items:center;gap:6px;position:relative}
+.fx .c-acc{display:flex;align-items:center;gap:4px;position:relative}
 .fx .c-tip{top:34px;left:-180px;width:340px;display:flex;flex-direction:column;gap:6px;white-space:normal;color:var(--white)}
 .fx .c-tip p{margin:0}
-.fx .c-tip{--arrow-x:284px}
+.fx .c-tip{--arrow-x:274px}
 .fx .c-dl{width:24px;height:24px}
 .fx .t-foot{margin-top:auto;border-top:1px solid var(--mono-300);padding:12px 28px}
 /* access cell (spec): V1 = toggle always; V2 = resting shows only the crossed-out eye for hidden files, the toggle appears on row hover / focus */
@@ -159,3 +159,9 @@
 .fx .ac-prevh{height:43px;display:flex;align-items:center;font-size:16px;line-height:1.4;font-weight:800;color:var(--mono-500)}
 .fx .ac-prev{height:594px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:var(--mono-500)}
 .fx .ac-prev span{font-size:14px;font-weight:700;color:var(--mono-600)}
+
+/* Figma sizes win over the design system here (Hannes 24.11): 16px checkboxes with a 12px check, 12px info icon */
+.fx .ds-teacher input[type=checkbox]{width:16px;height:16px;flex:0 0 16px}
+.fx .ds-teacher input[type=checkbox]:checked::after{left:4.5px;top:1.5px;width:4px;height:8px}
+.fx .ds-teacher .info-icon{width:12px;height:12px}
+.fx .t-table .c-cb{width:28px}

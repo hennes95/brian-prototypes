@@ -61,7 +61,7 @@ const TI = {
   sparkle: `<svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M14 4c.5 3.6 2.4 5.5 6 6-3.6.5-5.5 2.4-6 6-.5-3.6-2.4-5.5-6-6 3.6-.5 5.5-2.4 6-6z"/><path d="M6 1.5c.3 1.8 1.2 2.7 3 3-1.8.3-2.7 1.2-3 3-.3-1.8-1.2-2.7-3-3 1.8-.3 2.7-1.2 3-3zM6.5 15c.3 1.9 1.3 2.9 3.2 3.2-1.9.3-2.9 1.3-3.2 3.3-.3-2-1.3-3-3.2-3.3 1.9-.3 2.9-1.3 3.2-3.2z"/></svg>`,
   brain: FI('<path d="M8 3.5a3 3 0 0 0-3 3 3 3 0 0 0-1.5 5.2A3 3 0 0 0 6 16.5a3 3 0 0 0 6 .5V5a2.5 2.5 0 0 0-4-1.5zM16 3.5a3 3 0 0 1 3 3 3 3 0 0 1 1.5 5.2 3 3 0 0 1-2.5 4.8 3 3 0 0 1-6 .5"/><path d="M12 9c-1.5 0-2.5-1-2.5-2.5M12 13c1.5 0 2.5 1 2.5 2.5"/>', 16, 24, "none", "currentColor", 1.8),
   doc: (lock) => `<span class="c-doc"><svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24"><rect x="1" y="1" width="22" height="22" rx="4" fill="#63c0ff"/><path d="M8 5.5h5.5L17 9v8.5a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1v-11a1 1 0 0 1 1-1z" fill="none" stroke="#fff" stroke-width="1.4" stroke-linejoin="round"/><path d="M13.5 5.5V9H17M9.5 12h5M9.5 15h4" stroke="#fff" stroke-width="1.4" stroke-linecap="round" fill="none"/></svg>${lock||""}</span>`,
-  info: `<svg aria-hidden="true" width="20" height="20" viewBox="0 0 20 20"><circle cx="10" cy="10" r="10" fill="currentColor"/><rect x="9" y="8.5" width="2" height="6.5" rx="1" fill="#fff"/><circle cx="10" cy="5.8" r="1.25" fill="#fff"/></svg>`,
+  info: `<svg aria-hidden="true" width="12" height="12" viewBox="0 0 20 20"><circle cx="10" cy="10" r="10" fill="currentColor"/><rect x="9" y="8.5" width="2" height="6.5" rx="1" fill="#fff"/><circle cx="10" cy="5.8" r="1.25" fill="#fff"/></svg>`,
   arrowDown: FI('<path d="M6 2v8M2.5 6.5L6 10l3.5-3.5"/>', 12, 12, "none", "currentColor", 1.3),
   download: FI('<path d="M8 2v8M4.5 6.5L8 10l3.5-3.5M2.5 10v3.5h11V10"/>', 16, 16, "none", "currentColor", 1.4),
   add: FI('<path d="M8 2.5v11M2.5 8h11"/>', 16, 16, "none", "currentColor", 1.8)
@@ -117,7 +117,7 @@ function courseMaterials(variant, m){
   }).join("");
   const tip = m.tip ? `<div class="tooltip bottom c-tip" role="tooltip" data-el="cm.tip" data-label="Tooltip"><p>Brian still uses hidden material, but students can't open it when Brian cites it.</p><p>Use this for solutions or teacher notes.</p></div>` : "";
   return `<div class="t-cm ${variant}">${bulk}
-    <div class="t-tablewrap"><table class="table t-table" aria-label="Course materials"><colgroup><col style="width:40px"><col style="width:26%"><col><col><col style="width:20%"><col style="width:15%"><col style="width:96px"></colgroup><thead><tr>
+    <div class="t-tablewrap"><table class="table t-table" aria-label="Course materials"><colgroup><col style="width:28px"><col style="width:26%"><col><col><col style="width:20%"><col style="width:15%"><col style="width:96px"></colgroup><thead><tr>
       <th class="c-cb"><input type="checkbox" data-act="sel-all" ${all?"checked":""} aria-label="Select all files"></th>
       <th>Filename</th><th>Uploaded</th><th>Tags</th><th><div class="c-sort">Used In${TI.arrowDown}</div></th>
       <th><div class="c-acc"><span data-el="cm.col" data-label="Column name">${colName}</span><button class="info-icon" data-act="tip" aria-expanded="${!!m.tip}" aria-label="What does hidden mean?" data-el="cm.info" data-label="Info icon">${TI.info}</button>${tip}</div></th>
