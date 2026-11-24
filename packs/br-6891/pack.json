@@ -1,7 +1,7 @@
 {
   "ticket": "BR-6891",
   "title": "Hidden course material",
-  "shell": "feature@1.1.8",
+  "shell": "feature@1.1.9",
   "notes": "Pinned. Desktop screens are drawn and scaled by the pack (fit).",
   "links": {
     "Ticket": "https://app.notion.com/p/3f7fca9f403c80d5a296cd7f343bf5c0",

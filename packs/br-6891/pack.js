@@ -276,9 +276,8 @@ const sP = t => `<p class="s-p">${t}</p>`;
 
 function student(m){
   const hidden = !!m.stHid;
-  const src2 = hidden
-    ? `<span class="s-hidsrc" data-el="st.chipHidden" data-label="Hidden source: Teacher material">${IC.eyeOff(16)}Teacher material</span>`
-    : `<button class="s-src" data-act="st-vis" data-el="st.chipVisible" data-label="Source link">Workbook Maths 8 Solutions, p. 3</button>`;
+  /* Figma 10520:40919: hidden material is never cited. Brian says it in his own words, with no source line under it */
+  const src2 = hidden ? "" : `<button class="s-src" data-act="st-vis" data-el="st.chipVisible" data-label="Source link">Workbook Maths 8 Solutions, p. 3</button>`;
   const pdf = m.stPdf ? `<div class="pdf"><div class="pdf-sheet"><div class="pdf-h"><span>Workbook Maths 8 Solutions.pdf · p. 3</span><button class="x-ib" data-act="st-pdf-close" aria-label="Close">${IC.close(18)}</button></div>
       <div class="pdf-page"><b style="color:#3a3a3a;font-size:14px">Solutions · Linear functions</b><span>3a) y = 2x + 3</span><mark>3b) Solve for x: x = (y − 3) / 2</mark><span>3c) m = −1, b = 4</span></div></div></div>` : "";
   return `<div class="s-app">
@@ -286,7 +285,8 @@ function student(m){
       ${sMe("I don’t understand. Can you explain it to me again?")}
       ${sTutor(sP("Good sketch, Alex. You found the two key parts of a linear function. Let's check them against your workbook.") +
         `<div class="s-cit"><p class="s-p">On page 42 your workbook explains it like this:</p><div class="s-cit1"><div class="s-quote"><i></i><p>»A linear function has the form y = mx + b. The number m is the slope and b is the y-intercept.«</p></div><button class="s-src" data-act="st-vis">Workbook Maths 8, p. 42</button></div></div>` +
-        `<div class="s-cit${hidden?" s-cit-b":""}"><p class="s-p">But your solution has to be different. You should solve for X.</p><div class="s-cit1">${src2}</div></div>` +
+        (hidden ? `<div class="s-cit" data-el="st.chipHidden" data-label="Answer from hidden material (no citation)"><p class="s-p">But your solution has to be different. You should solve for X.</p></div>`
+                : `<div class="s-cit"><p class="s-p">But your solution has to be different. You should solve for X.</p><div class="s-cit1">${src2}</div></div>`) +
         sP("Can you write the line as an equation of the form y = mx + b?"))}
       ${sMe("I drew it into a coordinate system. The line crosses the y-axis at 3.", `<div class="s-asset"><img src="${IMG_DRAWING}" alt="Drawing: 4 × 4 = 16" width="320" height="185"><span>Canvas</span></div>`)}
       <div class="s-day"><i></i><span>Today</span><i></i></div>
@@ -330,14 +330,14 @@ const STATE_DOCS = {
     "kb-custom": ul("Toggle off: list active, as in \"Update - 18.11.26\" of this ticket (BR-6891)", "Crossed-out eye stays visible so the teacher knows students can't open those files"),
     "qz-files": ul("Attached Files on the quiz's instructions page", ["Hidden files", "Grey row (light grey background), icon and text faded", "Crossed-out eye on the right, no text"], "Visible files look as before", "\"Show attached files\" toggle unchanged: hidden files stay hidden from students even when it is on"),
     "st-vis": ul(["Source under a citation", "Grey text (\"Workbook Maths 8 Solutions, p. 3\")", "Tap opens the PDF at the cited page"]),
-    "st-hid": ul(["Cited material is hidden from students", "The source disappears: crossed-out eye + \"Teacher material\" in grey", "No file name, no page, no quote, not tappable"], "Attaching material in the chat: hidden material is hidden there as well", "Follow-up ticket (Student + Backend)")
+    "st-hid": ul(["Answer draws on hidden material", "Brian says it in his own words, no citation", "No source line, no quote, no marker"], "Attaching material in the chat: hidden material is hidden there as well", "Follow-up ticket (Student + Backend)")
   };
 const MODES = [
   { id:"cm", name:"Course Materials", ctx:"cms", device:"desktop", figma:FIG("10491-24801"), states:[["cm-rest","Resting"],["cm-hover","Row hover (visible file)"],["cm-hover-h","Row hover (hidden file)"],["cm-tip","Info tooltip"],["cm-bulk","Rows selected"]] },
   { id:"up", name:"Upload", ctx:"cms", device:"desktop", figma:"", states:[["up-detect","Solutions detected"]] },
   { id:"kb", name:"Edit Knowledge Base", ctx:"kb", device:"desktop", figma:FIG("10442-5055"), states:[["kb-sync","Synced (toggle on)"],["kb-custom","Custom selection"]] },
   { id:"qz", name:"Quiz · Attached Files", ctx:"quiz", device:"desktop", figma:FIG("10520-43974"), states:[["qz-files","Attached files"]] },
-  { id:"st", name:"Student · AI Tutor", ctx:"student", device:"phone", figma:FIG("10513-30436"), states:[["st-vis","Default (source visible)"],["st-hid","Hidden (teacher material)"]] }
+  { id:"st", name:"Student · AI Tutor", ctx:"student", device:"phone", figma:FIG("10520-40919"), states:[["st-vis","Default (source visible)"],["st-hid","Hidden (no citation)"]] }
 ];
 const DEFAULT = { v:2, docs:Object.assign({}, DOCS),
   modes: MODES.map(m => ({ id:m.id, name:m.name, status:"open", figma:m.figma, states:m.states.map(([id,name]) => ({ id, name, kind:id, doc:STATE_DOCS[id]||"", links:{} })) })) };

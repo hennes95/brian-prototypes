@@ -1,5 +1,8 @@
 # Feature workbench shell: changelog
 
+## 1.1.9 (24.11.26)
+- Touchpoints no longer duplicate Solution (Hannes 24.11.): a touchpoint whose context already has its own screens under Solution shows "Specced in Solution: <mode> →" and no text field. Clicking the link jumps to that mode. Only touchpoints without own screens ask for text. Text already written in such a touchpoint stays visible and editable until it is cleared.
+
 ## 1.1.8 (24.11.26)
 - Spec comments land on the right line: the counter matches the commented line's own text first, then its neighbours (before / after), then the selected text. No fallback to the first line of the spec any more (it highlighted an unrelated line).
 - Readable in dark mode (Hannes 24.11.): the yellow spec highlight uses dark text, and "Mark as done" in the comment is a yellow button with dark text.
