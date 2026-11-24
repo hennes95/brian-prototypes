@@ -73,7 +73,8 @@ const accessCell = (f, hidden, variant) => {
   return `<span class="sa-rest"${hidden?' data-el="cm.rest" data-label="Resting: hidden icon" role="img" aria-label="Hidden from students" title="Hidden from students"':""}>${hidden?IC.eyeOff(16):""}</span>${btn}`;
 };
 
-function teacherShell(inner, overlay){
+function teacherShell(inner, overlay, tab){
+  tab = tab || "Course Materials";
   const nav = (ic, label, on) => `<a class="nav-item ${on?"on":""}" href="#"${on?' aria-current="page"':""}>${ic}<span>${label}</span></a>`;
   return `<div class="t-app ds-teacher">
     <aside class="t-side">
@@ -89,7 +90,7 @@ function teacherShell(inner, overlay){
     <main class="t-card">
       <header class="t-top"><div class="t-title"><div class="t-school body-md-strong">Georg Büchner Gymnasium</div><h1 class="h1">English Grade 7</h1></div>
         <span class="btn md">${TI.brain}Preview Course in App</span></header>
-      <div class="tab-bar t-tabs" role="tablist" aria-label="Course sections"><span class="tab">Content</span><span class="tab">Students</span><span class="tab">Analytics</span><span class="tab on">Course Materials</span><span class="tab">Settings</span></div>
+      <div class="tab-bar t-tabs" role="tablist" aria-label="Course sections">${["Content","Students","Analytics","Course Materials","Settings"].map(t => `<span class="tab ${t===tab?"on":""}">${t}</span>`).join("")}</div>
       ${inner}
     </main>
     <div class="t-ask" aria-label="Ask Brian">${TI.sparkle}</div>
@@ -136,6 +137,42 @@ function uploadDialog(){
   </div></div>`;
 }
 
+/* Edit Knowledge Base: layout from Figma 10500:25996 (dialog over the AI Dialogue Content tab) and 10452:224 (Uploads Table) */
+const IMG_BOOK="data:image/png;base64,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";
+const KBI = {
+  link: `<svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg>`,
+  info12: `<svg aria-hidden="true" width="12" height="12" viewBox="0 0 20 20"><circle cx="10" cy="10" r="10" fill="#63c0ff"/><rect x="9" y="8.5" width="2" height="6.5" rx="1" fill="#fff"/><circle cx="10" cy="5.8" r="1.25" fill="#fff"/></svg>`,
+  close24: `<svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 5l14 14M19 5L5 19"/></svg>`,
+  arrowR: `<svg aria-hidden="true" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 8h11M9.5 4l4 4-4 4"/></svg>`,
+  caretUp: `<svg aria-hidden="true" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7.5L6 4.5l3 3"/></svg>`,
+  caretDown: `<svg aria-hidden="true" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6l4 4 4-4"/></svg>`,
+  pen: `<svg aria-hidden="true" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 2.5l3 3L5 14H2v-3z"/></svg>`,
+  sparkles: `<svg aria-hidden="true" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linejoin="round"><path d="M15 3c.4 2.9 1.6 4.1 4.5 4.5-2.9.4-4.1 1.6-4.5 4.5-.4-2.9-1.6-4.1-4.5-4.5 2.9-.4 4.1-1.6 4.5-4.5zM7 11c.3 2 1.1 2.8 3 3-1.9.3-2.7 1.1-3 3-.3-1.9-1.1-2.7-3-3 1.9-.2 2.7-1 3-3zM17 15c.2 1.3.8 1.9 2 2-1.2.2-1.8.8-2 2-.2-1.2-.8-1.8-2-2 1.2-.1 1.8-.7 2-2zM5 4c.2 1 .6 1.4 1.5 1.5C5.6 5.6 5.2 6 5 7c-.2-1-.6-1.4-1.5-1.5C4.4 5.4 4.8 5 5 4z"/></svg>`,
+  doc: `<svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24"><rect x="1.5" y="1.5" width="21" height="21" rx="4" fill="#63c0ff"/><path d="M8.5 6h5L16.5 9v8.5a.5.5 0 0 1-.5.5H8.5a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5z" fill="none" stroke="#fff" stroke-width="1.3" stroke-linejoin="round"/><path d="M13.5 6v3h3M10 12h4.5M10 14.8h3.5" stroke="#fff" stroke-width="1.3" stroke-linecap="round" fill="none"/></svg>`
+};
+const kbCheck = (on, attrs) => `<input type="checkbox" class="kb-cb" ${on?"checked":""} ${attrs||""}>`;
+
+/* background: AI Dialogue, Content tab, Manual mode (Figma 10500:25996) */
+function dialogueContent(){
+  const label = (t, info=true) => `<div class="ac-label">${esc(t)}${info?KBI.info12:""}</div>`;
+  return `<div class="ac">
+    <div class="ac-bar"><div class="ac-crumbs"><span>Content</span>${KBI.arrowR}<span>Creating Linear Functions</span><span class="ac-copy">${KBI.link}Copy link for students</span></div>
+      <span class="ac-active">Active${KBI.caretUp}</span></div>
+    <div class="ac-main">
+      <div class="ac-left">
+        <div class="ac-seg"><span>Chatbot</span><span class="on">Manual</span></div>
+        <div class="ac-panel">
+          <div class="ac-group">${label("Instructions for learners")}<div class="ac-field">This is your check-in on rational numbers. You'll check whether you can read numbers off a number line, mark them on it, and put them in order by size. You'll also show whether you can add and subtract in your head and explain how you worked things out.</div></div>
+          <div class="ac-group">${label("Internal Instruction for Chatbot")}<div class="ac-field ac-clip"><b>Type and goal</b><br>Conduct a short, fully spoken A1 conversation for the first English lesson. The learner practices greeting, introducing themselves, and asking simple questions in conversation rather than through a long list of quiz questions.<br><br><b>Language framework</b><br>In your English utterances, use only the 20 words and phrases from the practice context.</div></div>
+          <div class="ac-group">${label("When does the dialog end?")}<div class="ac-field">The exercise only ends once the learner has said, in a short conversation, the greeting, the introduction, a simple question, and the farewell, each one themselves in English. German answers do not count toward any of these requirements.</div></div>
+          <div class="ac-group">${label("Knowledge Base")}<div class="ac-kb"><span class="ac-kbic">${KBI.link}<i>31</i></span><span class="ac-kbtx">All course materials</span><span class="ac-edit">Edit</span></div></div>
+          <div class="ac-group">${label("Evaluation Schema")}<div class="ac-row"><span class="ac-btn">${KBI.pen}Adapt Evaluation Rubrics</span><span class="ac-select">German${KBI.caretDown}</span></div></div>
+        </div>
+      </div>
+      <div class="ac-right"><div class="ac-prevh">Student Preview</div><div class="ac-prev">${KBI.sparkles}<span>Complete the creation to preview the AI Dialogue</span></div></div>
+    </div></div>`;
+}
+
 function kbDialog(m){
   const files = FILES;
   const sync = m.kbSync;
@@ -143,27 +180,26 @@ function kbDialog(m){
   const n = sync ? files.length : files.filter(f => custom[f.id]).length;
   const rows = files.map(f => {
     const hidden = !!m.hidden[f.id]; const on = sync || !!custom[f.id];
-    return `<div class="kb-row ${sync?"off":""}"><input type="checkbox" ${on?"checked":""} ${sync?"disabled":""} data-act="kb-pick" data-id="${f.id}" aria-label="${esc(f.name)}">
-      <span class="fi" style="margin:0;width:22px;height:22px">${IC.file(12)}</span>
-      <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(f.name)}</span>
+    return `<div class="kb-row">${kbCheck(on, `${sync?"disabled":""} data-act="kb-pick" data-id="${f.id}" aria-label="${esc(f.name)}"`)}
+      <span class="kb-doc">${KBI.doc}</span><span class="kb-name">${esc(f.name)}</span>
       ${hidden?`<span class="kb-hid" role="img" aria-label="Hidden from students" title="Hidden from students"${f.id==="s"?' data-el="kb.tag" data-label="Hidden icon"':""}>${IC.eyeOff(16)}</span>`:""}</div>`;
   }).join("");
-  return `<div class="dim"><div class="dlg" role="dialog" aria-label="Edit Knowledge Base" style="width:1016px">
-    <div class="dlg-h"><h2>Edit Knowledge Base</h2><button data-act="kb-close" aria-label="Close">${IC.close(18)}</button></div>
-    <div class="kb">
-      <div class="kb-up"><div class="kb-tabs"><span class="on">Drag &amp; Drop</span><span>Copy &amp; Paste</span><span>Video</span><span>Website</span></div>
-        <div class="kb-drop">Drag &amp; Drop<div>or <span>browse for a file</span></div></div></div>
-      <div class="kb-list">
+  return `<div class="dim"><div class="dlg kbd" role="dialog" aria-label="Edit Knowledge Base">
+    <div class="kbd-h"><h2>Edit Knowledge Base</h2><button data-act="kb-close" aria-label="Close">${KBI.close24}</button></div>
+    <div class="kbd-b">
+      <div class="kb-up"><div class="kb-seg"><span class="on">Drag &amp; Drop</span><span>Copy &amp; Paste</span><span>Video</span><span>Website</span></div>
+        <div class="kb-drop"><img src="${IMG_BOOK}" alt="" width="80" height="105"><div class="kb-dropt"><p class="kb-dropb">Drag &amp; Drop<br>or <span>browse for a file</span></p><p>(.tiff, .md, .webp, .heif, .pages, .pdf, .key, .svg, .jpeg, .tif, .ods, .heic, .xls, .htm, .ppt, .pptx, .xlsx, .odt, .png, .txt, .numbers, .odp, .jpe, .html, .jpg, .doc, .rtf, .docx, .bmp)</p></div></div></div>
+      <div class="kb-list ${sync?"sync":""}">
         <div class="kb-head">
-          <div style="display:flex;align-items:center;gap:8px">${IC.link(16)}<b style="font-size:14px;flex:1">Sync with course materials</b>
+          <div class="kb-title">${KBI.link}<b>Sync with course materials</b>${KBI.info12}<span class="x-sp"></span>
             <button class="sw ${sync?"on":""}" role="switch" aria-checked="${sync}" aria-label="Sync with course materials" data-act="kb-sync" data-el="kb.toggle" data-label="Sync toggle"></button></div>
-          <span style="font-size:14px;color:#585858;line-height:1.45" data-el="kb.copy" data-label="Sync description">${sync?"All course materials are added and removed automatically, including material that is hidden from students.":"Choose the documents this activity uses. Your selection won't change when the course materials change."}</span>
-          <div style="display:flex;align-items:center;gap:12px;font-size:14px;font-weight:600;${sync?"color:#949494":""}"><input type="checkbox" ${sync||n===files.length?"checked":""} ${sync?"disabled":""} aria-label="Select all"><span style="flex:1">Select all</span><span style="font-size:12px;color:#949494">${n} selected</span></div>
+          <p class="kb-desc" data-el="kb.copy" data-label="Sync description">${sync?"All course materials are added and removed automatically, including material that is hidden from students.":"Choose the documents this activity uses. Your selection won't change when the course materials change."}</p>
         </div>
-        <div style="padding:8px 0;overflow:auto">${rows}</div>
+        <div class="kb-all">${kbCheck(sync||n===files.length, `${sync?"disabled":""} aria-label="Select all"`)}<b>Select all</b><span class="x-sp"></span><span class="kb-n">${n} selected</span></div>
+        <div class="kb-rows">${rows}</div>
       </div>
     </div>
-    <div class="dlg-f"><button class="btn preferred" ${m.kbDirty?"":"disabled"} data-act="kb-close">Apply Changes</button></div>
+    <div class="kbd-f"><button class="btn" ${m.kbDirty?"":"disabled"} data-act="kb-close">Apply Changes</button></div>
   </div></div>`;
 }
 
@@ -194,6 +230,7 @@ const DOCS = {
     rules: ul("<b>R1</b> \"Hidden from students\" only controls what students can open, never what Brian uses",
       "<b>R2</b> New material is visible by default",
       ["<b>R3</b> Hidden files: the server sends no PDF link and no quote to the app", "Follow-up ticket (Student + Backend)"],
+      ["<b>R4</b> Teacher side: hidden material is marked only with the crossed-out eye icon", "Everywhere a file is listed (Course Materials, Edit Knowledge Base)", "No lock badge, no tag, no text at rest"],
       "<b>R4</b> Lock badge on a file icon means hidden, nothing else"),
     edges: ul(["Existing data", "\"Available to AI Tutor\" unchecked → hidden", "Checked → visible"],
       "Course AI Tutor uses all course material",
@@ -261,7 +298,7 @@ function screen(stateId, variant, m){
     const mode = stateId.split("-")[0];
     if (mode === "cm") return teacherShell(courseMaterials(variant, m));
     if (mode === "up") return teacherShell(courseMaterials(variant, m), uploadDialog());
-    if (mode === "kb") return teacherShell(courseMaterials(variant, m), kbDialog(m));
+    if (mode === "kb") return teacherShell(dialogueContent(), kbDialog(m), "Content");
     if (mode === "st") return student(m);
     return `<div style="height:100%;display:flex;align-items:center;justify-content:center;font:600 16px Nunito,sans-serif;color:#858585">New screen · spec it on the right</div>`;
 }
