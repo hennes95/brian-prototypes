@@ -69,12 +69,13 @@ const TI = {
 
 /* "Hidden from students" tooltip, Figma 10520:37427: text + preview (student chat with the source / without it) */
 const hidTip = (cls, el) => `<div class="htip ${cls||""}" role="tooltip"${el?' data-el="cm.tip" data-label="Tooltip"':""}>
-  <p class="htip-t">Hidden material can be used by Brian but students won’t be able to see it. Use it to e.g. hide solutions.</p>
+  <p class="htip-t">Brian can use hidden course material, but students can't see it. Use this to hide solutions, for example.</p>
   <div class="htip-prev"><div class="htip-card"><p>But your solution has to be different. You should solve for X.</p><span>Workbook Maths 8 Solutions, p. 3</span>${SPK}</div>
     <div class="htip-card"><p>But your solution has to be different. You should solve for X.</p>${SPK}</div></div></div>`;
 const SPK = `<svg class="htip-spk" aria-hidden="true" width="7" height="7" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"><path d="M1.5 6h2.5l4-3v10l-4-3H1.5z"/><path d="M10.5 6.2c.6.5.6 3.1 0 3.6M12.5 4.8c1.4 1.3 1.4 5.1 0 6.4"/></svg>`;
 /* eye icon for hidden material: same tooltip on hover (R6) */
 const hidEye = (cls, attrs) => `<span class="${cls} heye" tabindex="0" role="img" aria-label="Hidden from students"${attrs||""}>${IC.eyeOff(16)}</span>`;
+/* quiz attached files: blocked-file icon from BR-6428 keeps its own tooltip, so .qz-eye is NOT a .heye (Hannes 24.11) */
 /* the hover tooltip lives on the top layer of the screen (one element in .t-app), so no list or dialog can clip it */
 function showHidTip(eye){
   const app = eye.closest(".t-app"); if (!app) return;
@@ -247,7 +248,7 @@ function quizPage(m){
     const hid = m.qzHidden ? !!m.qzHidden[f.id] : f.hidden;
     const ic = f.icon === "video" ? QZI.video : f.icon === "text" ? QZI.text : KBI.doc;
     return `<div class="qz-row ${hid?"hid":""}"><span class="qz-ic">${ic}</span><div class="qz-tx"><b>${esc(f.name)}</b><span>${esc(f.meta)}</span></div>
-      ${hid?hidEye("qz-eye", f.id==="qv"?' data-el="qz.hidden" data-label="Hidden attached file"':""):""}</div>`;
+      ${hid?`<span class="qz-eye" role="img" aria-label="Hidden from students"${f.id==="qv"?' data-el="qz.hidden" data-label="Hidden attached file"':""}>${IC.eyeOff(16)}</span>`:""}</div>`;
   }).join("");
   return `<div class="ac qz">
     <div class="ac-bar"><div class="ac-crumbs"><span>Content</span>${KBI.arrowR}<span>Quiz</span><span class="ac-copy">${KBI.link}Copy link for students</span></div>
@@ -326,7 +327,6 @@ const STATE_DOCS = {
     "cm-hover-h": ul(["Hidden file on hover", "Toggle shows \"Hidden\" with crossed-out eye", "Light grey, not dark (Hannes 20.11)"], "Click → visible"),
     "cm-tip": ul("Tooltip on the info icon", ["Copy", "\"Brian still uses hidden material, but students can't open it when Brian cites it.\"", "\"Use this for solutions or teacher notes.\""]),
     "cm-bulk": ul(["One or more rows selected", "Bulk bar replaces the card footer (style as Admin Panel, Figma 10235:40916)", "Count left; right: existing \"Delete (n)\", then \"Show to students\" / \"Hide from students\""], "After the action the selection clears"),
-    "up-detect": ul(["Uploaded file name looks like solutions", "\"Lösung\", \"Solution\", \"Answer key\", \"Musterlösung\""], ["Ask once", "\"Keep visible\" / \"Hide from students\""], "Can be changed anytime in Course Materials"),
     "kb-sync": ul(["Toggle on", "List read-only, all files ticked"], "Description: \"All course materials are added and removed automatically, including material that is hidden from students.\"", "Hidden files show only the crossed-out eye icon, as in Course Materials (Hannes 24.11)"),
     "kb-custom": ul("Toggle off: list active, as in \"Update - 18.11.26\" of this ticket (BR-6891)", "Crossed-out eye stays visible so the teacher knows students can't open those files"),
     "qz-files": ul("Attached Files on the quiz's instructions page", ["Hidden files", "Grey row (light grey background), icon and text faded", "Crossed-out eye on the right, no text"], "Visible files look as before", "\"Show attached files\" toggle unchanged: hidden files stay hidden from students even when it is on"),
@@ -335,7 +335,6 @@ const STATE_DOCS = {
   };
 const MODES = [
   { id:"cm", name:"Course Materials", ctx:"cms", device:"desktop", figma:FIG("10491-24801"), states:[["cm-rest","Resting"],["cm-hover","Row hover (visible file)"],["cm-hover-h","Row hover (hidden file)"],["cm-tip","Info tooltip"],["cm-bulk","Rows selected"]] },
-  { id:"up", name:"Upload", ctx:"cms", device:"desktop", figma:"", states:[["up-detect","Solutions detected"]] },
   { id:"kb", name:"Edit Knowledge Base", ctx:"kb", device:"desktop", figma:FIG("10442-5055"), states:[["kb-sync","Synced (toggle on)"],["kb-custom","Custom selection"]] },
   { id:"qz", name:"Quiz · Attached Files", ctx:"quiz", device:"desktop", figma:FIG("10520-43974"), states:[["qz-files","Attached files"]] },
   { id:"st", name:"Student · AI Tutor", ctx:"student", device:"phone", figma:FIG("10520-40919"), states:[["st-vis","Default (source visible)"],["st-hid","Hidden (no citation)"]] }
@@ -349,7 +348,7 @@ const CONTEXTS = [
   { id:"quiz", name:"Quiz · Attached Files", ctx:"quiz", figma:FIG("10520-43974") },
   { id:"student", name:"Student · AI Tutor / Chatbot", ctx:"student" }
 ];
-const EL_ORDER = ["cm.col","cm.info","cm.rest","cm.access","cm.tip","cm.bulk","cm.bulkHide","cm.bulkShow","up.callout","up.keep","up.hide","kb.toggle","kb.copy","kb.tag","qz.list","qz.hidden","st.chipVisible","st.chipHidden","cm.add"];
+const EL_ORDER = ["cm.col","cm.info","cm.rest","cm.access","cm.tip","cm.bulk","cm.bulkHide","cm.bulkShow","kb.toggle","kb.copy","kb.tag","qz.list","qz.hidden","st.chipVisible","st.chipHidden","cm.add"];
 const DEVICES = { desktop:{ w:1720, h:1080 }, phone:{ w:402, h:874 } };
 const META = id => MODES.find(m => m.id === id) || MODES[0];
 
@@ -382,7 +381,6 @@ function ensureModel(){ if (!ui.live || !ui.live._m){ const st = curState(); ui.
 function screen(stateId, variant, m){
     const mode = stateId.split("-")[0];
     if (mode === "cm") return teacherShell(courseMaterials(variant, m));
-    if (mode === "up") return teacherShell(courseMaterials(variant, m), uploadDialog());
     if (mode === "kb") return teacherShell(dialogueContent(), kbDialog(m), "Content");
     if (mode === "qz") return teacherShell(quizPage(m), "", "Content", "Maths Grade 7");
     if (mode === "st") return student(m);
@@ -447,7 +445,6 @@ function act(t){
     else if (a === "sel-all"){ const files = FILES.concat(m.added?[NEW_FILE]:[]); const all = files.every(f => s[f.id]); const n = {}; if (!all) files.forEach(f => n[f.id] = true); api.set({ selected:n }, all ? "cm-rest" : "cm-bulk"); }
     else if (a === "bulk-hide" || a === "bulk-show"){ Object.keys(s).forEach(k => { if (s[k]) h[k] = a === "bulk-hide"; }); api.set({ hidden:h, selected:{} }, "cm-rest"); }
     else if (a === "tip"){ api.set({ tip: !m.tip }, m.tip ? "cm-rest" : "cm-tip"); }
-    else if (a === "add"){ api.go("up-detect"); }
     else if (a === "up-keep" || a === "up-hide"){ h.n = a === "up-hide"; api.set({ hidden:h, added:true }, "cm-rest"); }
     else if (a === "up-close" || a === "kb-close"){ api.go("cm-rest"); }
     else if (a === "kb-sync"){ api.set({ kbSync: !m.kbSync, kbDirty:true }, m.kbSync ? "kb-custom" : "kb-sync"); }
