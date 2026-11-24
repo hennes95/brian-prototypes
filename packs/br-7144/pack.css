@@ -206,3 +206,6 @@ body.native .vw-hd{padding-top:env(safe-area-inset-top)}
 /* canvas + document: dots keep a little room from the line (Hannes 23.11), less than the photo's frame padding */
 .th-draw .ink,.th-doc .dink .ink{padding:2px;box-sizing:border-box;background-color:transparent;background-clip:content-box;background-origin:content-box}
 .th-draw.ld{background:#fff}
+
+/* no lone words at the end of a paragraph: the browser balances the last lines (Hannes 24.11) */
+.phone{text-wrap:pretty}
