@@ -202,3 +202,22 @@
 /* Figma trims text boxes to cap height / baseline (text-box-trim) */
 .fx .s-app p,.fx .s-app .s-src,.fx .s-app .s-hidsrc,.fx .s-fn,.fx .s-day span,.fx .s-field span:first-child,.fx .s-head b,.fx .s-asset span{text-box:trim-both cap alphabetic}
 .fx .s-src{text-decoration:none}
+/* Quiz · Attached Files (Figma 10520:43974) */
+.fx .qz{gap:24px}
+.fx .qz-body{display:flex;flex-direction:column;gap:24px;min-height:0;overflow:hidden}
+.fx .qz-name{width:283px;border:1px solid var(--mono-400);padding:8px 16px;font-size:14px;line-height:1.4;font-weight:700;color:var(--dark-grey)}
+.fx .qz-ctx{border:1px solid var(--mono-400);border-radius:4px;padding:12px;display:flex;flex-direction:column;gap:16px}
+.fx .qz-video{width:520px;height:280px;border-radius:2px;background:#2f3e4d;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;font-size:22px;font-weight:700}
+.fx .qz-ctx p{margin:0;font-size:12px;line-height:1.4;font-weight:500;color:var(--mono-500)}
+.fx .qz-lbl{justify-content:space-between;padding-right:0}
+.fx .qz-l,.fx .qz-show{display:flex;align-items:center;gap:4px}
+.fx .qz-show .sw{margin-left:6px}
+.fx .qz-list{border:1px solid var(--mono-400);border-radius:4px;overflow:hidden}
+.fx .qz-row{display:flex;align-items:stretch;min-height:55px}
+.fx .qz-row.hid{background:var(--mono-200)}
+.fx .qz-ic{display:flex;align-items:center;padding:0 12px 0 16px}
+.fx .qz-tx{flex:1;display:flex;flex-direction:column;gap:2px;padding:16px 0}
+.fx .qz-tx b{font-size:14px;line-height:1.4;font-weight:500;color:var(--mono-700)}
+.fx .qz-tx span{font-size:12px;line-height:1.4;font-weight:500;color:var(--mono-600)}
+.fx .qz-row.hid .qz-ic,.fx .qz-row.hid .qz-tx{opacity:.4}
+.fx .qz-eye{display:flex;align-items:center;padding:0 24px 0 4px;color:var(--mono-700)}
