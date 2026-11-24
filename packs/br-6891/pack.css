@@ -33,7 +33,6 @@
 .fx .c-tx{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .fx .c-fn{display:flex;align-items:center;gap:12px;min-width:0}
 .fx .c-doc{position:relative;flex:0 0 24px;width:24px;height:24px;display:flex}
-.fx .c-lock{position:absolute;right:-3px;bottom:-3px;width:12px;height:12px;border-radius:3px;background:var(--dark-grey);border:1px solid var(--white);display:flex;align-items:center;justify-content:center}
 .fx .c-sort{display:flex;justify-content:space-between;align-items:center;padding-right:8px}
 .fx .c-acc{display:flex;align-items:center;gap:6px;position:relative}
 .fx .c-tip{top:34px;left:-180px;width:340px;display:flex;flex-direction:column;gap:6px;white-space:normal;color:var(--white)}
@@ -44,7 +43,7 @@
 /* access cell (spec): V1 = toggle always; V2 = resting shows only the crossed-out eye for hidden files, the toggle appears on row hover / focus */
 .fx .sa{display:inline-flex;align-items:center;gap:8px;height:32px;padding:0 12px;border-radius:var(--rounded);font-family:inherit;font-size:12px;line-height:1.4;font-weight:700;border:1px solid var(--mono-400);background:var(--white);color:var(--mono-700);cursor:pointer;white-space:nowrap}
 .fx .sa:hover{border-color:var(--bright-blue)}
-.fx .v1 .sa.hid{background:var(--dark-grey);border-color:var(--dark-grey);color:var(--white)}
+.fx .v1 .sa.hid{background:var(--bright-blue);border-color:var(--bright-blue);color:var(--white)}
 .fx .v2 .sa{min-width:96px;margin:-4px 0}
 .fx .v2 .sa.hid{background:var(--mono-200);color:var(--dark-grey)}
 .fx .v2 .sa-rest{display:flex;align-items:center;height:20px;color:var(--mono-700)}
@@ -64,7 +63,7 @@
 .fx .dlg-f{border-top:1px solid #ddd;padding:16px 24px;display:flex;justify-content:flex-end;gap:12px}
 .fx .frow{display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid #ddd;border-radius:8px}
 .fx .callout{display:flex;gap:14px;padding:16px;border-radius:8px;background:#f0f9ff;border:1px solid #c8e9ff}
-.fx .callout .lkc{flex:0 0 auto;width:32px;height:32px;border-radius:16px;background:#3a3a3a;color:#fff;display:flex;align-items:center;justify-content:center}
+.fx .callout .lkc{flex:0 0 auto;width:32px;height:32px;border-radius:16px;background:var(--bright-blue,#63c0ff);color:#fff;display:flex;align-items:center;justify-content:center}
 .fx .kb{display:grid;grid-template-columns:1fr 1fr;gap:24px;padding:24px;height:470px}
 .fx .kb-up{background:#f2f2f2;border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:12px}
 .fx .kb-tabs{display:flex;gap:4px;background:#fff;padding:4px;border-radius:6px;align-self:flex-start;font-size:14px;font-weight:600;color:#585858}
@@ -75,6 +74,7 @@
 .fx .kb-head{padding:16px;display:flex;flex-direction:column;gap:8px;border-bottom:1px solid #eee}
 .fx .kb-row{height:32px;display:flex;align-items:center;gap:12px;padding:0 16px;font-size:14px;font-weight:500}
 .fx .kb-row.off{color:#949494}
+.fx .kb-hid{margin-left:auto;display:flex;color:#585858}
 .fx .tag{font-size:12px;font-weight:700;color:#585858;padding:2px 8px;border-radius:10px;background:#eee;margin-left:auto;white-space:nowrap}
 .fx .sw{width:36px;height:20px;border-radius:10px;background:#ddd;position:relative;border:0;padding:0;flex:0 0 auto}
 .fx .sw.on{background:#63c0ff}

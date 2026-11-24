@@ -64,8 +64,7 @@ const TI = {
   info: `<svg aria-hidden="true" width="20" height="20" viewBox="0 0 20 20"><circle cx="10" cy="10" r="10" fill="currentColor"/><rect x="9" y="8.5" width="2" height="6.5" rx="1" fill="#fff"/><circle cx="10" cy="5.8" r="1.25" fill="#fff"/></svg>`,
   arrowDown: FI('<path d="M6 2v8M2.5 6.5L6 10l3.5-3.5"/>', 12, 12, "none", "currentColor", 1.3),
   download: FI('<path d="M8 2v8M4.5 6.5L8 10l3.5-3.5M2.5 10v3.5h11V10"/>', 16, 16, "none", "currentColor", 1.4),
-  add: FI('<path d="M8 2.5v11M2.5 8h11"/>', 16, 16, "none", "currentColor", 1.8),
-  lockBadge: `<span class="c-lock" data-el="cm.lock" data-label="Lock badge (hidden only)"><svg aria-hidden="true" width="8" height="8" viewBox="0 0 8 8"><rect x="1.2" y="3.6" width="5.6" height="4" rx=".8" fill="#fff"/><path d="M2.4 3.6V2.6a1.6 1.6 0 0 1 3.2 0v1" fill="none" stroke="#fff" stroke-width="1"/></svg></span>`
+  add: FI('<path d="M8 2.5v11M2.5 8h11"/>', 16, 16, "none", "currentColor", 1.8)
 };
 
 const accessCell = (f, hidden, variant) => {
@@ -103,14 +102,14 @@ function courseMaterials(variant, m){
   const all = sel.length === files.length;
   const colName = variant === "v1" ? "Students" : "Student access";
   const bulk = sel.length ? `<div class="t-bulk" data-el="cm.bulk" data-label="Bulk bar"><b class="body-md-strong">${sel.length} ${sel.length===1?"file":"files"} selected</b><span class="x-sp"></span>
-      <button class="btn secondary md" data-act="bulk-hide" data-el="cm.bulkHide" data-label="Hide from students">${IC.eyeOff(16)}Hide from students</button>
+      <button class="btn md" data-act="bulk-hide" data-el="cm.bulkHide" data-label="Hide from students">${IC.eyeOff(16)}Hide from students</button>
       <button class="btn secondary md" data-act="bulk-show" data-el="cm.bulkShow" data-label="Show to students">${IC.eye(16)}Show to students</button>
       <button class="btn secondary md" data-act="bulk-clear">Clear</button></div>` : "";
   const rows = files.map(f => {
     const hidden = !!m.hidden[f.id];
     return `<tr class="${m.selected[f.id]?"sel":""} ${m.hover===f.id?"hov":""}">
       <td class="c-cb"><input type="checkbox" data-act="sel" data-id="${f.id}" ${m.selected[f.id]?"checked":""} aria-label="Select ${esc(f.name)}"></td>
-      <td><div class="c-fn">${TI.doc(hidden ? TI.lockBadge : "")}<span class="c-tx">${esc(f.name)}</span></div></td>
+      <td><div class="c-fn">${TI.doc()}<span class="c-tx">${esc(f.name)}</span></div></td>
       <td><span class="c-tx">11.09.2026</span></td><td><span class="c-tx">Klasse 7</span></td><td><span class="c-tx">${esc(f.usedIn)}</span></td>
       <td>${accessCell(f, hidden, variant)}</td>
       <td><button class="btn ghost c-dl" aria-label="Download ${esc(f.name)}">${TI.download}</button></td></tr>`;
@@ -130,7 +129,7 @@ function uploadDialog(){
     <div class="dlg-h"><h2>Add Course Material</h2><button data-act="up-close" aria-label="Close">${IC.close(18)}</button></div>
     <div class="dlg-b">
       <div class="frow"><span class="fi" style="width:32px;height:32px;margin:0">${IC.file(16)}</span><div style="flex:1;display:flex;flex-direction:column"><b style="font-size:14px">${esc(NEW_FILE.name)}</b><span style="font-size:12px;color:#585858">2.4 MB · uploaded</span></div><span style="color:#157ec5">${IC.check(20)}</span></div>
-      <div class="callout" data-el="up.callout" data-label="Solutions hint"><span class="lkc">${IC.lock(16,2.2)}</span><div style="display:flex;flex-direction:column;gap:6px"><b style="font-size:16px;font-weight:800">This looks like a solutions file</b><span style="font-size:14px;line-height:1.45">Hide it from students? Brian can still use it to check answers, but students can't open it when Brian cites it.</span></div></div>
+      <div class="callout" data-el="up.callout" data-label="Solutions hint"><span class="lkc">${IC.eyeOff(16)}</span><div style="display:flex;flex-direction:column;gap:6px"><b style="font-size:16px;font-weight:800">This looks like a solutions file</b><span style="font-size:14px;line-height:1.45">Hide it from students? Brian can still use it to check answers, but students can't open it when Brian cites it.</span></div></div>
       <span style="font-size:13px;color:#585858">You can change this anytime in Course Materials.</span>
     </div>
     <div class="dlg-f"><button class="btn secondary" data-act="up-keep" data-el="up.keep" data-label="Keep visible">Keep visible</button><button class="btn preferred" data-act="up-hide" data-el="up.hide" data-label="Hide from students">Hide from students</button></div>
@@ -145,9 +144,9 @@ function kbDialog(m){
   const rows = files.map(f => {
     const hidden = !!m.hidden[f.id]; const on = sync || !!custom[f.id];
     return `<div class="kb-row ${sync?"off":""}"><input type="checkbox" ${on?"checked":""} ${sync?"disabled":""} data-act="kb-pick" data-id="${f.id}" aria-label="${esc(f.name)}">
-      <span class="fi" style="margin:0;width:22px;height:22px">${IC.file(12)}${hidden?`<span class="lk">${IC.lock(7,3)}</span>`:""}</span>
+      <span class="fi" style="margin:0;width:22px;height:22px">${IC.file(12)}</span>
       <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(f.name)}</span>
-      ${hidden?`<span class="tag"${f.id==="s"?' data-el="kb.tag" data-label="Hidden tag"':""}>Hidden from students</span>`:""}</div>`;
+      ${hidden?`<span class="kb-hid" role="img" aria-label="Hidden from students" title="Hidden from students"${f.id==="s"?' data-el="kb.tag" data-label="Hidden icon"':""}>${IC.eyeOff(16)}</span>`:""}</div>`;
   }).join("");
   return `<div class="dim"><div class="dlg" role="dialog" aria-label="Edit Knowledge Base" style="width:1016px">
     <div class="dlg-h"><h2>Edit Knowledge Base</h2><button data-act="kb-close" aria-label="Close">${IC.close(18)}</button></div>
@@ -203,14 +202,14 @@ const DOCS = {
     questions: ul("Column name: \"Student access\" or \"Visible to students\"?", "Hover toggle: does it also need a keyboard path beyond focus (e.g. row menu)?", "Solutions detection: file name only, or also content?")
   };
 const STATE_DOCS = {
-    "cm-rest": ul("Column \"Student access\" with info icon", ["Hidden files", "Show only the crossed-out eye icon, no text", "Lock badge on the file icon"], "Visible files show nothing in the column"),
+    "cm-rest": ul("Column \"Student access\" with info icon", ["Hidden files", "Show only the crossed-out eye icon, no text", "No lock badge on the file icon (Hannes 24.11)"], "Visible files show nothing in the column"),
     "cm-hover": ul(["Row hover or keyboard focus in the row", "Toggle appears in the column", "Visible file: \"Visible\" with eye icon"], "Click toggles the state, row stays hovered"),
-    "cm-hover-h": ul(["Hidden file on hover", "Toggle shows \"Hidden\" with crossed-out eye", "Light grey, not dark (Hannes 20.11)"], "Click → visible, lock badge disappears"),
+    "cm-hover-h": ul(["Hidden file on hover", "Toggle shows \"Hidden\" with crossed-out eye", "Light grey, not dark (Hannes 20.11)"], "Click → visible"),
     "cm-tip": ul("Tooltip on the info icon", ["Copy", "\"Brian still uses hidden material, but students can't open it when Brian cites it.\"", "\"Use this for solutions or teacher notes.\""]),
     "cm-bulk": ul(["One or more rows selected", "Bulk bar above the table", "\"Hide from students\" / \"Show to students\" / Clear"], "After the action the selection clears"),
     "up-detect": ul(["Uploaded file name looks like solutions", "\"Lösung\", \"Solution\", \"Answer key\", \"Musterlösung\""], ["Ask once", "\"Keep visible\" / \"Hide from students\""], "Can be changed anytime in Course Materials"),
-    "kb-sync": ul(["Toggle on", "List read-only, all files ticked"], "Description: \"All course materials are added and removed automatically, including material that is hidden from students.\"", "Hidden files keep the lock and a \"Hidden from students\" tag"),
-    "kb-custom": ul("Toggle off: list active, as in the 18.11 spec", "Hidden tag stays visible so the teacher knows students can't open those files"),
+    "kb-sync": ul(["Toggle on", "List read-only, all files ticked"], "Description: \"All course materials are added and removed automatically, including material that is hidden from students.\"", "Hidden files show only the crossed-out eye icon, as in Course Materials (Hannes 24.11)"),
+    "kb-custom": ul("Toggle off: list active, as in the 18.11 spec", "Crossed-out eye stays visible so the teacher knows students can't open those files"),
     "st-vis": ul(["Visible citation chip", "Tap opens the PDF at the cited page", "Quote highlighted"]),
     "st-hid": ul(["Hidden citation: grey chip \"Teacher material\" with lock", "No file name, no page"], ["Tap shows a note", "\"Your teacher keeps this material private. Brian can use it to help you, but you can't open it.\""], "Follow-up ticket (Student + Backend)")
   };
@@ -228,7 +227,7 @@ const CONTEXTS = [
   { id:"kb", name:"AI Dialogue · Knowledge Base", ctx:"kb", figma:FIG("10442-5055") },
   { id:"student", name:"Student · AI Tutor / Chatbot", ctx:"student" }
 ];
-const EL_ORDER = ["cm.col","cm.info","cm.rest","cm.lock","cm.access","cm.tip","cm.bulk","cm.bulkHide","cm.bulkShow","up.callout","up.keep","up.hide","kb.toggle","kb.copy","kb.tag","st.chipVisible","st.chipHidden","st.pop","cm.add"];
+const EL_ORDER = ["cm.col","cm.info","cm.rest","cm.access","cm.tip","cm.bulk","cm.bulkHide","cm.bulkShow","up.callout","up.keep","up.hide","kb.toggle","kb.copy","kb.tag","st.chipVisible","st.chipHidden","st.pop","cm.add"];
 const DEVICES = { desktop:{ w:1720, h:1080 }, phone:{ w:390, h:844 } };
 const META = id => MODES.find(m => m.id === id) || MODES[0];
 
