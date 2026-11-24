@@ -130,6 +130,7 @@ function courseMaterials(variant, m){
   const colName = variant === "v1" ? "Students" : "Hidden from students";
   /* Figma 10235:40916 (Admin Panel bulk selection): the bar replaces the card footer, light-blue, count left, filled buttons right */
   const bulk = `<div class="t-foot t-bulk" data-el="cm.bulk" data-label="Bulk bar"><b>${sel.length} ${sel.length===1?"document":"documents"} selected</b><span class="x-sp"></span>
+      <button class="btn caution" data-act="bulk-del" data-label="Delete (existing)">${FI('<path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/>', 24, 24, "none", "currentColor", 1.7)}Delete (${sel.length})</button>
       <button class="btn" data-act="bulk-show" data-el="cm.bulkShow" data-label="Show to students">Show to students</button>
       <button class="btn" data-act="bulk-hide" data-el="cm.bulkHide" data-label="Hide from students">Hide from students</button></div>`;
   const rows = files.map(f => {
@@ -324,7 +325,7 @@ const STATE_DOCS = {
     "cm-hover": ul(["Row hover or keyboard focus in the row", "Toggle appears in the column", "Visible file: \"Visible\" with eye icon"], "Click toggles the state, row stays hovered"),
     "cm-hover-h": ul(["Hidden file on hover", "Toggle shows \"Hidden\" with crossed-out eye", "Light grey, not dark (Hannes 20.11)"], "Click → visible"),
     "cm-tip": ul("Tooltip on the info icon", ["Copy", "\"Brian still uses hidden material, but students can't open it when Brian cites it.\"", "\"Use this for solutions or teacher notes.\""]),
-    "cm-bulk": ul(["One or more rows selected", "Bulk bar replaces the card footer (style as Admin Panel, Figma 10235:40916)", "Count left, \"Show to students\" / \"Hide from students\" right"], "After the action the selection clears"),
+    "cm-bulk": ul(["One or more rows selected", "Bulk bar replaces the card footer (style as Admin Panel, Figma 10235:40916)", "Count left; right: existing \"Delete (n)\", then \"Show to students\" / \"Hide from students\""], "After the action the selection clears"),
     "up-detect": ul(["Uploaded file name looks like solutions", "\"Lösung\", \"Solution\", \"Answer key\", \"Musterlösung\""], ["Ask once", "\"Keep visible\" / \"Hide from students\""], "Can be changed anytime in Course Materials"),
     "kb-sync": ul(["Toggle on", "List read-only, all files ticked"], "Description: \"All course materials are added and removed automatically, including material that is hidden from students.\"", "Hidden files show only the crossed-out eye icon, as in Course Materials (Hannes 24.11)"),
     "kb-custom": ul("Toggle off: list active, as in \"Update - 18.11.26\" of this ticket (BR-6891)", "Crossed-out eye stays visible so the teacher knows students can't open those files"),
