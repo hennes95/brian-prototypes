@@ -59,7 +59,7 @@ const TI = {
   language: FI('<circle cx="12" cy="12" r="9.5"/><path d="M2.5 12h19M12 2.5c2.6 2.7 3.9 5.8 3.9 9.5s-1.3 6.8-3.9 9.5c-2.6-2.7-3.9-5.8-3.9-9.5s1.3-6.8 3.9-9.5z"/>', 24, 24, "none", "currentColor", 1.7),
   chevron: FI('<path d="M4 6l4 4 4-4"/>', 16, 16),
   sparkle: `<svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M14 4c.5 3.6 2.4 5.5 6 6-3.6.5-5.5 2.4-6 6-.5-3.6-2.4-5.5-6-6 3.6-.5 5.5-2.4 6-6z"/><path d="M6 1.5c.3 1.8 1.2 2.7 3 3-1.8.3-2.7 1.2-3 3-.3-1.8-1.2-2.7-3-3 1.8-.3 2.7-1.2 3-3zM6.5 15c.3 1.9 1.3 2.9 3.2 3.2-1.9.3-2.9 1.3-3.2 3.3-.3-2-1.3-3-3.2-3.3 1.9-.3 2.9-1.3 3.2-3.2z"/></svg>`,
-  brain: FI('<path d="M8 3.5a3 3 0 0 0-3 3 3 3 0 0 0-1.5 5.2A3 3 0 0 0 6 16.5a3 3 0 0 0 6 .5V5a2.5 2.5 0 0 0-4-1.5zM16 3.5a3 3 0 0 1 3 3 3 3 0 0 1 1.5 5.2 3 3 0 0 1-2.5 4.8 3 3 0 0 1-6 .5"/><path d="M12 9c-1.5 0-2.5-1-2.5-2.5M12 13c1.5 0 2.5 1 2.5 2.5"/>', 16, 24, "none", "currentColor", 1.8),
+  brain: `<svg aria-hidden="true" width="16" height="16" viewBox="0 0 16 16"><path fill="currentColor" d="M15.7505 7.74958C15.7497 7.06714 15.5631 6.39779 15.2108 5.81334C14.8584 5.22889 14.3536 4.75139 13.7505 4.43208C13.7364 3.76966 13.5203 3.12737 13.1309 2.59126C12.7416 2.05515 12.1977 1.65083 11.5722 1.4325C10.9466 1.21417 10.2693 1.19225 9.63091 1.36967C8.99254 1.54709 8.42365 1.91539 8.00047 2.4252C7.5773 1.91539 7.00841 1.54709 6.37004 1.36967C5.73168 1.19225 5.05434 1.21417 4.42878 1.4325C3.80322 1.65083 3.25934 2.05515 2.87002 2.59126C2.48069 3.12737 2.26452 3.76966 2.25047 4.43208C1.64673 4.75053 1.14136 5.22773 0.78883 5.81223C0.436305 6.39673 0.25 7.06637 0.25 7.74895C0.25 8.43153 0.436305 9.10117 0.78883 9.68567C1.14136 10.2702 1.64673 10.7474 2.25047 11.0658C2.26427 11.7283 2.48027 12.3708 2.8695 12.9071C3.25873 13.4434 3.8026 13.8479 4.42821 14.0664C5.05382 14.2849 5.73127 14.3069 6.36975 14.1295C7.00823 13.9522 7.57723 13.5838 8.00047 13.074C8.42372 13.5838 8.99272 13.9522 9.6312 14.1295C10.2697 14.3069 10.9471 14.2849 11.5727 14.0664C12.1983 13.8479 12.7422 13.4434 13.1314 12.9071C13.5207 12.3708 13.7367 11.7283 13.7505 11.0658C14.3538 10.7471 14.8588 10.2699 15.2112 9.68558C15.5636 9.10126 15.7501 8.43193 15.7505 7.74958ZM5.50047 12.7496C5.12287 12.7495 4.75541 12.6273 4.45296 12.4013C4.15051 12.1752 3.92929 11.8573 3.82235 11.4952C3.88485 11.4952 3.94047 11.4996 4.00047 11.4996H4.50047C4.69939 11.4996 4.89015 11.4206 5.0308 11.2799C5.17146 11.1393 5.25047 10.9485 5.25047 10.7496C5.25047 10.5507 5.17146 10.3599 5.0308 10.2192C4.89015 10.0786 4.69939 9.99958 4.50047 9.99958H4.00047C3.46943 9.99995 2.95537 9.81247 2.54924 9.47033C2.14311 9.12818 1.87109 8.65341 1.7813 8.13001C1.69151 7.60661 1.78974 7.06832 2.05861 6.61038C2.32749 6.15243 2.74967 5.80434 3.25047 5.6277C3.39676 5.57598 3.52341 5.48016 3.61296 5.35345C3.70251 5.22673 3.75056 5.07536 3.75047 4.9202V4.49958C3.75047 4.03545 3.93485 3.59033 4.26304 3.26214C4.59123 2.93395 5.03635 2.74958 5.50047 2.74958C5.9646 2.74958 6.40972 2.93395 6.73791 3.26214C7.0661 3.59033 7.25047 4.03545 7.25047 4.49958V8.26083C7.10706 8.16886 6.95659 8.0884 6.80047 8.0202C6.61814 7.94064 6.41166 7.93676 6.22647 8.00943C6.04128 8.0821 5.89254 8.22536 5.81297 8.4077C5.73341 8.59004 5.72954 8.79651 5.80221 8.9817C5.87488 9.1669 6.01814 9.31564 6.20047 9.3952C6.56924 9.55585 6.87141 9.83863 7.05613 10.1959C7.24084 10.5533 7.29683 10.9633 7.21466 11.3571C7.13249 11.7508 6.91718 12.1043 6.60497 12.3579C6.29276 12.6115 5.90271 12.7498 5.50047 12.7496ZM12.0005 9.99958H11.5005C11.3016 9.99958 11.1108 10.0786 10.9701 10.2192C10.8295 10.3599 10.7505 10.5507 10.7505 10.7496C10.7505 10.9485 10.8295 11.1393 10.9701 11.2799C11.1108 11.4206 11.3016 11.4996 11.5005 11.4996H12.0005C12.063 11.4996 12.1192 11.4996 12.1786 11.4952C12.0953 11.7776 11.9421 12.0343 11.7332 12.2418C11.5243 12.4492 11.2665 12.6006 10.9835 12.6819C10.7006 12.7632 10.4017 12.7718 10.1145 12.707C9.82739 12.6421 9.56124 12.5059 9.34073 12.3108C9.12021 12.1158 8.95247 11.8683 8.85301 11.5912C8.75356 11.3141 8.72562 11.0164 8.77176 10.7257C8.81791 10.4349 8.93666 10.1605 9.11703 9.92783C9.29739 9.69516 9.53353 9.51175 9.8036 9.39458C9.98594 9.31501 10.1292 9.16627 10.2019 8.98108C10.2745 8.79589 10.2707 8.58941 10.1911 8.40708C10.1115 8.22474 9.9628 8.08148 9.7776 8.00881C9.59241 7.93614 9.38594 7.94001 9.2036 8.01958C9.04748 8.08777 8.89701 8.16823 8.7536 8.2602V4.49958C8.7536 4.03545 8.93797 3.59033 9.26616 3.26214C9.59435 2.93395 10.0395 2.74958 10.5036 2.74958C10.9677 2.74958 11.4128 2.93395 11.741 3.26214C12.0692 3.59033 12.2536 4.03545 12.2536 4.49958V4.9202C12.2535 5.07536 12.3016 5.22673 12.3911 5.35345C12.4807 5.48016 12.6073 5.57598 12.7536 5.6277C13.2566 5.80275 13.6813 6.15058 13.952 6.60931C14.2226 7.06804 14.3218 7.60792 14.2318 8.13289C14.1418 8.65787 13.8685 9.1339 13.4605 9.47628C13.0525 9.81866 12.5362 10.0052 12.0036 10.0027L12.0005 9.99958ZM13.0005 7.24958C13.0005 7.44849 12.9215 7.63925 12.7808 7.77991C12.6402 7.92056 12.4494 7.99958 12.2505 7.99958C11.5874 7.99958 10.9515 7.73618 10.4827 7.26734C10.0139 6.7985 9.75047 6.16262 9.75047 5.49958V5.24958C9.75047 5.05066 9.82949 4.8599 9.97014 4.71925C10.1108 4.57859 10.3016 4.49958 10.5005 4.49958C10.6994 4.49958 10.8902 4.57859 11.0308 4.71925C11.1715 4.8599 11.2505 5.05066 11.2505 5.24958V5.49958C11.2505 5.76479 11.3558 6.01915 11.5434 6.20668C11.7309 6.39422 11.9853 6.49958 12.2505 6.49958C12.4494 6.49958 12.6402 6.57859 12.7808 6.71925C12.9215 6.8599 13.0005 7.05066 13.0005 7.24958ZM6.25047 5.49958C6.25047 6.16262 5.98708 6.7985 5.51824 7.26734C5.0494 7.73618 4.41352 7.99958 3.75047 7.99958C3.55156 7.99958 3.3608 7.92056 3.22014 7.77991C3.07949 7.63925 3.00047 7.44849 3.00047 7.24958C3.00047 7.05066 3.07949 6.8599 3.22014 6.71925C3.3608 6.57859 3.55156 6.49958 3.75047 6.49958C4.01569 6.49958 4.27004 6.39422 4.45758 6.20668C4.64512 6.01915 4.75047 5.76479 4.75047 5.49958V5.24958C4.75047 5.05066 4.82949 4.8599 4.97014 4.71925C5.1108 4.57859 5.30156 4.49958 5.50047 4.49958C5.69939 4.49958 5.89015 4.57859 6.0308 4.71925C6.17146 4.8599 6.25047 5.05066 6.25047 5.24958V5.49958Z"/></svg>`,
   doc: (lock) => `<span class="c-doc"><svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24"><rect x="1" y="1" width="22" height="22" rx="4" fill="#63c0ff"/><path d="M8 5.5h5.5L17 9v8.5a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1v-11a1 1 0 0 1 1-1z" fill="none" stroke="#fff" stroke-width="1.4" stroke-linejoin="round"/><path d="M13.5 5.5V9H17M9.5 12h5M9.5 15h4" stroke="#fff" stroke-width="1.4" stroke-linecap="round" fill="none"/></svg>${lock||""}</span>`,
   info: `<svg aria-hidden="true" width="12" height="12" viewBox="0 0 20 20"><circle cx="10" cy="10" r="10" fill="currentColor"/><rect x="9" y="8.5" width="2" height="6.5" rx="1" fill="#fff"/><circle cx="10" cy="5.8" r="1.25" fill="#fff"/></svg>`,
   arrowDown: FI('<path d="M6 2v8M2.5 6.5L6 10l3.5-3.5"/>', 12, 12, "none", "currentColor", 1.3),
@@ -67,10 +67,19 @@ const TI = {
   add: FI('<path d="M8 2.5v11M2.5 8h11"/>', 16, 16, "none", "currentColor", 1.8)
 };
 
+/* "Hidden from students" tooltip, Figma 10520:37427: text + preview (student chat with the source / without it) */
+const hidTip = (cls, el) => `<div class="htip ${cls||""}" role="tooltip"${el?' data-el="cm.tip" data-label="Tooltip"':""}>
+  <p class="htip-t">Hidden material can be used by Brian but students won’t be able to see it. Use it to e.g. hide solutions.</p>
+  <div class="htip-prev"><div class="htip-card"><p>But your solution has to be different. You should solve for X.</p><span>Workbook Maths 8 Solutions, p. 3</span>${SPK}</div>
+    <div class="htip-card"><p>But your solution has to be different. You should solve for X.</p>${SPK}</div></div></div>`;
+const SPK = `<svg class="htip-spk" aria-hidden="true" width="7" height="7" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"><path d="M1.5 6h2.5l4-3v10l-4-3H1.5z"/><path d="M10.5 6.2c.6.5.6 3.1 0 3.6M12.5 4.8c1.4 1.3 1.4 5.1 0 6.4"/></svg>`;
+/* eye icon for hidden material: same tooltip on hover (R6) */
+const hidEye = (cls, attrs) => `<span class="${cls} heye" tabindex="0" role="img" aria-label="Hidden from students"${attrs||""}>${IC.eyeOff(16)}${hidTip("hover")}</span>`;
+
 const accessCell = (f, hidden, variant) => {
   const btn = `<button class="sa ${hidden?"hid":""}" data-act="sa" data-id="${f.id}" data-el="cm.access" data-label="Student access toggle" aria-pressed="${hidden}" aria-label="${hidden?"Show":"Hide"} ${esc(f.name)} ${hidden?"to":"from"} students">${hidden?IC.eyeOff(16):IC.eye(16)}${hidden?"Hidden":"Visible"}</button>`;
   if (variant === "v1") return btn;
-  return `<span class="sa-rest"${hidden?' data-el="cm.rest" data-label="Resting: hidden icon" role="img" aria-label="Hidden from students" title="Hidden from students"':""}>${hidden?IC.eyeOff(16):""}</span>${btn}`;
+  return `<span class="sa-rest">${hidden?hidEye("", ' data-el="cm.rest" data-label="Resting: hidden icon"'):""}</span>${btn}`;
 };
 
 function teacherShell(inner, overlay, tab, course){
@@ -101,7 +110,7 @@ function courseMaterials(variant, m){
   const files = FILES.concat(m.added ? [NEW_FILE] : []);
   const sel = files.filter(f => m.selected[f.id]);
   const all = sel.length === files.length;
-  const colName = variant === "v1" ? "Students" : "Student access";
+  const colName = variant === "v1" ? "Students" : "Hidden from students";
   const bulk = sel.length ? `<div class="t-bulk" data-el="cm.bulk" data-label="Bulk bar"><b class="body-md-strong">${sel.length} ${sel.length===1?"file":"files"} selected</b><span class="x-sp"></span>
       <button class="btn md" data-act="bulk-hide" data-el="cm.bulkHide" data-label="Hide from students">${IC.eyeOff(16)}Hide from students</button>
       <button class="btn secondary md" data-act="bulk-show" data-el="cm.bulkShow" data-label="Show to students">${IC.eye(16)}Show to students</button>
@@ -115,7 +124,7 @@ function courseMaterials(variant, m){
       <td>${accessCell(f, hidden, variant)}</td>
       <td><button class="btn ghost c-dl" aria-label="Download ${esc(f.name)}">${TI.download}</button></td></tr>`;
   }).join("");
-  const tip = m.tip ? `<div class="tooltip bottom c-tip" role="tooltip" data-el="cm.tip" data-label="Tooltip"><p>Brian still uses hidden material, but students can't open it when Brian cites it.</p><p>Use this for solutions or teacher notes.</p></div>` : "";
+  const tip = m.tip ? hidTip("c-tip", true) : "";
   return `<div class="t-cm ${variant}">${bulk}
     <div class="t-tablewrap"><table class="table t-table" aria-label="Course materials"><colgroup><col style="width:28px"><col style="width:26%"><col><col><col style="width:20%"><col style="width:15%"><col style="width:96px"></colgroup><thead><tr>
       <th class="c-cb"><input type="checkbox" data-act="sel-all" ${all?"checked":""} aria-label="Select all files"></th>
@@ -182,7 +191,7 @@ function kbDialog(m){
     const hidden = !!m.hidden[f.id]; const on = sync || !!custom[f.id];
     return `<div class="kb-row">${kbCheck(on, `${sync?"disabled":""} data-act="kb-pick" data-id="${f.id}" aria-label="${esc(f.name)}"`)}
       <span class="kb-doc">${KBI.doc}</span><span class="kb-name">${esc(f.name)}</span>
-      ${hidden?`<span class="kb-hid" role="img" aria-label="Hidden from students" title="Hidden from students"${f.id==="s"?' data-el="kb.tag" data-label="Hidden icon"':""}>${IC.eyeOff(16)}</span>`:""}</div>`;
+      ${hidden?hidEye("kb-hid", f.id==="s"?' data-el="kb.tag" data-label="Hidden icon"':""):""}</div>`;
   }).join("");
   return `<div class="dim"><div class="dlg kb-dlg" role="dialog" aria-label="Edit Knowledge Base">
     <div class="kbd-h"><h2>Edit Knowledge Base</h2><button data-act="kb-close" aria-label="Close">${KBI.close24}</button></div>
@@ -220,7 +229,7 @@ function quizPage(m){
     const hid = m.qzHidden ? !!m.qzHidden[f.id] : f.hidden;
     const ic = f.icon === "video" ? QZI.video : f.icon === "text" ? QZI.text : KBI.doc;
     return `<div class="qz-row ${hid?"hid":""}"><span class="qz-ic">${ic}</span><div class="qz-tx"><b>${esc(f.name)}</b><span>${esc(f.meta)}</span></div>
-      ${hid?`<span class="qz-eye" role="img" aria-label="Hidden from students" title="Hidden from students"${f.id==="qv"?' data-el="qz.hidden" data-label="Hidden attached file"':""}>${IC.eyeOff(16)}</span>`:""}</div>`;
+      ${hid?hidEye("qz-eye", f.id==="qv"?' data-el="qz.hidden" data-label="Hidden attached file"':""):""}</div>`;
   }).join("");
   return `<div class="ac qz">
     <div class="ac-bar"><div class="ac-crumbs"><span>Content</span>${KBI.arrowR}<span>Quiz</span><span class="ac-copy">${KBI.link}Copy link for students</span></div>
@@ -301,7 +310,7 @@ const STATE_DOCS = {
     "cm-bulk": ul(["One or more rows selected", "Bulk bar above the table", "\"Hide from students\" / \"Show to students\" / Clear"], "After the action the selection clears"),
     "up-detect": ul(["Uploaded file name looks like solutions", "\"Lösung\", \"Solution\", \"Answer key\", \"Musterlösung\""], ["Ask once", "\"Keep visible\" / \"Hide from students\""], "Can be changed anytime in Course Materials"),
     "kb-sync": ul(["Toggle on", "List read-only, all files ticked"], "Description: \"All course materials are added and removed automatically, including material that is hidden from students.\"", "Hidden files show only the crossed-out eye icon, as in Course Materials (Hannes 24.11)"),
-    "kb-custom": ul("Toggle off: list active, as in the 18.11 spec", "Crossed-out eye stays visible so the teacher knows students can't open those files"),
+    "kb-custom": ul("Toggle off: list active, as in \"Update - 18.11.26\" of this ticket (BR-6891)", "Crossed-out eye stays visible so the teacher knows students can't open those files"),
     "qz-files": ul("Attached Files on the quiz's instructions page", ["Hidden files", "Grey row (light grey background), icon and text faded", "Crossed-out eye on the right, no text"], "Visible files look as before", "\"Show attached files\" toggle unchanged: hidden files stay hidden from students even when it is on"),
     "st-vis": ul(["Source under a citation", "Grey text (\"Workbook Maths 8 Solutions, p. 3\")", "Tap opens the PDF at the cited page"]),
     "st-hid": ul(["Cited material is hidden from students", "The source disappears: crossed-out eye + \"Teacher material\" in grey", "No file name, no page, no quote, not tappable"], "Attaching material in the chat: hidden material is hidden there as well", "Follow-up ticket (Student + Backend)")
