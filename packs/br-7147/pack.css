@@ -388,3 +388,5 @@ body:not(.proto) .oosa{outline:1px dashed #e0b400;outline-offset:4px;border-radi
 body.native .v-pill.notab:not(.focused){padding-bottom:4px;margin-bottom:calc(10px + env(safe-area-inset-bottom))}
 /* quiz result sheet: less room on top, more at the bottom (Hannes 24.11) */
 .q-result{padding-top:12px;padding-bottom:calc(24px + env(safe-area-inset-bottom));height:auto;box-sizing:border-box}
+/* send is always the primary button: dark on a light field (Pill inverted on dark screens), light on a dark field (Hannes 24.11) */
+.phone.dark .v-pill:not(.v-pill-light) .c-right.send{background:#3a3a3a;color:#fff}
