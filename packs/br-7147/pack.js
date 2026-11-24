@@ -341,7 +341,7 @@ const DEFAULT_TARGET={plus:"upload-sheet","opt-gallery":"upload-picker","opt-cam
 
 /* each touchpoint keeps its own sent messages (Hannes 24.11: test messages from the AI Tutor showed up in the Dialog, Discussion room and Diary) */
 let THREADS={};
-function syncThreadCtx(M){ const c=ui.context||"tutor"; if(M._ctx===undefined){ M._ctx=c; if(THREADS[c]&&!M.thread.length) M.thread=THREADS[c]; return; } if(M._ctx===c) return; THREADS[M._ctx]=M.thread||[]; M.thread=THREADS[c]||[]; M._ctx=c; if(document.body.classList.contains("proto")){ M.text=""; M.atts=[]; M.focused=false; M.fs=false; M.stacked=false; M.waiting=false; M.menu=false; M.picker=false; } }
+function syncThreadCtx(M){ const c=ui.context||"tutor"; if(THREADS.diary&&THREADS.diary.length) THREADS.diary=[]; if(M._ctx===undefined){ M._ctx=c; if(THREADS[c]&&!M.thread.length) M.thread=THREADS[c]; return; } if(M._ctx===c) return; THREADS[M._ctx]=M.thread||[]; M.thread=THREADS[c]||[]; M._ctx=c; if(document.body.classList.contains("proto")){ M.text=""; M.atts=[]; M.focused=false; M.fs=false; M.stacked=false; M.waiting=false; M.menu=false; M.picker=false; } }
 function saveThread(){ if(!document.body.classList.contains("proto")) return; try{ THREADS[ui.live._ctx||ui.context||"tutor"]=ui.live.thread||[]; localStorage.setItem("proto-br7147",JSON.stringify({threads:THREADS})); }catch(e){} }
 function restoreThread(){ if(!document.body.classList.contains("proto")) return; try{ const d=JSON.parse(localStorage.getItem("proto-br7147")||"null"); if(d&&d.threads) THREADS=d.threads; else if(d&&Array.isArray(d.thread)) THREADS={tutor:d.thread}; const c=ui.context||"tutor"; ui.live.thread=THREADS[c]||[]; ui.live._ctx=c; }catch(e){} }
 function deriveKind(M){ if(M.picker) return "upload-picker"; if(M.fs&&M.focused) return "focus-mode"; if(M.menu) return "upload-sheet"; if(M.waiting) return "sending"; if(M.atts.length) return "upload-attached";
@@ -516,7 +516,10 @@ document.getElementById("pwrap").addEventListener("click",e=>{
   else if(id==="pick-back"){ M.pickKind="doc"; }
   else if(id==="view-close"){ M.picker=false; M.focused=!!M.viewKbd; rerenderKeepCaret(M.focused); syncSel(); return; }
   else if(id==="pick-add"){ M.picker=false; const up=(M.pickType||"image")+"~"; M.atts.push(up); setTimeout(()=>{ const k=M.atts.indexOf(up); if(k<0) return; M.atts[k]=attBase(up); rerenderKeepCaret(); syncSel(); },1800); M.focused=!!M.menuKbd; rerenderKeepCaret(M.focused); syncSel(); return; }
-  else if(id==="send"){ if(M.waiting) return; const txt=M.text.trim(); if(!txt&&!M.atts.some(t=>t!=="loading"&&!t.endsWith("~"))) return; M.thread.push({who:"s",text:txt,atts:M.atts.map(attBase)}); M.text=""; M.atts=[]; M.focused=false; M.fs=false; M.stacked=false; M.waiting=true; saveThread();
+  else if(id==="send"){ if(M.waiting) return; const txt=M.text.trim(); if(!txt&&!M.atts.some(t=>t!=="loading"&&!t.endsWith("~"))) return;
+    /* Learning Diary: chat history out of scope (Hannes 24.11) -> sending only resets the field, the empty state stays */
+    if((ui.context||"")==="diary"){ M.text=""; M.atts=[]; M.focused=false; M.fs=false; M.stacked=false; M.thread=[]; saveThread(); try{document.activeElement&&document.activeElement.blur();}catch(e){} rerenderKeepCaret(); syncSel(); return; }
+    M.thread.push({who:"s",text:txt,atts:M.atts.map(attBase)}); M.text=""; M.atts=[]; M.focused=false; M.fs=false; M.stacked=false; M.waiting=true; saveThread();
     rerenderKeepCaret(); syncSel(); setTimeout(()=>{ M.waiting=false; M.thread.push({who:"t",text:REPLIES[(M.thread.length/2|0)%REPLIES.length]}); saveThread(); renderStage(); syncSel(); },1400); return; }
   else if(id==="newchat"){ M.thread=[]; M.text=""; M.atts=[]; M.focused=false; saveThread(); }
   else return;
