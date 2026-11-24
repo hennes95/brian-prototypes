@@ -415,3 +415,11 @@ body.native .v-pill.notab:not(.focused){padding-bottom:4px;margin-bottom:calc(10
 .v-pill.focused:not(.attscroll) .c-body,.v-pill.fs:not(.attscroll) .c-body{margin-top:-8px}
 .v-pill.focused:not(.attscroll) textarea{padding-top:16.8px}
 .v-pill.focused.over:not(.attscroll) textarea,.v-pill.fs:not(.attscroll) textarea{padding-top:48px}
+/* attachment visuals are white paper (as BR-7144, Figma 12807-60956): outline and fold always ink; the outer shadow is ink on a light field and white on a dark field (Hannes 24.11) */
+.cmp .att{--a-line:#3a3a3a;--a-sh:#3a3a3a}
+.phone:not(.dark) .v-pill:not(.v-pill-light) .att,.phone.dark .v-pill.v-pill-light .att{--a-sh:#fff}
+.cmp .att:not(.a-doc):not(.a-loading) .acard::before{border-color:var(--a-line)}
+.cmp .a-image .acard,.cmp .a-drawing .acard{box-shadow:3px 3px 0 var(--a-sh)}
+.cmp .a-doc .acard .docsvg{filter:drop-shadow(3px 3px 0 var(--a-sh))}
+.cmp .docsvg .dln,.cmp .docsvg .dfold{stroke:var(--a-line)}
+.cmp .docsvg .dsh{fill:var(--a-line)}

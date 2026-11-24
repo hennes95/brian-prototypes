@@ -157,7 +157,7 @@ const DEFAULT = {
  ]
 };
 /* Variants shown in the workbench. "pill" keeps its id (comments are stored per variant id) and is now "Pill inverted". */
-const VARIANTS=[{id:"pill-light",name:"Pill"},{id:"pill",name:"Pill inverted",figma:FIG("12532-148660")}];
+const VARIANTS=[{id:"pill-light",name:"Pill"},{id:"pill",name:"Pill inverted",figma:FIG("12532-148660")},{id:"pill-sq",name:"Pill status quo"}];  /* status quo (Hannes 24.11): white field with outline on light screens, inverted (light) field on dark screens */
 /* Archived 23.11 (Hannes): explored, no longer shown. Code and CSS stay, so they still render if put back into VARIANTS.
    Notes and screenshots: packs/br-7147/archive/VARIANTS.md */
 const VARIANTS_ARCHIVED=[{id:"open",name:"Workbook line",figma:FIG("12532-149018")},{id:"angled",name:"No underline"},{id:"inv",name:"Inverted",figma:FIG("12702-194812")}];
@@ -293,7 +293,7 @@ function phoneHTML(st,live={},interactive=true){
   const M=interactive?ensureModel():seed(st.kind); if(interactive) syncThreadCtx(M);
   const q={text:M.text,focused:M.focused,inline:isInline(M),fs:M.focused&&!!M.fs,sheet:M.menu,picker:M.picker,pickKind:M.pickKind,attach:M.atts.length?M.atts:false,typing:M.waiting,note:M.note,reserved:M.reserved};
   if(!VARIANTS.some(x=>x.id===ui.variant)&&!(VARIANTS_ARCHIVED.some(x=>x.id===ui.variant)&&ui._showArchived)) ui.variant="pill";
-  const ctx=ui.context, dark=isDarkCtx(ctx), quiz=ctx==="quiz", disc=ctx==="discussion", diary=ctx==="diary", v=ui.variant, inv=v==="inv", vcls=v==="pill-light"?"v-pill v-pill-light":inv?"v-open v-inv":v==="angled"?"v-open v-angled":"v-"+v;
+  const ctx=ui.context, dark=isDarkCtx(ctx), quiz=ctx==="quiz", disc=ctx==="discussion", diary=ctx==="diary", v=ui.variant, inv=v==="inv", vcls=v==="pill-sq"?(dark?"v-pill":"v-pill v-pill-light"):v==="pill-light"?"v-pill v-pill-light":inv?"v-open v-inv":v==="angled"?"v-open v-angled":"v-"+v;
   const tab=ctx==="tutor"&&!q.focused;
   const hasText=(q.text||"").trim().length>0||!!q.attach, canSend=(q.text||"").trim().length>0||(q.attach&&q.attach.some(t=>t!=="loading"&&!t.endsWith("~"))); /* send shows once the first attachment has finished uploading */
   const ink=dark?"#2f2f2f":"#fff";
