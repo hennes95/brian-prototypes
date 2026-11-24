@@ -39,7 +39,7 @@ function merge3(b,l,r){ if(!b) return structuredClone(l); const out=structuredCl
     else if(!jeq(l[k],b[k])) out[k]=structuredClone(l[k]); }
   return out; }
 const syncEl=document.getElementById("sync");
-const SHELL_V="1.1.6"; /* shown next to the save status so a stale tab is visible */
+const SHELL_V="1.1.8"; /* shown next to the save status so a stale tab is visible */
 const setSync=t=>{ syncEl.textContent=t+" · "+SHELL_V; };
 function unwrap(s){ if(!s) return null; if(typeof s.data==="function") return s.data(); if(s.exists===false) return null; return s.data!==undefined?s.data:s; }
 const valid=d=>d&&d.v===2&&Array.isArray(d.modes)&&d.docs;
@@ -191,24 +191,71 @@ document.addEventListener("click",e=>{ const d=e.target.closest&&e.target.closes
     const vn=(VARIANTS.find(v=>v.id===a.variant)||{}).name;
     pop.innerHTML=`<div class="m">${esc(a.element||"element")}${a.variant&&a.variant!==ui.variant?` · placed in variant "${esc(vn||a.variant)}"`:""}</div><p>${esc(a.comment||"")}</p><button data-done="${esc(a.id)}">Mark as done</button>`;
     document.body.appendChild(pop); const r=d.getBoundingClientRect(); pop.style.left=Math.min(Math.max(8,r.left-270),window.innerWidth-276)+"px"; pop.style.top=Math.min(r.bottom+8,window.innerHeight-pop.offsetHeight-8)+"px"; return; }
-  const dn=e.target.closest&&e.target.closest("#agtpop button[data-done]"); if(dn){ const a=(S.agt||[]).find(x=>x.id===dn.dataset.done); if(a){ a.status="resolved"; save(); updateCounters(); } closeAgtPop(); return; }
+  const dn=e.target.closest&&e.target.closest("#agtpop button[data-done]"); if(dn){ const a=(S.agt||[]).find(x=>x.id===dn.dataset.done); if(a){ a.status="resolved"; save(); updateCounters(); try{ syncAgtHash(); }catch(e){} } closeAgtPop(); return; }
   if(!(e.target.closest&&e.target.closest("#agtpop"))) closeAgtPop(); },true);
 document.addEventListener("keydown",e=>{ if(e.key==="Escape") closeAgtPop(); });
 window.addEventListener("resize",()=>{ try{ placeAgtDots(); }catch(e){} });
 document.addEventListener("scroll",e=>{ if(e.target&&e.target.closest&&e.target.closest("#pwrap")) requestAnimationFrame(()=>{ try{ placeAgtDots(); }catch(x){} }); },true);
+/* 1.1.7: the yellow counter steps through comments one by one: switch to their surface, variant and screen,
+   scroll the spec to that screen, and open the comment next to the element it is on */
+function agtTarget(a){ const root=document.querySelector("#pwrap .phone"); if(!root||!a) return null;
+  const tag=(String(a.elementPath||a.element||"").split(">").pop().trim().split(/[.#:\[ ]/)[0])||"*";
+  const nt=String(a.nearbyText||""), before=(nt.match(/\[before: "([^"]*)"\]/)||[])[1]||""; let best=null,bs=0;
+  root.querySelectorAll(tag).forEach(el=>{ const r=el.getBoundingClientRect(); if(!r.width) return; const tx=(el.textContent||"").trim(); let s=0;
+    if(tx&&nt.includes(tx)) s+=2; const pv=el.previousElementSibling; if(before&&pv&&(pv.textContent||"").trim()===before) s+=3; if(a.selectedText&&tx.includes(a.selectedText)) s+=2;
+    if(s>bs){ bs=s; best=el; } });
+  return best; }
+function showAgtPop(a,r){ closeAgtPop(); const pop=document.createElement("div"); pop.id="agtpop"; const vn=(VARIANTS.find(v=>v.id===a.variant)||{}).name;
+  const where=a.where==="spec"?"Spec":[(CONTEXTS.find(c=>c.ctx===a.ctx)||{}).name,vn,(a.state&&find(a.state)?find(a.state).s.name:"")].filter(Boolean).join(" · ");
+  pop.innerHTML=`<div class="m">${esc(where||a.element||"comment")}</div><p>${esc(a.comment||"")}</p><button data-done="${esc(a.id)}">Mark as done</button>`;
+  document.body.appendChild(pop); pop.style.left=Math.min(Math.max(8,r.left-270),window.innerWidth-276)+"px"; pop.style.top=Math.max(8,Math.min(r.bottom+8,window.innerHeight-pop.offsetHeight-8))+"px"; }
+function agtSpecTarget(a){ const sc=document.getElementById("edscroll"); if(!sc||!a) return null; let els=[]; try{ els=[...document.querySelectorAll(a.elementPath)].filter(e=>sc.contains(e)); }catch(e){}
+  if(!els.length) els=[...sc.querySelectorAll("li,p,h4")];
+  const norm=s=>String(s||"").replace(/\s+/g," ").trim();
+  const own=el=>norm([...el.childNodes].filter(n=>n.nodeType===3||(n.nodeType===1&&!/^(UL|OL)$/.test(n.tagName))).map(n=>n.textContent).join(" "));
+  const nt=String(a.nearbyText||""), before=(nt.match(/\[before: "([\s\S]*?)"\]/)||[])[1]||"", after=(nt.match(/\[after: "([\s\S]*?)"?\]/)||[])[1]||"";
+  const self=norm(nt.replace(/\[(before|after): [\s\S]*?\]/g,""));
+  const starts=(t,q)=>{ q=norm(q).replace(/^"+|"+$/g,"").slice(0,40); return !!q&&norm(t).replace(/^"+/,"").startsWith(q); };
+  /* 1.1.8: match the element's own text first, then its neighbours, then the selection; never fall back to an unrelated line */
+  if(self){ const hit=els.find(e=>starts(own(e),self)); if(hit) return hit; }
+  if(before){ const hit=els.find(e=>{ const pv=e.previousElementSibling; return pv&&starts(own(pv),before); }); if(hit) return hit; }
+  if(after){ const hit=els.find(e=>{ const nx=e.nextElementSibling; return nx&&starts(own(nx),after); }); if(hit) return hit; }
+  if(a.selectedText){ const hit=els.find(e=>norm(e.textContent).includes(norm(a.selectedText))); if(hit) return hit; }
+  return null; }
+function gotoAgt(a){ closeAgtPop();
+  if(a.where==="spec"){ const el=agtSpecTarget(a); if(el){ el.scrollIntoView({block:"center",behavior:"smooth"}); el.classList.add("agt-hl"); setTimeout(()=>el.classList.remove("agt-hl"),2600); }
+    setTimeout(()=>{ const r=(el||document.getElementById("edscroll")||document.body).getBoundingClientRect(); showAgtPop(a,r); },500); return; } if(a.ctx) ui.context=a.ctx; if(a.variant) ui.variant=a.variant; try{ sc.value=ui.context; sv.value=ui.variant; }catch(e){}
+  if(a.state&&find(a.state)&&ui.sel.state!==a.state) go(a.state); else renderStage();
+  try{ renderLeft(); markActive(); scrollToSel(); }catch(e){}
+  setTimeout(()=>{ const el=agtTarget(a); const box=el||document.querySelector("#pwrap .phone"); const r=(box||document.body).getBoundingClientRect();
+    if(el){ el.classList.add("agt-hl"); setTimeout(()=>el.classList.remove("agt-hl"),2600); } showAgtPop(a,r); },450); }
 function gotoTpComments(t){ const c=tpComments(t.ctx)[0]; ui.context=t.ctx; if(c&&c.kind==="agt"&&c.p.variant) ui.variant=c.p.variant; else if(c&&c.p.variant) ui.variant=c.p.variant; try{ sc.value=ui.context; sv.value=ui.variant; }catch(e){} const st=c&&c.p.state; if(st&&ui.sel.state!==st&&find(st)) go(st); else renderStage(); renderLeft&&renderLeft(); setTimeout(flashDots,200); }
 document.addEventListener("click",e=>{
-  if(e.target.closest&&e.target.closest("#cntC")){ agtShow(); const tps=CONTEXTS.filter(t=>t.ctx&&tpComments(t.ctx).length); const docs=(S.docpins||[]); const asks=[...document.querySelectorAll("#edscroll mark.ask")]; const n=tps.length+docs.length+asks.length; if(!n) return; cntCi=(cntCi+1)%n;
-    if(cntCi<tps.length) gotoTpComments(tps[cntCi]);
-    else if(cntCi<tps.length+docs.length){ const p=docs[cntCi-tps.length]; const b=document.querySelector(`.dpin[data-dpin="${p.id}"]`); if(b){ b.scrollIntoView({block:"center",behavior:"smooth"}); b.classList.remove("flash"); void b.offsetWidth; b.classList.add("flash"); } }
-    else { const m=asks[cntCi-tps.length-docs.length]; m.scrollIntoView({block:"center",behavior:"smooth"}); m.classList.add("flash"); }
+  if(e.target.closest&&e.target.closest("#cntC")){ agtShow(); const ags=(S.agt||[]).filter(a=>a.status!=="resolved"&&(a.where==="phone"||a.where==="spec")); const tps=CONTEXTS.filter(t=>t.ctx&&(S.pins||[]).some(p=>(p.ctx||"tutor")===t.ctx)); const docs=(S.docpins||[]); const asks=[...document.querySelectorAll("#edscroll mark.ask")]; const n=ags.length+tps.length+docs.length+asks.length; if(!n) return; cntCi=(cntCi+1)%n;
+    if(cntCi<ags.length) gotoAgt(ags[cntCi]);
+    else if(cntCi<ags.length+tps.length) gotoTpComments(tps[cntCi-ags.length]);
+    else if(cntCi<ags.length+tps.length+docs.length){ const p=docs[cntCi-ags.length-tps.length]; const b=document.querySelector(`.dpin[data-dpin="${p.id}"]`); if(b){ b.scrollIntoView({block:"center",behavior:"smooth"}); b.classList.remove("flash"); void b.offsetWidth; b.classList.add("flash"); } }
+    else { const m=asks[cntCi-ags.length-tps.length-docs.length]; m.scrollIntoView({block:"center",behavior:"smooth"}); m.classList.add("flash"); }
     return; }
   if(e.target.closest&&e.target.closest("#cntA")){ const un=thUnread(); const ai=un.length?un:prHeads(); if(!ai.length) return; cntAi=un.length?0:(cntAi+1)%ai.length; const sp=ai[cntAi]; sp.scrollIntoView({block:"center",behavior:"smooth"}); sp.classList.remove("flash"); void sp.offsetWidth; sp.classList.add("flash"); setTimeout(()=>openThread(sp),350); return; }
 },true);
 { const _rd2=renderDoc; renderDoc=function(...a){ const r=_rd2.apply(this,a); requestAnimationFrame(updateCounters); return r; }; }
 { const _rs=renderStage; renderStage=function(...a){ const r=_rs.apply(this,a); updateCounters(); return r; }; }
 /* comments per variant + surface: Agentation keeps markers per URL hash, so the hash follows the variant and the touchpoint (not in #prototype) */
-function syncAgtHash(){ if(location.hash==="#prototype") return; const h="#"+String(ui.variant||"v")+"-"+String(ui.context||"all"); if(location.hash!==h){ try{ location.replace(h); }catch(e){} } }
+/* 1.1.7: the database is the one source of comments. Agentation only shows what is in this browser's storage for the
+   current page address, so before it reads (address change) the shell writes the matching comments from the database there:
+   variant + surface + screen. A comment made in another browser, or more than 7 days ago, shows again. */
+function agtFor(variant,ctx,state){ return (S.agt||[]).filter(a=>a.status!=="resolved"&&a.raw&&a.where==="phone"&&(a.variant||"")===variant&&(a.ctx||"")===ctx&&(!a.state||a.state===state)); }
+function writeAgtStore(h){ const key="feedback-annotations-"+location.pathname+h;
+  const list=agtFor(ui.variant,ui.context,ui.sel&&ui.sel.state).map(a=>({...a.raw,id:a.id,comment:a.comment,timestamp:Date.now()}));
+  let cur=[]; try{ cur=JSON.parse(localStorage.getItem(key)||"[]"); }catch(e){}
+  const sig=l=>JSON.stringify((l||[]).map(x=>[String(x.id),x.comment]).sort());
+  if(sig(cur)===sig(list)) return false; try{ localStorage.setItem(key,JSON.stringify(list)); }catch(e){ return false; } return true; }
+function syncAgtHash(){ if(location.hash==="#prototype") return;
+  const h="#"+[ui.variant||"v",ui.context||"all",(ui.sel&&ui.sel.state)||"s"].map(String).join("-");
+  const changed=writeAgtStore(h);
+  if(location.hash!==h){ try{ location.replace(h); }catch(e){} }
+  else if(changed){ try{ location.replace(h+"-r"); }catch(e){} } /* same address, new comments: bounce so Agentation reloads them */ }
 { const _rs2=renderStage; renderStage=function(...a){ const r=_rs2.apply(this,a); syncAgtHash(); return r; }; }
 { const _sv=save; save=function(...a){ const r=_sv.apply(this,a); requestAnimationFrame(updateCounters); return r; }; }
 document.addEventListener("input",e=>{ if(e.target.closest&&e.target.closest(".ed")) requestAnimationFrame(updateCounters); });
@@ -592,12 +639,14 @@ addEventListener("keydown",e=>{
    Every note is mirrored into S.agt so Claude can read it from the database. */
 window.USE_AGT=true;
 (function(){
-  const pick=a=>({id:a.id,comment:a.comment,element:a.element,elementPath:a.elementPath,selectedText:a.selectedText||null,nearbyText:(a.nearbyText||"").slice(0,200)||null,attributes:a.attributes||null,isMultiSelect:!!a.isMultiSelect,
+  /* 1.1.7: keep Agentation's own annotation (position etc.) so its marker can be redrawn from the database in any browser */
+  const rawOf=a=>{ try{ const o=JSON.parse(JSON.stringify(a)); for(const k of Object.keys(o)){ if(JSON.stringify(o[k]??"").length>1500) delete o[k]; } return o; }catch(e){ return null; } };
+  const pick=a=>({raw:rawOf(a),id:a.id,comment:a.comment,element:a.element,elementPath:a.elementPath,selectedText:a.selectedText||null,nearbyText:(a.nearbyText||"").slice(0,200)||null,attributes:a.attributes||null,isMultiSelect:!!a.isMultiSelect,
     where:(()=>{ try{ const n=document.querySelector(a.elementPath); if(n&&n.closest(".phone")) return "phone"; if(n&&n.closest("#edscroll")) return "spec"; }catch(e){} return a.x!=null&&document.getElementById("pwrap")&&(()=>{const r=document.getElementById("pwrap").getBoundingClientRect(); return a.x>=r.left&&a.x<=r.right?"phone":"page";})(); })(),
     ctx:ui.context,state:ui.sel&&ui.sel.state||null,variant:ui.variant,at:new Date(a.timestamp||Date.now()).toISOString(),status:"pending"});
   const up=(fn)=>{ S.agt=S.agt||[]; fn(); save(); try{ updateCounters(); }catch(e){} };
   addEventListener("agt:add",e=>up(()=>{ S.agt=S.agt.filter(x=>x.id!==e.detail.id); S.agt.push(pick(e.detail)); }));
-  addEventListener("agt:update",e=>up(()=>{ const i=S.agt.findIndex(x=>x.id===e.detail.id); if(i>-1) S.agt[i]={...S.agt[i],comment:e.detail.comment}; else S.agt.push(pick(e.detail)); }));
+  addEventListener("agt:update",e=>up(()=>{ const i=S.agt.findIndex(x=>x.id===e.detail.id); if(i>-1) S.agt[i]={...S.agt[i],comment:e.detail.comment,raw:S.agt[i].raw?{...S.agt[i].raw,comment:e.detail.comment}:S.agt[i].raw}; else S.agt.push(pick(e.detail)); }));
   addEventListener("agt:delete",e=>up(()=>{ S.agt=S.agt.filter(x=>x.id!==e.detail.id); }));
   addEventListener("agt:clear",e=>up(()=>{ const ids=new Set((e.detail||[]).map(a=>a.id)); S.agt=S.agt.filter(x=>!ids.has(x.id)); }));
   addEventListener("agt:submit",e=>up(()=>{ (e.detail.list||[]).forEach(a=>{ if(!S.agt.find(x=>x.id===a.id)) S.agt.push(pick(a)); }); }));

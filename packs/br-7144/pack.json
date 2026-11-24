@@ -1,8 +1,8 @@
 {
   "ticket": "BR-7144",
   "title": "Chat History Redesign",
-  "shell": "feature@1.1.6",
-  "notes": "Component ticket. Stage = one AI Tutor chat holding every new component; each spec state has an anchor (data-g) that the chat scrolls to and highlights. Pack-only 'Chat / Components' toggle on the stage shows a grid of the section's variants (light / AI Dialog, sent / loading). Assets are Figma renders (get_screenshot) of the BR-7144 components. Spec from the Notion ticket (19.11.26) as imported blocks; Claude's additions in blue. After the workbench was opened, the spec lives in the artifact's database.",
+  "shell": "feature@1.1.8",
+  "notes": "Component ticket. Stage = one AI Tutor chat holding every new component; each spec state has an anchor (data-g) that the chat scrolls to and highlights. Spec from the Notion ticket (19.11.26); after handover (24.11.26) the Notion ticket holds the real version.",
   "links": {
     "feature": "https://claude.ai/artifact/Skf8xkECCMzwRcfMyD28Bm",
     "animation": null,
@@ -10,12 +10,5 @@
     "notion": "https://app.notion.com/p/407fca9f403c8006a1ffc36589b5fdee",
     "figma": "https://www.figma.com/design/GbI4xt40lr0Jmk3rkgrtM0/Student-App?node-id=12117-80"
   },
-  "mocks": [
-    {
-      "what": "Porthole loader (attachment loading state)",
-      "where": "pack.js MOCK_LOADER, pack.css .porthole",
-      "why": "Drawn from a screenshot of the app; the real asset is in the app / brian-mobile-design-kit, not reachable yet",
-      "replace": "with the app's loader asset when building"
-    }
-  ]
+  "mocks": []
 }
