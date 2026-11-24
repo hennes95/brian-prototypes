@@ -110,7 +110,8 @@ body.native .phone.dark .ci{padding-bottom:calc(12px + env(safe-area-inset-botto
 @media (prefers-reduced-motion:reduce){.dots i{animation:none}}
 
 /* input field as in the BR-7144 frames (the new field is BR-7147) */
-.ci{flex:none;display:flex;align-items:center;gap:8px;padding:4px 24px 8px;background:var(--b-bg);z-index:2}
+.ci{flex:none;display:flex;align-items:center;gap:8px;padding:4px 24px 8px;background:none;z-index:2;position:relative;margin-top:calc(-1 * var(--ci-h,68px))}  /* no container fill: only the + button and the field have one, the chat shows around them (Hannes 24.11) */
+.cx{padding-bottom:calc(8px + var(--ci-h,68px))}
 .ci .pl{width:32px;height:32px;border-radius:50%;border:0;padding:0;background:var(--b-ink);color:var(--b-bg);display:grid;place-items:center;flex:none}
 .ci .pl svg{width:16px;height:16px}
 .ci .pl svg path{stroke:currentColor}

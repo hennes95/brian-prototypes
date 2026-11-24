@@ -142,7 +142,9 @@ const CHAT=[
  {t:"s",g:"layout",text:"Can I also send you the four exercises from class?"},
  {t:"t",p:[`Of course, send them over.`]},
  {t:"s",g:"asset-multi",asset:{k:"more",n:4},text:"Here they are."},
- {t:"t",p:[`Thanks, I can see all four exercises. Exercise 3 needs another look.`]},
+ {t:"t",p:[`Thanks, I can see all four exercises.`]},
+ {t:"s",g:"asset-multi",asset:{k:"more",n:6},text:"And the two from my homework."},
+ {t:"t",p:[`Got all six. Exercise 3 needs another look.`]},
  {t:"s",g:"asset-loading",asset:{k:"image",loading:true},text:"One more photo of exercise 3."},
  {t:"brian",g:"loading"}
 ];
@@ -270,6 +272,7 @@ function renderStage(){
 function wireChat(kind,proto){
   const ch=$("#pwrap .p-chat"), ph=$("#pwrap .phone"); if(!ch) return;
   /* show the state's part of the chat: scroll it into the middle and highlight it (workbench only) */
+  const ci=$("#pwrap .ci"); if(ci&&ph) ph.style.setProperty("--ci-h",ci.offsetHeight+"px");   /* the field floats over the chat (no container fill) */
   const hits=anchorOf(ch,kind);
   if(proto||THREAD.length||WAITING){ ch.scrollTop=ch.scrollHeight; }
   else if(kind==="scroll"){ ch.scrollTop=Math.max(0,ch.scrollHeight*0.35); }
