@@ -23,7 +23,9 @@
 .fx .t-school{color:var(--mono-500)}
 .fx .t-tabs{margin:24px 28px 0}
 .fx .t-cm{flex:1;min-height:0;display:flex;flex-direction:column}
-.fx .t-bulk{display:flex;align-items:center;gap:16px;margin:16px 28px 0;padding:8px 8px 8px 16px;border-radius:var(--rounded-lg);background:var(--light-blue)}
+.fx .t-bulk{display:flex;align-items:center;gap:8px;min-height:60px;padding:12px 28px;background:var(--light-blue,#c8e9ff);border-top:1px solid #ddd}
+.fx .t-bulk b{font-size:16px;font-weight:800;color:#585858}
+.fx .t-bulk .btn{height:32px;padding:0 12px;font-size:14px}
 .fx .t-bulk .x-sp{flex:1}
 .fx .t-tablewrap{margin:16px 28px 0}
 .fx .t-table{table-layout:fixed}

@@ -128,10 +128,10 @@ function courseMaterials(variant, m){
   const sel = files.filter(f => m.selected[f.id]);
   const all = sel.length === files.length;
   const colName = variant === "v1" ? "Students" : "Hidden from students";
-  const bulk = sel.length ? `<div class="t-bulk" data-el="cm.bulk" data-label="Bulk bar"><b class="body-md-strong">${sel.length} ${sel.length===1?"file":"files"} selected</b><span class="x-sp"></span>
-      <button class="btn md" data-act="bulk-hide" data-el="cm.bulkHide" data-label="Hide from students">${IC.eyeOff(16)}Hide from students</button>
-      <button class="btn secondary md" data-act="bulk-show" data-el="cm.bulkShow" data-label="Show to students">${IC.eye(16)}Show to students</button>
-      <button class="btn secondary md" data-act="bulk-clear">Clear</button></div>` : "";
+  /* Figma 10235:40916 (Admin Panel bulk selection): the bar replaces the card footer, light-blue, count left, filled buttons right */
+  const bulk = `<div class="t-foot t-bulk" data-el="cm.bulk" data-label="Bulk bar"><b>${sel.length} ${sel.length===1?"document":"documents"} selected</b><span class="x-sp"></span>
+      <button class="btn" data-act="bulk-show" data-el="cm.bulkShow" data-label="Show to students">Show to students</button>
+      <button class="btn" data-act="bulk-hide" data-el="cm.bulkHide" data-label="Hide from students">Hide from students</button></div>`;
   const rows = files.map(f => {
     const hidden = !!m.hidden[f.id];
     return `<tr class="${m.selected[f.id]?"sel":""} ${m.hover===f.id?"hov":""}">
@@ -142,13 +142,13 @@ function courseMaterials(variant, m){
       <td><button class="btn ghost c-dl" aria-label="Download ${esc(f.name)}">${TI.download}</button></td></tr>`;
   }).join("");
   const tip = m.tip ? hidTip("c-tip", true) : "";
-  return `<div class="t-cm ${variant}">${bulk}
+  return `<div class="t-cm ${variant}">
     <div class="t-tablewrap"><table class="table t-table" aria-label="Course materials"><colgroup><col style="width:28px"><col style="width:26%"><col><col><col style="width:20%"><col style="width:15%"><col style="width:96px"></colgroup><thead><tr>
       <th class="c-cb"><input type="checkbox" data-act="sel-all" ${all?"checked":""} aria-label="Select all files"></th>
       <th>Filename</th><th>Uploaded</th><th>Tags</th><th><div class="c-sort">Used In${TI.arrowDown}</div></th>
       <th><div class="c-acc"><span data-el="cm.col" data-label="Column name">${colName}</span><button class="info-icon" data-act="tip" aria-expanded="${!!m.tip}" aria-label="What does hidden mean?" data-el="cm.info" data-label="Info icon">${TI.info}</button>${tip}</div></th>
       <th>Download</th></tr></thead><tbody>${rows}</tbody></table></div>
-    <div class="t-foot"><button class="btn" data-act="add" data-el="cm.add" data-label="Add Course Material">${TI.add}Add Course Material</button></div></div>`;
+    ${sel.length ? bulk : `<div class="t-foot"><button class="btn" data-act="add" data-el="cm.add" data-label="Add Course Material">${TI.add}Add Course Material</button></div>`}</div>`;
 }
 
 function uploadDialog(){
@@ -324,7 +324,7 @@ const STATE_DOCS = {
     "cm-hover": ul(["Row hover or keyboard focus in the row", "Toggle appears in the column", "Visible file: \"Visible\" with eye icon"], "Click toggles the state, row stays hovered"),
     "cm-hover-h": ul(["Hidden file on hover", "Toggle shows \"Hidden\" with crossed-out eye", "Light grey, not dark (Hannes 20.11)"], "Click → visible"),
     "cm-tip": ul("Tooltip on the info icon", ["Copy", "\"Brian still uses hidden material, but students can't open it when Brian cites it.\"", "\"Use this for solutions or teacher notes.\""]),
-    "cm-bulk": ul(["One or more rows selected", "Bulk bar above the table", "\"Hide from students\" / \"Show to students\" / Clear"], "After the action the selection clears"),
+    "cm-bulk": ul(["One or more rows selected", "Bulk bar replaces the card footer (style as Admin Panel, Figma 10235:40916)", "Count left, \"Show to students\" / \"Hide from students\" right"], "After the action the selection clears"),
     "up-detect": ul(["Uploaded file name looks like solutions", "\"Lösung\", \"Solution\", \"Answer key\", \"Musterlösung\""], ["Ask once", "\"Keep visible\" / \"Hide from students\""], "Can be changed anytime in Course Materials"),
     "kb-sync": ul(["Toggle on", "List read-only, all files ticked"], "Description: \"All course materials are added and removed automatically, including material that is hidden from students.\"", "Hidden files show only the crossed-out eye icon, as in Course Materials (Hannes 24.11)"),
     "kb-custom": ul("Toggle off: list active, as in \"Update - 18.11.26\" of this ticket (BR-6891)", "Crossed-out eye stays visible so the teacher knows students can't open those files"),
@@ -445,7 +445,6 @@ function act(t){
     else if (a === "sel"){ s[id] = !s[id]; const any = Object.values(s).some(Boolean); api.set({ selected:s }, any ? "cm-bulk" : "cm-rest"); }
     else if (a === "sel-all"){ const files = FILES.concat(m.added?[NEW_FILE]:[]); const all = files.every(f => s[f.id]); const n = {}; if (!all) files.forEach(f => n[f.id] = true); api.set({ selected:n }, all ? "cm-rest" : "cm-bulk"); }
     else if (a === "bulk-hide" || a === "bulk-show"){ Object.keys(s).forEach(k => { if (s[k]) h[k] = a === "bulk-hide"; }); api.set({ hidden:h, selected:{} }, "cm-rest"); }
-    else if (a === "bulk-clear"){ api.set({ selected:{} }, "cm-rest"); }
     else if (a === "tip"){ api.set({ tip: !m.tip }, m.tip ? "cm-rest" : "cm-tip"); }
     else if (a === "add"){ api.go("up-detect"); }
     else if (a === "up-keep" || a === "up-hide"){ h.n = a === "up-hide"; api.set({ hidden:h, added:true }, "cm-rest"); }
