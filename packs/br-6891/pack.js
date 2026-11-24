@@ -74,7 +74,24 @@ const hidTip = (cls, el) => `<div class="htip ${cls||""}" role="tooltip"${el?' d
     <div class="htip-card"><p>But your solution has to be different. You should solve for X.</p>${SPK}</div></div></div>`;
 const SPK = `<svg class="htip-spk" aria-hidden="true" width="7" height="7" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"><path d="M1.5 6h2.5l4-3v10l-4-3H1.5z"/><path d="M10.5 6.2c.6.5.6 3.1 0 3.6M12.5 4.8c1.4 1.3 1.4 5.1 0 6.4"/></svg>`;
 /* eye icon for hidden material: same tooltip on hover (R6) */
-const hidEye = (cls, attrs) => `<span class="${cls} heye" tabindex="0" role="img" aria-label="Hidden from students"${attrs||""}>${IC.eyeOff(16)}${hidTip("hover")}</span>`;
+const hidEye = (cls, attrs) => `<span class="${cls} heye" tabindex="0" role="img" aria-label="Hidden from students"${attrs||""}>${IC.eyeOff(16)}</span>`;
+/* the hover tooltip lives on the top layer of the screen (one element in .t-app), so no list or dialog can clip it */
+function showHidTip(eye){
+  const app = eye.closest(".t-app"); if (!app) return;
+  let tip = app.querySelector(":scope > .htip.float");
+  if (!tip){ const w = document.createElement("div"); w.innerHTML = hidTip("float"); tip = w.firstElementChild; app.appendChild(tip); }
+  const a = app.getBoundingClientRect(), r = eye.getBoundingClientRect(), k = a.width / app.offsetWidth || 1;
+  const x = (r.right - a.left) / k, y = (r.bottom - a.top) / k, W = 357;
+  tip.style.left = Math.max(8, Math.min(x + 12 - W, app.offsetWidth - W - 8)) + "px";
+  const below = y + 8, h = tip.offsetHeight || 125;
+  tip.style.top = (below + h > app.offsetHeight - 8 ? (r.top - a.top) / k - h - 8 : below) + "px";
+  tip.classList.add("on");
+}
+function hideHidTip(eye){ const app = eye && eye.closest(".t-app"); const tip = app && app.querySelector(":scope > .htip.float"); if (tip) tip.classList.remove("on"); }
+document.getElementById("pwrap").addEventListener("mouseover", e => { const eye = e.target.closest && e.target.closest(".heye"); if (eye) showHidTip(eye); });
+document.getElementById("pwrap").addEventListener("mouseout", e => { const eye = e.target.closest && e.target.closest(".heye"); if (eye && !eye.contains(e.relatedTarget)) hideHidTip(eye); });
+document.getElementById("pwrap").addEventListener("focusin", e => { const eye = e.target.closest && e.target.closest(".heye"); if (eye) showHidTip(eye); });
+document.getElementById("pwrap").addEventListener("focusout", e => { const eye = e.target.closest && e.target.closest(".heye"); if (eye) hideHidTip(eye); });
 
 const accessCell = (f, hidden, variant) => {
   const btn = `<button class="sa ${hidden?"hid":""}" data-act="sa" data-id="${f.id}" data-el="cm.access" data-label="Student access toggle" aria-pressed="${hidden}" aria-label="${hidden?"Show":"Hide"} ${esc(f.name)} ${hidden?"to":"from"} students">${hidden?IC.eyeOff(16):IC.eye(16)}${hidden?"Hidden":"Visible"}</button>`;

@@ -39,7 +39,7 @@
 .fx .t-foot{margin-top:auto;border-top:1px solid var(--mono-300);padding:12px 28px}
 /* access cell (spec): V1 = toggle always; V2 = resting shows only the crossed-out eye for hidden files, the toggle appears on row hover / focus */
 .fx .sa:hover{border-color:var(--bright-blue)}
-.fx .v2 .sa{min-width:96px;margin:-4px 0}
+.fx .v2 .sa{min-width:0}
 .fx .v2 .sa-rest{display:flex;align-items:center;height:20px;color:var(--mono-700)}
 .fx .v2 .sa{display:none}
 .fx .v2 tr:hover .sa,.fx .v2 tr:focus-within .sa,.fx .v2 tr.hov .sa{display:inline-flex}
@@ -226,10 +226,10 @@
 .fx .htip-spk{margin-top:4px;color:#3a3a3a}
 .fx .c-tip{top:24px;right:-40px}
 .fx .heye{position:relative;display:inline-flex;outline:none}
-.fx .heye .htip.hover{display:none;top:calc(100% + 8px);right:-12px}
-.fx .heye:hover .htip.hover,.fx .heye:focus-visible .htip.hover{display:block}
-/* Student access toggle = secondary button (white, dark-blue edge and label); on hover the icon turns blue too */
-.fx .sa{display:inline-flex;align-items:center;gap:8px;height:28px;padding:0 12px;border:0;border-radius:4px;background:#fff;color:var(--dark-blue,#157ec5);box-shadow:inset 0 0 0 1px var(--dark-blue,#157ec5);font-family:inherit;font-size:14px;line-height:1.4;font-weight:700;cursor:pointer;white-space:nowrap}
-.fx .sa svg{color:var(--dark-grey)}
-.fx .sa:hover{background:var(--hover,#f0f9ff)}
-.fx .sa:hover svg{color:var(--bright-blue,#63c0ff)}
+/* Student access toggle = Figma btn-secondary: light-blue fill, dark-blue label, no edge; label and icon get darker on hover.
+   Pulled 8px left so its icon sits exactly where the resting eye was (no jump on hover). */
+.fx .sa{display:inline-flex;align-items:center;gap:8px;height:28px;padding:4px 8px;margin:-4px 0 -4px -8px;border:0;border-radius:4px;background:var(--light-blue,#c8e9ff);color:var(--dark-blue,#157ec5);box-shadow:none;font-family:inherit;font-size:14px;line-height:1.4;font-weight:700;cursor:pointer;white-space:nowrap}
+.fx .sa svg{color:currentColor;flex:0 0 16px}
+.fx .sa:hover{color:#0c4f7c}
+.fx .htip.float{display:none;z-index:9999;pointer-events:none}
+.fx .htip.float.on{display:block}
