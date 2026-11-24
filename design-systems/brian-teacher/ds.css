@@ -1,0 +1,80 @@
+@import url("https://fonts.googleapis.com/css2?family=Nunito+Sans:opsz,wght@6..12,400..800&display=swap");
+/* Brian Teacher Design System, for teacher-side screens only (Teacher CMS / web app).
+   Source: claude.ai artifact "Brian Teacher Design System" (slug 46c23e88-bce3-4c8d-b0ca-b6d200e35427),
+   synced from brian-study/brian main@11cdeb6. Values copied from its tokens.json and component READMEs.
+   Scope: everything sits under .ds-teacher, so student screens (other design system) are never touched.
+   Student screens use the brian-mobile-design-kit instead (not in this folder). */
+.ds-teacher{
+  --white:#ffffff; --light-blue:#c8e9ff; --bright-blue:#63c0ff; --dark-blue:#157ec5; --red:#ff5a5a;
+  --dark-grey:#3a3a3a; --mono-100:#fafafa; --mono-200:#f5f5f5; --mono-300:#ebebeb; --mono-400:#dddddd;
+  --mono-500:#b1b1b1; --mono-600:#858585; --mono-700:#585858; --hover:#f0f9ff; --flagged-bg:#ffd6d7; --dark-red:#d84e4e;
+  --rounded:4px; --rounded-lg:8px; --rounded-xl:12px; --rounded-2xl:16px;
+  --shadow-sm:0 1px 2px 0 rgba(0,0,0,.05); --shadow-md:0 4px 6px -1px rgba(0,0,0,.1),0 2px 4px -2px rgba(0,0,0,.1);
+  --shadow-lg:0 10px 15px -3px rgba(0,0,0,.1),0 4px 6px -4px rgba(0,0,0,.1);
+  --ring-preferred:inset 0 0 0 1px #157ec5; --ring-primary:inset 0 0 0 1px #63c0ff;
+  --duration-fast:150ms; --duration-base:300ms;
+  font-family:"Nunito Sans",ui-sans-serif,system-ui,sans-serif; font-size:15px; line-height:1.4; font-weight:500; color:var(--dark-grey);
+}
+.ds-teacher *{box-sizing:border-box}
+/* type: the 8 styles */
+.ds-teacher .h1{font-size:24px;line-height:1.2;font-weight:700}
+.ds-teacher .h2{font-size:20px;line-height:1.2;font-weight:700}
+.ds-teacher .h3{font-size:16px;line-height:1.4;font-weight:800}
+.ds-teacher .body-md{font-size:15px;line-height:1.4;font-weight:500}
+.ds-teacher .body-md-strong{font-size:15px;line-height:1.4;font-weight:700}
+.ds-teacher .body-sm{font-size:12px;line-height:1.4;font-weight:500}
+.ds-teacher .body-sm-strong{font-size:12px;line-height:1.4;font-weight:700}
+.ds-teacher .caption{font-size:10px;line-height:1.4;font-weight:700;text-transform:uppercase}
+/* Button: :preferred dark-blue, :primary bright-blue, :secondary dark-blue outline, :ghost icon-only. Sizes sm 24, md 32, lg 40, xl 48 */
+.ds-teacher .btn{display:inline-flex;align-items:center;justify-content:center;gap:12px;border:0;border-radius:var(--rounded);font-family:inherit;font-size:15px;line-height:1.4;font-weight:700;white-space:nowrap;cursor:pointer;transition:background-color var(--duration-base),color var(--duration-base);height:40px;padding:0 16px;background:var(--bright-blue);color:var(--white)}
+.ds-teacher .btn svg{width:16px;height:16px;flex:0 0 16px}
+.ds-teacher .btn:hover{background:var(--white);color:var(--bright-blue);box-shadow:var(--ring-primary)}
+.ds-teacher .btn.preferred{background:var(--dark-blue)}
+.ds-teacher .btn.preferred:hover{background:var(--white);color:var(--dark-blue);box-shadow:var(--ring-preferred)}
+.ds-teacher .btn.secondary{background:var(--white);color:var(--dark-blue);box-shadow:var(--ring-preferred)}
+.ds-teacher .btn.secondary:hover{background:var(--hover)}
+.ds-teacher .btn.ghost{background:none;color:var(--dark-grey);padding:0;box-shadow:none}
+.ds-teacher .btn.sm{height:24px;padding:0 8px;gap:8px;font-size:12px}
+.ds-teacher .btn.md{height:32px;padding:0 12px;gap:8px}
+.ds-teacher .btn.xl{height:48px}
+.ds-teacher .btn:active{transform:scale(.98)}
+.ds-teacher .btn:disabled{opacity:.5;pointer-events:none}
+/* Checkbox: 24px, rounded, 1px mono-400, hover border bright-blue, checked bright-blue + white checkmark */
+.ds-teacher input[type=checkbox]{appearance:none;-webkit-appearance:none;width:24px;height:24px;margin:0;border:1px solid var(--mono-400);border-radius:var(--rounded);background:var(--white);cursor:pointer;display:block;position:relative;flex:0 0 24px}
+.ds-teacher input[type=checkbox]:hover{border-color:var(--bright-blue)}
+.ds-teacher input[type=checkbox]:checked{background:var(--bright-blue);border-color:var(--bright-blue)}
+.ds-teacher input[type=checkbox]:checked::after{content:"";position:absolute;left:8px;top:4px;width:6px;height:11px;border:solid var(--white);border-width:0 2px 2px 0;transform:rotate(45deg)}
+.ds-teacher input[type=checkbox]:checked:hover{background:var(--white)}
+.ds-teacher input[type=checkbox]:checked:hover::after{border-color:var(--bright-blue)}
+.ds-teacher input[type=checkbox]:disabled{opacity:.6;cursor:default}
+.ds-teacher input[type=checkbox]:disabled:not(:checked){background:var(--mono-200)}
+/* Table: head 48px bold 12px mono-600; body 12px, 16px vertical padding, 1px mono-400 row rules, no rule under the last row, hover wash */
+.ds-teacher .table{width:100%;border-collapse:collapse;font-size:12px;line-height:1.4}
+.ds-teacher .table th{height:48px;padding:12px 16px 12px 0;text-align:left;font-weight:700;color:var(--mono-600);vertical-align:middle;white-space:nowrap}
+.ds-teacher .table td{padding:16px 16px 16px 0;vertical-align:middle}
+.ds-teacher .table tr{border-bottom:1px solid var(--mono-400)}
+.ds-teacher .table thead tr{border-bottom-width:1px}
+.ds-teacher .table tbody tr:last-child{border-bottom:0}
+.ds-teacher .table tbody tr:hover,.ds-teacher .table tbody tr.hov{background:var(--hover)}
+/* Tab bar: text-lg extrabold, dark-grey active / mono-500 inactive, 32px gap, 1px mono-400 line, 3px bright-blue bar */
+.ds-teacher .tab-bar{display:flex;gap:32px;border-bottom:1px solid var(--mono-400)}
+.ds-teacher .tab-bar .tab{padding-bottom:12px;font-size:16px;line-height:1.4;font-weight:800;color:var(--mono-500);border-bottom:3px solid transparent;margin-bottom:-1px}
+.ds-teacher .tab-bar .tab:hover{color:var(--dark-grey)}
+.ds-teacher .tab-bar .tab.on{color:var(--dark-grey);border-bottom-color:var(--bright-blue)}
+/* Sidebar nav item: min 48px, py 8 px 16, gap 12, rounded, body-md-strong; active white/dark-grey; hover wash */
+.ds-teacher .nav-item{display:flex;align-items:center;gap:12px;min-height:48px;padding:8px 16px;border-radius:var(--rounded);font-size:15px;line-height:1.4;font-weight:700;white-space:nowrap;color:var(--white);text-decoration:none;transition:background-color var(--duration-base),color var(--duration-base)}
+.ds-teacher .nav-item svg{width:24px;height:24px;flex:0 0 24px}
+.ds-teacher .nav-item:hover{background:var(--hover);color:var(--dark-grey)}
+.ds-teacher .nav-item.on{background:var(--white);color:var(--dark-grey)}
+.ds-teacher .nav-sep{height:2px;width:100%;background:rgba(255,255,255,.3)}
+/* Tooltip: dark-grey, white text-base regular, 20px x 16px padding, rounded, shadow-lg, max 24rem, 8px arrow */
+.ds-teacher .tooltip{position:absolute;z-index:50;max-width:24rem;padding:16px 20px;border-radius:var(--rounded);background:var(--dark-grey);color:var(--white);font-size:15px;line-height:1.4;font-weight:500;box-shadow:var(--shadow-lg);white-space:normal}
+.ds-teacher .tooltip::before{content:"";position:absolute;width:8px;height:8px;background:var(--dark-grey);transform:rotate(45deg)}
+.ds-teacher .tooltip.bottom::before{top:-4px;left:var(--arrow-x,16px)}
+/* info-tooltip trigger: 20px bright-blue info icon */
+.ds-teacher .info-icon{width:20px;height:20px;padding:0;border:0;background:none;color:var(--bright-blue);display:inline-flex;cursor:pointer}
+/* Badge (status pill, rounded): active dark-blue on light-blue, inactive mono-600 on mono-300 */
+.ds-teacher .badge{display:inline-flex;align-items:center;gap:6px;border-radius:var(--rounded);padding:4px 10px;font-size:12px;line-height:1.4;font-weight:700;background:var(--light-blue);color:var(--dark-blue)}
+.ds-teacher .badge.inactive{background:var(--mono-300);color:var(--mono-600)}
+.ds-teacher :focus-visible{outline:2px solid var(--bright-blue);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){.ds-teacher *{transition:none!important}}

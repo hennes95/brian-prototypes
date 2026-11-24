@@ -30,3 +30,7 @@ Steps (new ticket, existing workbench, ticket changed, old prototype, animations
 
 ## Pack interface
 See `workbench/feature/PACK-API.md`.
+
+## Design systems
+
+Teacher screens in a pack use the Brian Teacher Design System by default (Hannes 24.11): add `"designSystems": ["brian-teacher"]` to `pack.json` and put `ds-teacher` on the root of each teacher screen. Student screens never get it. See `design-systems/README.md`.

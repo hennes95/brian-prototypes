@@ -29,4 +29,16 @@ for f in pack.iterdir():
     if dst.exists():
         sys.exit(f"pack file {f.name} would overwrite a shell file")
     (shutil.copytree if f.is_dir() else shutil.copy2)(f, dst)
-print(f"{ticket}: shell {cfg['shell']} + pack -> {out.relative_to(root)}")
+# design systems (design-systems/<name>/ds.css) go in front of pack.css, in the order listed
+ds = cfg.get("designSystems", [])
+if ds:
+    css = "".join((root / "design-systems" / n / "ds.css").read_text() + "\n" for n in ds)
+    pc = out / "pack.css"
+    pack_css = pc.read_text() if pc.exists() else ""
+    imports = [l for l in pack_css.splitlines() if l.startswith("@import")]
+    rest = "\n".join(l for l in pack_css.splitlines() if not l.startswith("@import"))
+    # @import rules must come first in the file
+    ds_imports = [l for l in css.splitlines() if l.startswith("@import")]
+    ds_rest = "\n".join(l for l in css.splitlines() if not l.startswith("@import"))
+    pc.write_text("\n".join(ds_imports + imports) + "\n" + ds_rest + "\n" + rest)
+print(f"{ticket}: shell {cfg['shell']} + pack{' + ' + ', '.join(ds) if ds else ''} -> {out.relative_to(root)}")

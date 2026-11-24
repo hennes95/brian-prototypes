@@ -8,5 +8,8 @@
     "Design": "https://www.figma.com/design/c3ccOGwhciWpL7bF0fpF5G/Teacher-CMS?node-id=10500-25901",
     "Feature Workbench": "https://claude.ai/artifact/5SGQrfZGKW3Fjw9tUKFWEo",
     "Handoff": ""
-  }
+  },
+  "designSystems": [
+    "brian-teacher"
+  ]
 }
