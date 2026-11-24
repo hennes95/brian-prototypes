@@ -75,7 +75,7 @@ const hidTip = (cls, el) => `<div class="htip ${cls||""}" role="tooltip"${el?' d
 const SPK = `<svg class="htip-spk" aria-hidden="true" width="7" height="7" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"><path d="M1.5 6h2.5l4-3v10l-4-3H1.5z"/><path d="M10.5 6.2c.6.5.6 3.1 0 3.6M12.5 4.8c1.4 1.3 1.4 5.1 0 6.4"/></svg>`;
 /* eye icon for hidden material: same tooltip on hover (R6) */
 const hidEye = (cls, attrs) => `<span class="${cls} heye" tabindex="0" role="img" aria-label="Hidden from students"${attrs||""}>${IC.eyeOff(16)}</span>`;
-/* quiz attached files: blocked-file icon from BR-6428 keeps its own tooltip, so .qz-eye is NOT a .heye (Hannes 24.11) */
+/* quiz attached files: 1st row (blocked file, BR-6428) has no hidden-material tooltip; 2nd row does (Hannes 24.11) */
 /* the hover tooltip lives on the top layer of the screen (one element in .t-app), so no list or dialog can clip it */
 function showHidTip(eye){
   const app = eye.closest(".t-app"); if (!app) return;
@@ -248,7 +248,7 @@ function quizPage(m){
     const hid = m.qzHidden ? !!m.qzHidden[f.id] : f.hidden;
     const ic = f.icon === "video" ? QZI.video : f.icon === "text" ? QZI.text : KBI.doc;
     return `<div class="qz-row ${hid?"hid":""}"><span class="qz-ic">${ic}</span><div class="qz-tx"><b>${esc(f.name)}</b><span>${esc(f.meta)}</span></div>
-      ${hid?`<span class="qz-eye" role="img" aria-label="Hidden from students"${f.id==="qv"?' data-el="qz.hidden" data-label="Hidden attached file"':""}>${IC.eyeOff(16)}</span>`:""}</div>`;
+      ${hid?(f.id==="qv"?`<span class="qz-eye" role="img" aria-label="Hidden from students" data-el="qz.hidden" data-label="Hidden attached file (blocked, no tooltip)">${IC.eyeOff(16)}</span>`:hidEye("qz-eye", ' data-label="Hidden attached file (tooltip)"')):""}</div>`;
   }).join("");
   return `<div class="ac qz">
     <div class="ac-bar"><div class="ac-crumbs"><span>Content</span>${KBI.arrowR}<span>Quiz</span><span class="ac-copy">${KBI.link}Copy link for students</span></div>
