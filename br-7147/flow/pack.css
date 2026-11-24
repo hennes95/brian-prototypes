@@ -402,3 +402,12 @@ body.native .v-pill.notab:not(.focused){padding-bottom:4px;margin-bottom:calc(10
 /* remove button: square with the 12px Nucleo Close icon (Hannes 24.11) */
 .att .rm{border-radius:0;display:flex;align-items:center;justify-content:center}
 .att .rm svg{display:block;color:#fff}
+/* Learning Diary empty state per Figma (12671-14041): title 16 ExtraBold, text 14 Medium, centred; same as the Discussion room (Hannes 24.11) */
+.y-empty{font-size:14px;font-weight:500;line-height:1.4;gap:16px}
+.y-empty b{font-size:16px;font-weight:800;margin-bottom:-4px}
+.y-empty p{max-width:323px}
+/* no lone last word on a line (Hannes 24.11) */
+.d-empty p,.y-empty p,.y-empty b,.d-empty .d-e1{text-wrap:pretty}
+/* Learning Diary header + activities row per Figma: date 24 Bold, "4 activities" 14 Bold */
+.d-head .t{font-size:24px;font-weight:700}
+.y-act{font-size:14px;font-weight:700;align-items:center}
