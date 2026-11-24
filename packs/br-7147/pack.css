@@ -390,3 +390,12 @@ body.native .v-pill.notab:not(.focused){padding-bottom:4px;margin-bottom:calc(10
 .q-result{padding-top:12px;padding-bottom:calc(24px + env(safe-area-inset-bottom));height:auto;box-sizing:border-box}
 /* send is always the primary button: dark on a light field (Pill inverted on dark screens), light on a dark field (Hannes 24.11) */
 .phone.dark .v-pill:not(.v-pill-light) .c-right.send{background:#3a3a3a;color:#fff}
+/* no +: text sits as far in from the left as it visually sits from the top and bottom, matching the mic on the right (Hannes 24.11) */
+.v-pill.noplus textarea{padding-left:16px}
+/* Discussion room sheet per Figma 12721-16560 */
+.d-h{font-size:18px;font-weight:800}
+.d-rules{font-size:14px;font-weight:500}
+.d-empty{align-items:center;text-align:center;gap:16px;font-size:14px;font-weight:500;line-height:1.4}
+.d-empty .d-e1{font-size:16px;font-weight:800;margin-bottom:-4px!important}
+.d-empty p:last-child{max-width:323px}
+.d-rules{margin:13px 0 10px}
