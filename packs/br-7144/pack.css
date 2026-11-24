@@ -1,6 +1,6 @@
 /* BR-7144 pack styles: Brian Student app chat (Figma BR-7144 Design V1). Scoped to the prototype's own classes. */
 /* theme tokens per surface (phone and component cards) */
-.bx{--b-bg:#fff;--b-ink:#3a3a3a;--b-muted:#858585;background:var(--b-bg);color:var(--b-ink);font:500 15px/1.4 var(--b-font)}  /* all chat text is body-md, 15px (R1) */
+.bx{--b-line:#3a3a3a;--b-bg:#fff;--b-ink:#3a3a3a;--b-muted:#858585;background:var(--b-bg);color:var(--b-ink);font:500 15px/1.4 var(--b-font)}  /* all chat text is body-md, 15px (R1) */
 .bx.dark{--b-bg:#3a3a3a;--b-ink:#fff;--b-muted:#b1b1b1}
 .bx b{font-weight:700}
 .bx button{font:inherit;color:inherit}
@@ -209,3 +209,8 @@ body.native .vw-hd{padding-top:env(safe-area-inset-top)}
 
 /* no lone words at the end of a paragraph: the browser balances the last lines (Hannes 24.11) */
 .phone{text-wrap:pretty}
+
+/* attachment visuals are white paper: their outline and fold stay ink (#3a3a3a) on light AND dark surfaces, only the outer shadow flips to white (Figma 12807-60956, Hannes 24.11) */
+.th-img::before,.th-draw::before{border-color:var(--b-line)}
+.docsvg .dln,.docsvg .dfold{stroke:var(--b-line)}
+.docsvg .dsh{fill:var(--b-line)}
