@@ -2,7 +2,7 @@
 // Artboard 402 × 874 logical px. Wrap it in FittedBox / Transform.scale(width / 402) ONCE, never per element.
 // Static layout is fixed (absolute positions as designed). The motion engine drives only what `frame` carries:
 // block poses, intro opacity, student / tutor message opacity + rise, pressed block, for V3 the morph of the tapped block,
-// and for Focus / Back out / Send the keyboard progress (input bar follows it) and the text flying from the field to the student message.
+// and for Focus / Back out the keyboard progress (input bar follows it).
 // `frame` mirrors the package engine's frame: modelFor(variant, kind, runs).at(tMs). Pass null for the resting home screen.
 // Packages: flutter_svg. Font: Nunito Sans 500 / 700 (google_fonts or bundled), Inter 600 for the status-bar time.
 // Assets: the file names in Assets are listed (with their contents) in section 1c of the package; add them to pubspec.yaml.
@@ -13,13 +13,12 @@ import 'package:flutter_svg/flutter_svg.dart';
 class Pose { final double cx, cy, r, s, o; const Pose(this.cx, this.cy, this.r, this.s, this.o); }   // centre px, rotation deg, size factor, opacity
 class Morph { final int i; final double surface, chip, chipScale, msg, msgScale;
   const Morph(this.i, this.surface, this.chip, this.chipScale, this.msg, this.msgScale); }
-class Fly { final double x, cy, o; final String text; const Fly(this.x, this.cy, this.o, this.text); }   // Send: text in flight (left edge, line centre)
 class ScreenFrame {
   final List<Pose> blocks; final double intro, stu, tut, rise; final bool done, pressed; final int hover;
   final double? stuText; final Morph? morph;                    // V3 only
-  final double kb; final Fly? fly;                              // Focus / Back out / Send: keyboard progress 0..1, text in flight
+  final double kb;                                              // Focus / Back out: keyboard progress 0..1
   const ScreenFrame({required this.blocks, this.intro = 1, this.stu = 0, this.tut = 0, this.rise = 14, this.done = false,
-      this.pressed = false, this.hover = -1, this.stuText, this.morph, this.kb = 0, this.fly});
+      this.pressed = false, this.hover = -1, this.stuText, this.morph, this.kb = 0});
 }
 
 const artW = 402.0, artH = 874.0, blockW = 231.5, blockH = 50.0;
@@ -102,9 +101,6 @@ class AiTutorScreen extends StatelessWidget {
                 child: SvgPicture.asset(Assets.send, width: 16, height: 16)),
           ]))),
       ])))),
-      // Send: the typed text flies from the field to the student message line (14 / 500, same style as the message)
-      if (f.fly != null && f.fly!.o > 0)
-        Positioned(left: f.fly!.x, top: f.fly!.cy - 9.8, child: IgnorePointer(child: Text(f.fly!.text, style: _t(FontWeight.w500, 14, 19.6), softWrap: false))),
       // tab bar: top 791, 83 tall; slanted top line; tabs 53.5 × 53.5, gap 12, centred, 10 px from the top
       Positioned(left: 0, top: 791, width: artW, height: 83, child: Stack(children: [
         Positioned(left: 0, top: 3, child: SvgPicture.asset(Assets.tabbarLine, width: 402, height: 81)),

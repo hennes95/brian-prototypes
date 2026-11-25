@@ -88,18 +88,14 @@
       intro:1, shake:[0,0], stu:0, tut:0, done:false, kb:kbEase(t), field:0, focus:1 });
     return m;
   }
+  /* Send (from the field): no designed animation (Hannes 26.11.): the message appears as in the app today.
+     Kept as a plain state change so the prototype can still send: student message shows at once, intro fades, tutor follows. */
   function buildSend(vr,seed,text){
     const m = {variant:vr,seed,kind:'send',tapped:-1,i:0,text:text||SAMPLE};
-    const sx = springEase(V.sendXSpring), sy = springEase(V.sendYSpring), bx = springMs(V.sendXSpring)*1.6, by = springMs(V.sendYSpring)*1.6;
-    const ex = t=>t>=bx ? 1 : sx(t), ey = t=>t>=by ? 1 : sy(t);
-    const F = Math.max(springMs(V.sendXSpring),springMs(V.sendYSpring)), flightEnd = Math.max(bx,by);
-    const x0 = FIELD.textLeft, y0 = FIELD.textCy+KB.inputDy, x1 = FLY.textLeft, y1 = FLY.textCy;
-    const metaAt = F*V.sMetaAt3/100, tutAt = F+V.sTutorDelay3;
-    m.motionEnd = Math.max(flightEnd, metaAt+V.sMetaFade3)+100; m.dur = Math.max(m.motionEnd, tutAt+1200);
-    m.at = t=>{ const landed = t>=flightEnd;
-      return {blocks:DEFS.map(gone), intro:1-clamp(t/450,0,1), shake:[0,0], rise:V.sMetaRise3,
-        stu:clamp((t-metaAt)/Math.max(1,V.sMetaFade3),0,1), stuText:landed?1:0, tut:clamp((t-tutAt)/600,0,1), done:false,
-        kb:1, field:0, focus:1, fly:{x:x0+(x1-x0)*ex(t), cy:y0+(y1-y0)*ey(t), o:landed?0:1, text:m.text}}; };
+    const tutAt = 600;
+    m.motionEnd = 450; m.dur = tutAt+1200;
+    m.at = t=>({blocks:DEFS.map(gone), intro:1-clamp(t/450,0,1), shake:[0,0], rise:0,
+      stu:1, stuText:1, tut:clamp((t-tutAt)/600,0,1), done:false, kb:1, field:0, focus:1});
     return m;
   }
 
@@ -193,7 +189,7 @@
     const keep = V; if(values) setValues(Object.assign({},DEF,values));
     const KS = {}; KS[vr] = {open:{seed:12345,i:1}, back:{seed:777,fromT:Infinity}, enter:{seed:999}, focus:{seed:4242}, blur:{seed:5151,fromT:Infinity}, send:{seed:6262}};
     const rd = v=>Math.round(v*100)/100, out = {T:VEC_T};
-    try{ ['open','back','enter'].concat(vr==='D'?['focus','blur','send']:[]).forEach(kd=>{ const m = modelFor(vr,kd,KS);
+    try{ ['open','back','enter'].concat(vr==='D'?['focus','blur']:[]).forEach(kd=>{ const m = modelFor(vr,kd,KS);
       out[kd] = {duration:rd(m.dur),s:VEC_T.map(t=>{ const st = m.at(t); const o = {b:st.blocks.map(b=>[rd(b.cx),rd(b.cy),rd(b.r),rd(b.s),rd(b.o)]),intro:rd(st.intro),stu:rd(st.stu),tut:rd(st.tut)};
         if(st.kb!==undefined) o.kb = rd(st.kb); if(st.fly) o.fly = [rd(st.fly.x),rd(st.fly.cy),rd(st.fly.o)]; if(st.morph) o.m = [rd(st.morph.surface),rd(st.morph.chip),rd(st.morph.chipScale),rd(st.morph.msg),rd(st.morph.msgScale)]; if(st.stuText!==undefined) o.st = rd(st.stuText); return o; })}; }); }
     finally{ setValues(keep); }

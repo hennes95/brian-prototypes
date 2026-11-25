@@ -8,13 +8,13 @@
 //   back(from)       user taps "+" in the chat: chat fades, blocks rise back in from below, intro returns
 //   focus()          user taps the message field: keyboard slides up, all blocks break away (bottom first)
 //   backOut(from)    user leaves the field without sending: same as back(), keyboard goes down, intro stays
-//   send(text)       user sends a typed message: the text lifts out of the field and lands on the student message line
 // `from` = the frame on screen when the user acted (e.g. open(...).at(t)).
+// Sending a typed message has no animation: the message appears as in the app today (no function here).
 // Artboard 402 x 874 logical px (scale the whole artboard once by width / 402). Angles in degrees, time in ms.
 // Check against the test vectors in the manifest (±0.01); the TS port passes them, this file mirrors it line by line.
 import 'dart:math' as math;
 import 'package:flutter/animation.dart' show Cubic;
-import 'ai_tutor_screen.dart' show Pose, Morph, Fly, ScreenFrame;
+import 'ai_tutor_screen.dart' show Pose, Morph, ScreenFrame;
 
 class Rest { final double cx, cy, r; const Rest(this.cx, this.cy, this.r); }
 /// Where the elements rest (tower, top -> bottom). Any number of elements works.
@@ -24,7 +24,6 @@ const blockW = 231.5;
 class Geo {
   static const msgTextLeft = 68.0, msgTextCy = 163.6;      // student message text line: left edge, line centre
   static const labelLeft = 44.0, chipFont = 12.0, msgFont = 14.0;
-  static const fieldTextLeft = 81.0, fieldTextCy = 755.0;  // text in the message field (keyboard down)
   static const kbInputDy = -245.0;                         // input bar offset when the keyboard is up
   static const kbSpring = Spring.visual(0.38, 0);          // stand-in for the OS keyboard slide (use the real inset in the app)
   static const offscreen = 990.0;
@@ -52,10 +51,6 @@ class BackP { final double tap, total, stagger, rand, blocksAt, introAt, introIn
 class FocusP { final double tap, total, blocksAt, ripple, kick, gravity, spin, drift;
   const FocusP({required this.tap, required this.total, required this.blocksAt, required this.ripple, required this.kick, required this.gravity,
     required this.spin, required this.drift}); }
-class SendP { final double tap, total, metaAt, metaFade, metaRise, tutorDelay; final Spring flyX, flyY;
-  const SendP({required this.tap, required this.total, required this.flyX, required this.flyY, required this.metaAt, required this.metaFade,
-    required this.metaRise, required this.tutorDelay}); }
-
 /// Final tuned values (V3). Change here only.
 // <<PARAMS
 class P {
@@ -216,18 +211,6 @@ Timeline focus({int? seed, FocusP p = P.focus, List<Rest> L = rest}) {
   final motionEnd = _max([_kb.end, ...ns.map((n) => n.end)]) + 60;
   return _withTap(motionEnd + 200, motionEnd, (t, pressed) => ScreenFrame(blocks: [for (final n in ns) n.at(t)], intro: 1, stu: 0, tut: 0, done: false,
       kb: _kb.at(t), pressed: pressed), p.tap, p.total, false);
-}
-
-/* ---------- SEND: user sends a typed message (keyboard stays up) ----------
-   The text lifts out of the field and lands on the student message line on two springs (Y up, X left: slight arc). */
-Timeline send(String text, {SendP p = P.send, List<Rest> L = rest}) {
-  final fx = _Capped(p.flyX), fy = _Capped(p.flyY), F = math.max(p.flyX.visMs, p.flyY.visMs), flightEnd = math.max(fx.end, fy.end);
-  const x0 = Geo.fieldTextLeft, y0 = Geo.fieldTextCy + Geo.kbInputDy, x1 = Geo.msgTextLeft, y1 = Geo.msgTextCy;
-  final metaAt = F * p.metaAt / 100, tutAt = F + p.tutorDelay, motionEnd = math.max(flightEnd, metaAt + p.metaFade) + 100;
-  return _withTap(math.max(motionEnd, tutAt + 1200), motionEnd, (t, pressed) { final landed = t >= flightEnd;
-    return ScreenFrame(blocks: [for (final d in L) Pose(d.cx, 1100, d.r, 1, 0)], intro: 1 - _clamp(t / 450, 0, 1), rise: p.metaRise,
-        stu: _clamp((t - metaAt) / math.max(1, p.metaFade), 0, 1), stuText: landed ? 1.0 : 0.0, tut: _clamp((t - tutAt) / 600, 0, 1), done: false, kb: 1,
-        fly: Fly(x0 + (x1 - x0) * fx.at(t), y0 + (y1 - y0) * fy.at(t), landed ? 0.0 : 1.0, text), pressed: pressed); }, p.tap, p.total, false);
 }
 
 /* ---------- DESKTOP HOVER WIGGLE (pointer devices only; never on its own) ----------

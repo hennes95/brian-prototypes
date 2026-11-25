@@ -12,8 +12,6 @@ P = {
           'introAt': v['introAtBack3'], 'introIn': v['introInBack3'], 'chatOut': v['chatOutBack3'], 'spring': sp(v['backSpring3'])},
  'focus': {'tap': v['tapFocus3'], 'total': v['durFocus3'], 'blocksAt': v['blocksAtFocus3'], 'ripple': v['gRipple3'], 'kick': v['gKick3'], 'gravity': v['gGravity3'],
            'spin': v['gSpin3'], 'drift': v['gDrift3']},
- 'send': {'tap': v['tapSend3'], 'total': v['durSend3'], 'flyX': sp(v['sendXSpring']), 'flyY': sp(v['sendYSpring']), 'metaAt': v['sMetaAt3'], 'metaFade': v['sMetaFade3'],
-          'metaRise': v['sMetaRise3'], 'tutorDelay': v['sTutorDelay3']},
  'wiggle': v['wiggle3']/100,
 }
 def ts(o, ind='  '):

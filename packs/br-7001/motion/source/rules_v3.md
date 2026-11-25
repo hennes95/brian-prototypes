@@ -6,7 +6,7 @@ Build V3 only. V1 and V2 above are explored alternatives; their values stay in t
 - R2: ELEMENT CONTRACT – the motion model never touches content, size or styling. Its frame carries only:
   - per block index: centre x/y, rotation (deg), scale, opacity;
   - `intro` opacity; `stu` / `tut` message opacity (+ `rise` px for avatar and name), `stuText` (the student text line), `done` (reply instead of dots);
-  - `morph` (Open: the tapped block turning into message text), `kb` (keyboard progress 0..1), `fly` (Send: text in flight), `pressed`.
+  - `morph` (Open: the tapped block turning into message text), `kb` (keyboard progress 0..1), `pressed`.
   - The screen code (`motion:screen-react`, `motion:screen-dart`) takes exactly this frame. The reference ports (`motion:ref-ts`, `motion:ref-dart`) produce it.
 - R3: Every animation = user action first (tap lead, `tap` ms), then the motion. A tapped block turns dark 60 ms after touch-down.
 - R4: Layout is the 402 x 874 artboard; scale the whole artboard once (width / 402), never per element.
@@ -34,11 +34,9 @@ Build V3 only. V1 and V2 above are explored alternatives; their values stay in t
 - The intro stays.
 ##### Back out (user leaves the field without sending: tap outside, keyboard swiped down, app switch, call)
 - Identical to Back (same values), started from the Focus state: the keyboard goes down, the blocks rise back in, the intro (still visible) stays.
-##### Send (user sends a typed message)
-- The typed text lifts out of the field (left 81 px, line centre 510 px with the keyboard up) and lands on the student text line on two springs (`sendY`, `sendX`), same idea as Open.
-- Landing: the real message text takes over; avatar and name fade in from `metaAt` % over `metaFade` ms (rising `metaRise` px); Brian follows `tutorDelay` ms after the flight.
-- The keyboard stays up; the intro fades out over 450 ms. Send with an empty field: nothing animates.
-##### Back (user taps "+" in the chat; also after Send)
+##### Sending a typed message: no animation
+- As in the app today: the student message appears, the intro goes, the tutor follows. Nothing flies; the keyboard stays up. (Hannes 26.11.)
+##### Back (user taps "+" in the chat; also after sending)
 - All blocks rise from just below the screen: start x = x0 ± up to 170 px, y = 910–970 + 14·j, tilt up to ±48° · rand; lowest block first, stagger · 1.3 per block, starting `blocksAt` ms after the tap; back spring.
 - Chat fades out over `chatOut` ms; intro fades in from `introAt` % of the spring time over `introIn` ms; a keyboard that is up goes down.
 ##### Desktop hover wiggle (pointer devices; web/desktop only)
@@ -47,5 +45,5 @@ Build V3 only. V1 and V2 above are explored alternatives; their values stay in t
 - Disabled while an animation runs / after a block was tapped. No hover on touch devices.
 
 #### Acceptance
-- R9: Test vectors (manifest `vectors.D`): open = block 1, seed 12345; back = seed 777 from the end of open; enter = seed 999; focus = seed 4242; blur (Back out) = seed 5151 from the end of focus; send = text "Explain photosynthesis". Frames sampled at `T` match within 0.01 px / 0.01° / 0.01 opacity (blocks, intro, stu, tut, kb, fly, morph, stuText). The TS reference port passes all of them.
+- R9: Test vectors (manifest `vectors.D`): open = block 1, seed 12345; back = seed 777 from the end of open; enter = seed 999; focus = seed 4242; blur (Back out) = seed 5151 from the end of focus. Frames sampled at `T` match within 0.01 px / 0.01° / 0.01 opacity (blocks, intro, stu, tut, kb, morph, stuText). The TS reference port passes all of them.
 - R10: 60 fps on a mid-range phone; animate transforms and opacity only.

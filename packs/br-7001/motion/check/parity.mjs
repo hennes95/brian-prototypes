@@ -6,7 +6,7 @@ const E = MotionEngine.create({ spring: MotionLib.spring }), v = require(join(he
 copyFileSync(join(here, 'out/ref_v3.out.ts'), join(here, 'out/ref_check.ts'));
 const R = await import(join(here, 'out/ref_check.ts'));
 const o = R.open(1, 12345), f = R.focus(4242);
-const tl = { open: o, back: R.back(o.at(o.duration), 777), enter: R.enter(999), focus: f, blur: R.backOut(f.at(f.duration), 5151), send: R.send('Explain photosynthesis') };
+const tl = { open: o, back: R.back(o.at(o.duration), 777), enter: R.enter(999), focus: f, blur: R.backOut(f.at(f.duration), 5151) };
 let bad = 0, n = 0; const rd = x => Math.round(x * 100) / 100;
 const cmp = (k, si, name, a, b) => { n++; if (Math.abs(a - b) > 0.011) { bad++; if (bad < 25) console.log('MISMATCH', k, ref.T[si], name, a, b); } };
 for (const k of Object.keys(tl)) {
@@ -15,7 +15,6 @@ for (const k of Object.keys(tl)) {
     s.b.forEach((b, j) => { const p = g.blocks[j]; [p.cx, p.cy, p.r, p.s, p.o].forEach((x, q) => cmp(k, si, 'b' + j + '.' + q, b[q], rd(x))); });
     ['intro', 'stu', 'tut'].forEach(x => cmp(k, si, x, s[x], rd(g[x])));
     if (s.kb !== undefined) cmp(k, si, 'kb', s.kb, rd(g.kb ?? 0));
-    if (s.fly) [g.fly.x, g.fly.cy, g.fly.o].forEach((x, q) => cmp(k, si, 'fly' + q, s.fly[q], rd(x)));
     if (s.m) { const m = g.morph; [m.surface, m.chip, m.chipScale, m.msg, m.msgScale].forEach((x, q) => cmp(k, si, 'm' + q, s.m[q], rd(x))); }
     if (s.st !== undefined) cmp(k, si, 'stuText', s.st, rd(g.stuText));
   });

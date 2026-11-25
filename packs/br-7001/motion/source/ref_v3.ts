@@ -9,11 +9,11 @@
  *   back(from)         user taps "+" in the chat: chat fades, blocks rise back in from below, intro returns
  *   focus()            user taps the message field: keyboard slides up, all blocks break away (bottom first)
  *   backOut(from)      user leaves the field without sending: same as back(), keyboard goes down, intro stays
- *   send(text)         user sends a typed message: the text lifts out of the field and lands on the student message line
- * `from` = the frame on screen when the user acted (e.g. open(...).at(t), focus().at(t), send(...).at(t)).
+ * `from` = the frame on screen when the user acted (e.g. open(...).at(t), focus().at(t)).
+ * Sending a typed message has no animation: the message appears as in the app today (no function here).
  *
  * ELEMENT CONTRACT: the model never touches content, size or styling. It outputs poses for N elements (centre, rotation,
- * scale, opacity) plus opacities for intro / student / tutor, the keyboard progress and the flying text.
+ * scale, opacity) plus opacities for intro / student / tutor and the keyboard progress.
  * Artboard: 402 x 874 px. Angles in degrees, time in ms. Check against the test vectors in the manifest (±0.01).
  */
 export const ART = { w: 402, h: 874 };
@@ -28,7 +28,6 @@ export const GEO = {
   msgTextLeft: 68, msgTextCy: 163.6,     // student message text line: left edge, line centre
   labelLeft: 44,                         // block label left edge inside the block
   chipFont: 12, msgFont: 14,             // label size in the block / in the message
-  fieldTextLeft: 81, fieldTextCy: 755,   // text in the message field (keyboard down)
   kbInputDy: -245,                       // input bar offset when the keyboard is up
   kbSpring: { visualDuration: 0.38, bounce: 0 } as Spring,   // stand-in for the OS keyboard slide (use the real inset in the app)
   offscreen: 990,                        // falling blocks are done below this y
@@ -47,10 +46,9 @@ export type Frame = {
   intro: number;           // headline + illustration + subtitle opacity
   stu: number; tut: number; done: boolean;   // student / tutor message opacity; done = reply shown instead of dots
   rise?: number;           // student avatar + name rise (px): translateY = rise * (1 - bezMsg(stu))
-  stuText?: number;        // V3: the student text line itself (0 until the flying label/text lands, then 1)
+  stuText?: number;        // V3: the student text line itself (0 until the flying label lands, then 1)
   morph?: Morph;           // open(): the tapped block turning into message text
-  kb?: number;             // focus / backOut / send / back after send: keyboard progress 0..1
-  fly?: { x: number; cy: number; o: number; text: string };   // send(): text in flight
+  kb?: number;             // focus / backOut / back with the keyboard up: keyboard progress 0..1
   pressed: boolean;        // the tapped block is dark (from 60 ms after touch-down)
 };
 export type Timeline = { duration: number; motionEnd: number; at: (t: number) => Frame };
@@ -198,20 +196,6 @@ export function focus(seed = (Math.random() * 2 ** 31) | 0, p = P.focus, L = RES
   return withTap(raw, p.tap, p.total, false);
 }
 
-/* ---------- SEND: user sends a typed message (keyboard stays up) ----------
- * The text lifts out of the field and lands on the student message line on two springs (Y up, X left: slight arc). */
-export function send(text: string, p = P.send, L = REST): Timeline {
-  const fx = capped(p.flyX), fy = capped(p.flyY), F = Math.max(visMs(p.flyX), visMs(p.flyY)), flightEnd = Math.max(fx.end, fy.end);
-  const x0 = GEO.fieldTextLeft, y0 = GEO.fieldTextCy + GEO.kbInputDy, x1 = GEO.msgTextLeft, y1 = GEO.msgTextCy;
-  const metaAt = F * p.metaAt / 100, tutAt = F + p.tutorDelay, motionEnd = Math.max(flightEnd, metaAt + p.metaFade) + 100;
-  const raw: Raw = { motionEnd, duration: Math.max(motionEnd, tutAt + 1200),
-    at: (t) => { const landed = t >= flightEnd;
-      return { blocks: L.map((d) => ({ cx: d.cx, cy: 1100, r: d.r, s: 1, o: 0 })), intro: 1 - clamp(t / 450, 0, 1), rise: p.metaRise,
-        stu: clamp((t - metaAt) / Math.max(1, p.metaFade), 0, 1), stuText: landed ? 1 : 0, tut: clamp((t - tutAt) / 600, 0, 1), done: false, kb: 1,
-        fly: { x: x0 + (x1 - x0) * fx.at(t), cy: y0 + (y1 - y0) * fy.at(t), o: landed ? 0 : 1, text } }; } };
-  return withTap(raw, p.tap, p.total, false);
-}
-
 /* ---------- DESKTOP HOVER WIGGLE (pointer devices only; never on its own) ----------
  * On pointer-enter: ONE random jolt, then it springs back. The hovered element also gets a light grey fill (#ececec).
  * Jolt: transition to the offset in 180 ms, cubic-bezier(.2,.9,.3,1.2). After 110 ms: return to 0 in 500 ms, cubic-bezier(.2,1.4,.4,1).
@@ -225,6 +209,6 @@ export function wiggleOffset(rnd: () => number = Math.random, amount = P.wiggle)
 let tl = open(1), t0 = performance.now();                  // user tapped block 1
 (function tick(now: number) { const t = now - t0; setFrame(tl.at(t)); if (t < tl.duration) requestAnimationFrame(tick); })(t0);
 // "+" later: tl = back(tl.at(now - t0)); t0 = now; ...    // back starts from what is on screen
-// Field: tl = focus(); ... leave without sending: tl = backOut(tl.at(t)); ... send: tl = send(text); then "+": tl = back(tl.at(t))
+// Field: tl = focus(); ... leave without sending: tl = backOut(tl.at(t)); ... after sending: "+" → tl = back(frame on screen)
 // <AiTutorScreen frame={frame} tapped={1} prompt={text} />  // the screen code renders the frame
 */

@@ -39,7 +39,8 @@
       "from": "focus-typed",
       "trigger": "send",
       "to": "chat-send",
-      "motion": "send"
+      "motion": null,
+      "note": "no animation: the message appears as in the app today (Hannes 26.11.)"
     },
     {
       "from": "chat-block | chat-send",

@@ -10,5 +10,6 @@
 - Typing and sending: the input field behaves as today (input field redesign, BR-7147); this ticket only adds the animations.
 - Chat history: spec says "chat history elements fade in", not specific UI parts (the chat UI will change).
 - Enter: blocks first, then illustration and text (as in the Animation Workbench), not text first as in the first design.
+- Sending a typed message has no animation: the message appears as in the app today. The earlier "text flies into the student message" (Send) was removed (Hannes 26.11.).
 - Back out (leaving the field without sending) uses the same Back animation as "+ new chat", started from where the blocks are.
 - Copy: no new strings needed beyond Copies BR-7001; the thread title is an open question for the dev.

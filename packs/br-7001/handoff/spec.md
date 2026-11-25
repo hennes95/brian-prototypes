@@ -1,6 +1,6 @@
 # BR-7001 · AI Tutor use cases — spec
 
-> Generated from the Feature Workbench at commit `9231e61`. Same sections as the Notion ticket. Don't edit by hand; change the workbench and export again. Agents start at `HANDOFF.md`.
+> Generated from the Feature Workbench at commit `52323d0`. Same sections as the Notion ticket. Don't edit by hand; change the workbench and export again. Agents start at `HANDOFF.md`.
 
 ## Brief
 
@@ -15,6 +15,7 @@
 
 - Coordinate with [FE Chat: Improve AI-Tutor Chat for Students](https://app.notion.com/p/3fdfca9f403c80699f29d4a8a7ba77cd) (renaming/archiving)
 - Coordinate with [Ralph Idea: Allow students to dive deeper into their attempts in AI Dialogues](https://app.notion.com/p/3e4fca9f403c80fcaaa0fe1264be7fb2) (feedback deep-dive and Tutor follow-up)
+- 
 
 #### Success Criteria
 
@@ -47,7 +48,7 @@
 - **R1** Use-case blocks use the block component of the course map activities (with the dots)
 - **R2** Tapping a block creates a new thread, named after the use case, and sends its prompt
 - **R3** Starting from the message field keeps today's logic (thread name etc.)
-- **R4** Whatever starts the chat flies into the student message; everything else crumbles/falls down
+- **R4** A tapped block flies into the student message; everything else crumbles/falls down
 
 ### Empty state ([Figma](https://www.figma.com/design/GbI4xt40lr0Jmk3rkgrtM0/Student-App?node-id=12115-80))
 
@@ -93,8 +94,7 @@
 #### Typing (`focus-typed`)
 
 - Student types; field and send behave as today (not in scope)
-- Sending: the typed text flies into the student message
-  - [Motion: Send ↗](https://claude.ai/artifact/E61jktbwanbpFAARpqKe4A)
+- Sending: the message appears as in the app today (no animation)
 
 ### Chat started ([Figma](https://www.figma.com/design/GbI4xt40lr0Jmk3rkgrtM0/Student-App?node-id=12319-65399))
 
@@ -116,13 +116,11 @@
 
 #### From the field (`chat-send`)
 
-- Typed text lifts out of the field and lands on the student message
-  - Same springs as Open
-  - [Motion: Send ↗](https://claude.ai/artifact/E61jktbwanbpFAARpqKe4A)
+- The student message appears as in the app today (no animation)
 - Intro fades; chat history elements fade in
 - Keyboard stays open, as in other chats
 
-## Edge cases
+## Edge cases & touchpoints
 
 - No activities in the course, or the student hasn't studied anything yet
   - Only show "Explain a topic"
@@ -145,11 +143,6 @@
 - In-app: the awareness tooltip (see Empty state · Awareness tooltip)
 - Tracking: none planned.
 
-## Open questions
-
-- [ ] Can the tutor link specific activities that open when tapped? (Jaap)
-- [ ] Thread title for a use-case thread: how does today's thread-naming logic work, and does it fit a title from the block label (Copies BR-7001, e.g. "Create a study plan")? (Jaap/Ataberk)
-
 ## Implementation
 
 - Design: [Figma](https://www.figma.com/design/GbI4xt40lr0Jmk3rkgrtM0/Student-App?node-id=12115-80)
@@ -162,3 +155,8 @@
 ### Design system changes
 
 - New component: Use-case block (icon + short description); icon mapping in Figma
+
+## Open questions
+
+- [ ] Can the tutor link specific activities that open when tapped? (Jaap)
+- [ ] Thread title for a use-case thread: how does today's thread-naming logic work, and does it fit a title from the block label (Copies BR-7001, e.g. "Create a study plan")? (Jaap/Ataberk)

@@ -2,7 +2,7 @@
 // Artboard 402 × 874 logical px. Render the artboard at its design size and scale it ONCE (width / 402), never per element.
 // Static layout is fixed (absolute positions as designed). The motion engine drives only what `frame` carries:
 // block poses, intro opacity, student / tutor message opacity + rise, pressed block, for V3 the morph of the tapped block,
-// and for Focus / Back out / Send the keyboard progress (input bar follows it) and the text flying from the field to the student message.
+// and for Focus / Back out the keyboard progress (input bar follows it).
 // `frame` is exactly what the package engine returns: modelFor(variant, kind, runs).at(tMs). Pass null for the resting home screen.
 // Assets: the file names in ASSETS are listed (with their contents) in section 1c of the package.
 import React from 'react';
@@ -14,8 +14,7 @@ export type ScreenFrame = {
   stu: number; tut: number; done: boolean; rise?: number;       // student / tutor message opacity, reply shown, rise px
   stuText?: number; morph?: Morph;                              // V3 only: student text opacity, tapped-block morph
   pressed?: boolean; hover?: number;                            // tapped block dark (index = model.tapped)
-  kb?: number;                                                  // Focus / Back out / Send: keyboard progress 0 (down) .. 1 (up); input bar moves by kb * KB.inputDy
-  fly?: { x: number; cy: number; o: number; text: string };     // Send: typed text in flight (left edge x, line centre cy), hidden on landing
+  kb?: number;                                                  // Focus / Back out: keyboard progress 0 (down) .. 1 (up); input bar moves by kb * KB.inputDy
 };
 
 export const ART = { w: 402, h: 874 };
@@ -141,13 +140,11 @@ export function AiTutorScreen({ frame, tapped = -1, prompt, time = '10:32', repl
         <div style={{ width: 32, height: 32, borderRadius: 16, background: C.dark, display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none', marginBottom: 4 }}>
           <img src={assets.attach} alt="" width={16} height={16} /></div>
         <div style={{ flex: 1, border: `0.75px solid ${C.dark}`, borderRadius: 20, padding: '4px 4px 4px 12px', display: 'flex', alignItems: 'center', gap: 8, background: C.white }}>
-          <input placeholder="Or ask anything..." value={f.fly ? '' : undefined} readOnly={!!f.fly} style={{ flex: 1, minWidth: 0, border: 0, outline: 0, background: 'none', padding: 4, ...text(500, 14, 19.6) }} />
+          <input placeholder="Or ask anything..." style={{ flex: 1, minWidth: 0, border: 0, outline: 0, background: 'none', padding: 4, ...text(500, 14, 19.6) }} />
           <button aria-label="Send" style={{ width: 30, height: 30, borderRadius: 15, background: C.dark, border: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none', padding: 0 }}>
             <img src={assets.send} alt="" width={16} height={16} /></button>
         </div>
       </div>
-      {/* Send: the typed text flies from the field to the student message line (14 / 500, same style as the message) */}
-      {f.fly && f.fly.o > 0 && <span style={{ ...abs(f.fly.x, f.fly.cy - 9.8), ...text(500, 14, 19.6), whiteSpace: 'nowrap', pointerEvents: 'none', zIndex: 3 }}>{f.fly.text}</span>}
       {/* tab bar: top 791, 83 tall; slanted top line; tabs 53.5 × 53.5, gap 12, centred, 10 px from the top */}
       <div style={abs(0, 791, ART.w, 83)}>
         <img src={assets.tabbarLine} alt="" style={abs(0, 3, 402, 81)} />
