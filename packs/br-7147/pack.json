@@ -1,12 +1,14 @@
 {
   "ticket": "BR-7147",
   "title": "Redesign Input Field",
-  "shell": "feature@1.0.18",
-  "notes": "Shell 1.0.10 (23.11.26). Spec from the 19.11 workbench backup; Notion ticket text imported as grey 'From ticket' blocks, Claude's own suggestions in blue. After the workbench was opened, the spec lives in the artifact's database.",
+  "shell": "feature@1.1.9",
+  "notes": "Shell 1.0.10 (23.11.26). Spec from the 19.11 workbench backup; Notion ticket text imported as grey 'From ticket' blocks, Claude's own suggestions in blue. After the workbench was opened, the spec lives in the artifact's database. Upgraded to shell 1.1.9 on 25.11.26 (ticket sections: Brief → Solution → Edge cases & touchpoints → Side effects → Implementation → Open questions).",
   "links": {
     "feature": "https://claude.ai/artifact/SFdRA3hiQiMcfjCadnfLj9",
     "animation": null,
     "phone": "https://hennes95.github.io/brian-prototypes/br-7147/",
-    "notion": "https://app.notion.com/p/407fca9f403c8035be80e140aeb3aaa7"
-  }
+    "notion": "https://app.notion.com/p/407fca9f403c8035be80e140aeb3aaa7",
+    "figma": "https://www.figma.com/design/GbI4xt40lr0Jmk3rkgrtM0/Student-App?node-id=12639-183097"
+  },
+  "mocks": []
 }

@@ -4,6 +4,13 @@
    The shell (shell.js) loads after this file and calls the functions listed in PACK-API.md. */
 const PACK={
   id:"BR-7147", title:"Redesign Input Field",
+  links:[ /* link hub (Implementation), from pack.json → links */
+    {label:"Design", name:"Figma · FLOW 2", url:"https://www.figma.com/design/GbI4xt40lr0Jmk3rkgrtM0/Student-App?node-id=12639-183097"},
+    {label:"Copies", name:"no page yet", url:""},
+    {label:"Feature Workbench", name:"Feature Workbench", url:"https://claude.ai/artifact/SFdRA3hiQiMcfjCadnfLj9"},
+    {label:"Animation Workbench", name:"none yet", url:""},
+    {label:"Prototype", name:"Phone prototype", url:"https://hennes95.github.io/brian-prototypes/br-7147/"},
+    {label:"Handoff", name:"added at handover", url:""}],
   protoUrl:"https://hennes95.github.io/brian-prototypes/br-7147/",
   dbDoc:"workbench/br-7147-v2", legacyDbDoc:"workbench/br-7147", lsKey:"wb-br7147-v2",
   ui:{sel:{kind:"state",mode:"idle",state:"idle-rest"},variant:"pill-sq-w",context:"tutor"},

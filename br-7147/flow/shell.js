@@ -39,7 +39,7 @@ function merge3(b,l,r){ if(!b) return structuredClone(l); const out=structuredCl
     else if(!jeq(l[k],b[k])) out[k]=structuredClone(l[k]); }
   return out; }
 const syncEl=document.getElementById("sync");
-const SHELL_V="1.0.18"; /* shown next to the save status so a stale tab is visible */
+const SHELL_V="1.1.9"; /* shown next to the save status so a stale tab is visible */
 const setSync=t=>{ syncEl.textContent=t+" · "+SHELL_V; };
 function unwrap(s){ if(!s) return null; if(typeof s.data==="function") return s.data(); if(s.exists===false) return null; return s.data!==undefined?s.data:s; }
 const valid=d=>d&&d.v===2&&Array.isArray(d.modes)&&d.docs;
@@ -49,8 +49,7 @@ async function initDb(){
   if(!db){ loadLocal(); setSync("local only"); return; }
   DB=db;
   try{
-    /* 1.0.14: DOC is only set once the stored spec is loaded. Before, a save during loading (e.g. new proposal ids
-       given to the pack's DEFAULT on first render) could flush DEFAULT over the stored spec when the load took >0.8 s. */
+    /* 1.1.1 (= 1.0.14): DOC is only set once the stored spec is loaded */
     const doc=db.doc(PACK.dbDoc);
     const guard=setTimeout(()=>setSync("offline · local"),10000);
     let d=unwrap(await doc.get());
@@ -64,13 +63,13 @@ async function initDb(){
       S=merge3(base,S,r); base=structuredClone(r);
       const a=document.activeElement; if((a&&a.closest&&a.closest(".ed,.sec-name"))||document.querySelector(".thpop")){ needRender=true; setSync("Claude updated · click outside to see it"); return; }
       render(true); setSync("saved"); }); }catch(e){}
-  }catch(e){ console.error("initDb",e); /* 1.0.15: once the stored spec is loaded, never swap it for the local copy (it can hold the pack default) */ if(base){ setSync("saved · live updates off (reload)"); } else { loadLocal(); setSync("offline · local"); } }
+  }catch(e){ console.error("initDb",e); if(base){ setSync("saved · live updates off (reload)"); } else { loadLocal(); setSync("offline · local"); } }
 }
 function loadLocal(){ try{ const d=JSON.parse(localStorage.getItem(PACK.lsKey)||"null"); if(valid(d)){ S=structuredClone(d); render(); } }catch(e){} }
 function save(){ dirty=true; try{ localStorage.setItem(PACK.lsKey,JSON.stringify(S)); }catch(e){} if(!DOC) return; setSync("editing…"); clearTimeout(tmr); tmr=setTimeout(flush,800); }
 async function flush(){ tmr=null; if(!DOC) return; if(saving){ again=true; return; } saving=true; setSync("saving…");
   try{ const snap=structuredClone(S); let remote=null; try{ remote=unwrap(await DOC.get()); }catch(e){}
-    const merged=valid(remote)?(base?merge3(base,snap,remote):remote):snap;   /* 1.0.14: without a base (spec not loaded yet) never overwrite a stored spec */ merged.updated=new Date().toISOString(); lastSaved=merged.updated;
+    const merged=valid(remote)?(base?merge3(base,snap,remote):remote):snap;   /* 1.1.1: without a base never overwrite a stored spec */ merged.updated=new Date().toISOString(); lastSaved=merged.updated;
     await DOC.set(JSON.parse(JSON.stringify(merged))); base=structuredClone(merged);
     const fromElsewhere=valid(remote)&&!jeq({...merged,updated:0},{...snap,updated:0});
     S=merge3(snap,S,merged); S.updated=merged.updated; dirty=false; setSync("saved");
@@ -97,7 +96,7 @@ function findImage(o,depth=0){ if(!o||depth>6) return null; if(typeof o==="strin
 
 /* ================= stable element numbers ================= */
 function elNum(id){ S.elnums=S.elnums||{}; if(!S.elnums[id]){ let i=EL_ORDER.indexOf(id); const used=new Set(Object.values(S.elnums)); let n=i>=0?i+1:Math.max(EL_ORDER.length,...used)+1; while(used.has(n)&&S.elnums[id]!==n) n++; S.elnums[id]=n; } return S.elnums[id]; }
-const allRefs=()=>{ let t=textOf(S.docs.brief)+" "+textOf(S.docs.rules)+" "+textOf(S.docs.edges||"")+" "+textOf(S.docs.questions); for(const {s} of flat()) t+=" "+textOf(s.doc); return new Set((t.match(/#\d+/g)||[]).map(x=>+x.slice(1))); };
+const allRefs=()=>{ let t=textOf(S.docs.brief)+" "+textOf(S.docs.rules)+" "+textOf(S.docs.edges||"")+" "+textOf(S.docs.data||"")+" "+textOf(S.docs.side||"")+" "+textOf(S.docs.questions); for(const {s} of flat()) t+=" "+textOf(s.doc); return new Set((t.match(/#\d+/g)||[]).map(x=>+x.slice(1))); };
 /* ================= coverage for every screen ================= */
 const covCache={};
 function countFor(st){
@@ -172,9 +171,10 @@ function agtActive(){ const g=document.querySelector('[data-feedback-toolbar] [c
 function agtShow(){ if(!window.USE_AGT||agtActive()) return; document.dispatchEvent(new KeyboardEvent("keydown",{key:"F",code:"KeyF",ctrlKey:true,shiftKey:true,bubbles:true,cancelable:true})); }
 let cntCi=-1, cntAi=-1;
 function allComments(){ const scr=(S.pins||[]).map(p=>({kind:"screen",p})), doc=(S.docpins||[]).map(p=>({kind:"doc",p})), agt=(S.agt||[]).filter(a=>a.status!=="resolved").map(p=>({kind:"agt",p})); return [...doc,...scr,...agt]; }
-function updateCounters(){ const c=$("#cntC"), a=$("#cntA"); if(!c||!a) return; const nc=allComments().length+document.querySelectorAll("#edscroll mark.ask").length+thWaiting(), na=document.querySelectorAll("#edscroll span.ai,#edscroll .ed .imp").length;
+function updateCounters(){ const c=$("#cntC"), a=$("#cntA"); if(!c||!a) return; const nc=allComments().length+document.querySelectorAll("#edscroll mark.ask").length+thWaiting(), na=prHeads().length;
   c.textContent=nc; c.hidden=!nc; const nu=thUnread().length; a.textContent=nu||na; a.hidden=!na; a.classList.toggle("out",!nu); a.classList.toggle("unread",!!nu); a.title=nu?`${nu} unread proposal${nu>1?"s":""}: click for the next one`:`${na} open proposal${na>1?"s":""} (all read): click to step through`; try{ updTpBadges(); placeAgtDots(); }catch(e){} }
 /* comments per touchpoint: yellow number on each chip + yellow dots on the phone, anchored to the commented element */
+function tpModes(t){ if(!t||!t.ctx) return []; return S.modes.filter(m=>{ const pm=(typeof MODES!=="undefined"?MODES:[]).find(x=>x.id===m.id); return (m.ctx||(pm&&pm.ctx))===t.ctx; }); }
 function tpComments(ctx){ return [...(S.agt||[]).filter(a=>a.status!=="resolved"&&a.where==="phone"&&(a.ctx||"tutor")===ctx).map(p=>({kind:"agt",p})),...(S.pins||[]).filter(p=>(p.ctx||"tutor")===ctx).map(p=>({kind:"screen",p}))]; }
 function updTpBadges(){ const box=document.getElementById("tpchips"); if(!box) return; box.querySelectorAll("button[data-c]").forEach(b=>{ const t=CONTEXTS.find(c=>c.id===b.dataset.c); const n=t&&t.ctx?tpComments(t.ctx).length:0; let i=b.querySelector(".cb"); if(!n){ if(i) i.remove(); return; } if(!i){ i=document.createElement("i"); i.className="cb"; b.appendChild(i); } i.textContent=n; i.title=n+" open comment"+(n>1?"s":"")+" on this touchpoint"; }); }
 /* 1.0.3: Agentation draws its own (yellow) markers, so the shell no longer draws dots on the screen */
@@ -192,24 +192,71 @@ document.addEventListener("click",e=>{ const d=e.target.closest&&e.target.closes
     const vn=(VARIANTS.find(v=>v.id===a.variant)||{}).name;
     pop.innerHTML=`<div class="m">${esc(a.element||"element")}${a.variant&&a.variant!==ui.variant?` · placed in variant "${esc(vn||a.variant)}"`:""}</div><p>${esc(a.comment||"")}</p><button data-done="${esc(a.id)}">Mark as done</button>`;
     document.body.appendChild(pop); const r=d.getBoundingClientRect(); pop.style.left=Math.min(Math.max(8,r.left-270),window.innerWidth-276)+"px"; pop.style.top=Math.min(r.bottom+8,window.innerHeight-pop.offsetHeight-8)+"px"; return; }
-  const dn=e.target.closest&&e.target.closest("#agtpop button[data-done]"); if(dn){ const a=(S.agt||[]).find(x=>x.id===dn.dataset.done); if(a){ a.status="resolved"; save(); updateCounters(); } closeAgtPop(); return; }
+  const dn=e.target.closest&&e.target.closest("#agtpop button[data-done]"); if(dn){ const a=(S.agt||[]).find(x=>x.id===dn.dataset.done); if(a){ a.status="resolved"; save(); updateCounters(); try{ syncAgtHash(); }catch(e){} } closeAgtPop(); return; }
   if(!(e.target.closest&&e.target.closest("#agtpop"))) closeAgtPop(); },true);
 document.addEventListener("keydown",e=>{ if(e.key==="Escape") closeAgtPop(); });
 window.addEventListener("resize",()=>{ try{ placeAgtDots(); }catch(e){} });
 document.addEventListener("scroll",e=>{ if(e.target&&e.target.closest&&e.target.closest("#pwrap")) requestAnimationFrame(()=>{ try{ placeAgtDots(); }catch(x){} }); },true);
+/* 1.1.7: the yellow counter steps through comments one by one: switch to their surface, variant and screen,
+   scroll the spec to that screen, and open the comment next to the element it is on */
+function agtTarget(a){ const root=document.querySelector("#pwrap .phone"); if(!root||!a) return null;
+  const tag=(String(a.elementPath||a.element||"").split(">").pop().trim().split(/[.#:\[ ]/)[0])||"*";
+  const nt=String(a.nearbyText||""), before=(nt.match(/\[before: "([^"]*)"\]/)||[])[1]||""; let best=null,bs=0;
+  root.querySelectorAll(tag).forEach(el=>{ const r=el.getBoundingClientRect(); if(!r.width) return; const tx=(el.textContent||"").trim(); let s=0;
+    if(tx&&nt.includes(tx)) s+=2; const pv=el.previousElementSibling; if(before&&pv&&(pv.textContent||"").trim()===before) s+=3; if(a.selectedText&&tx.includes(a.selectedText)) s+=2;
+    if(s>bs){ bs=s; best=el; } });
+  return best; }
+function showAgtPop(a,r){ closeAgtPop(); const pop=document.createElement("div"); pop.id="agtpop"; const vn=(VARIANTS.find(v=>v.id===a.variant)||{}).name;
+  const where=a.where==="spec"?"Spec":[(CONTEXTS.find(c=>c.ctx===a.ctx)||{}).name,vn,(a.state&&find(a.state)?find(a.state).s.name:"")].filter(Boolean).join(" · ");
+  pop.innerHTML=`<div class="m">${esc(where||a.element||"comment")}</div><p>${esc(a.comment||"")}</p><button data-done="${esc(a.id)}">Mark as done</button>`;
+  document.body.appendChild(pop); pop.style.left=Math.min(Math.max(8,r.left-270),window.innerWidth-276)+"px"; pop.style.top=Math.max(8,Math.min(r.bottom+8,window.innerHeight-pop.offsetHeight-8))+"px"; }
+function agtSpecTarget(a){ const sc=document.getElementById("edscroll"); if(!sc||!a) return null; let els=[]; try{ els=[...document.querySelectorAll(a.elementPath)].filter(e=>sc.contains(e)); }catch(e){}
+  if(!els.length) els=[...sc.querySelectorAll("li,p,h4")];
+  const norm=s=>String(s||"").replace(/\s+/g," ").trim();
+  const own=el=>norm([...el.childNodes].filter(n=>n.nodeType===3||(n.nodeType===1&&!/^(UL|OL)$/.test(n.tagName))).map(n=>n.textContent).join(" "));
+  const nt=String(a.nearbyText||""), before=(nt.match(/\[before: "([\s\S]*?)"\]/)||[])[1]||"", after=(nt.match(/\[after: "([\s\S]*?)"?\]/)||[])[1]||"";
+  const self=norm(nt.replace(/\[(before|after): [\s\S]*?\]/g,""));
+  const starts=(t,q)=>{ q=norm(q).replace(/^"+|"+$/g,"").slice(0,40); return !!q&&norm(t).replace(/^"+/,"").startsWith(q); };
+  /* 1.1.8: match the element's own text first, then its neighbours, then the selection; never fall back to an unrelated line */
+  if(self){ const hit=els.find(e=>starts(own(e),self)); if(hit) return hit; }
+  if(before){ const hit=els.find(e=>{ const pv=e.previousElementSibling; return pv&&starts(own(pv),before); }); if(hit) return hit; }
+  if(after){ const hit=els.find(e=>{ const nx=e.nextElementSibling; return nx&&starts(own(nx),after); }); if(hit) return hit; }
+  if(a.selectedText){ const hit=els.find(e=>norm(e.textContent).includes(norm(a.selectedText))); if(hit) return hit; }
+  return null; }
+function gotoAgt(a){ closeAgtPop();
+  if(a.where==="spec"){ const el=agtSpecTarget(a); if(el){ el.scrollIntoView({block:"center",behavior:"smooth"}); el.classList.add("agt-hl"); setTimeout(()=>el.classList.remove("agt-hl"),2600); }
+    setTimeout(()=>{ const r=(el||document.getElementById("edscroll")||document.body).getBoundingClientRect(); showAgtPop(a,r); },500); return; } if(a.ctx) ui.context=a.ctx; if(a.variant) ui.variant=a.variant; try{ sc.value=ui.context; sv.value=ui.variant; }catch(e){}
+  if(a.state&&find(a.state)&&ui.sel.state!==a.state) go(a.state); else renderStage();
+  try{ renderLeft(); markActive(); scrollToSel(); }catch(e){}
+  setTimeout(()=>{ const el=agtTarget(a); const box=el||document.querySelector("#pwrap .phone"); const r=(box||document.body).getBoundingClientRect();
+    if(el){ el.classList.add("agt-hl"); setTimeout(()=>el.classList.remove("agt-hl"),2600); } showAgtPop(a,r); },450); }
 function gotoTpComments(t){ const c=tpComments(t.ctx)[0]; ui.context=t.ctx; if(c&&c.kind==="agt"&&c.p.variant) ui.variant=c.p.variant; else if(c&&c.p.variant) ui.variant=c.p.variant; try{ sc.value=ui.context; sv.value=ui.variant; }catch(e){} const st=c&&c.p.state; if(st&&ui.sel.state!==st&&find(st)) go(st); else renderStage(); renderLeft&&renderLeft(); setTimeout(flashDots,200); }
 document.addEventListener("click",e=>{
-  if(e.target.closest&&e.target.closest("#cntC")){ agtShow(); const tps=CONTEXTS.filter(t=>t.ctx&&tpComments(t.ctx).length); const docs=(S.docpins||[]); const asks=[...document.querySelectorAll("#edscroll mark.ask")]; const n=tps.length+docs.length+asks.length; if(!n) return; cntCi=(cntCi+1)%n;
-    if(cntCi<tps.length) gotoTpComments(tps[cntCi]);
-    else if(cntCi<tps.length+docs.length){ const p=docs[cntCi-tps.length]; const b=document.querySelector(`.dpin[data-dpin="${p.id}"]`); if(b){ b.scrollIntoView({block:"center",behavior:"smooth"}); b.classList.remove("flash"); void b.offsetWidth; b.classList.add("flash"); } }
-    else { const m=asks[cntCi-tps.length-docs.length]; m.scrollIntoView({block:"center",behavior:"smooth"}); m.classList.add("flash"); }
+  if(e.target.closest&&e.target.closest("#cntC")){ agtShow(); const ags=(S.agt||[]).filter(a=>a.status!=="resolved"&&(a.where==="phone"||a.where==="spec")); const tps=CONTEXTS.filter(t=>t.ctx&&(S.pins||[]).some(p=>(p.ctx||"tutor")===t.ctx)); const docs=(S.docpins||[]); const asks=[...document.querySelectorAll("#edscroll mark.ask")]; const n=ags.length+tps.length+docs.length+asks.length; if(!n) return; cntCi=(cntCi+1)%n;
+    if(cntCi<ags.length) gotoAgt(ags[cntCi]);
+    else if(cntCi<ags.length+tps.length) gotoTpComments(tps[cntCi-ags.length]);
+    else if(cntCi<ags.length+tps.length+docs.length){ const p=docs[cntCi-ags.length-tps.length]; const b=document.querySelector(`.dpin[data-dpin="${p.id}"]`); if(b){ b.scrollIntoView({block:"center",behavior:"smooth"}); b.classList.remove("flash"); void b.offsetWidth; b.classList.add("flash"); } }
+    else { const m=asks[cntCi-ags.length-tps.length-docs.length]; m.scrollIntoView({block:"center",behavior:"smooth"}); m.classList.add("flash"); }
     return; }
-  if(e.target.closest&&e.target.closest("#cntA")){ const un=thUnread(); const ai=un.length?un:[...document.querySelectorAll("#edscroll span.ai,#edscroll .ed .imp")]; if(!ai.length) return; cntAi=un.length?0:(cntAi+1)%ai.length; const sp=ai[cntAi]; sp.scrollIntoView({block:"center",behavior:"smooth"}); sp.classList.remove("flash"); void sp.offsetWidth; sp.classList.add("flash"); setTimeout(()=>openThread(sp),350); return; }
+  if(e.target.closest&&e.target.closest("#cntA")){ const un=thUnread(); const ai=un.length?un:prHeads(); if(!ai.length) return; cntAi=un.length?0:(cntAi+1)%ai.length; const sp=ai[cntAi]; sp.scrollIntoView({block:"center",behavior:"smooth"}); sp.classList.remove("flash"); void sp.offsetWidth; sp.classList.add("flash"); setTimeout(()=>openThread(sp),350); return; }
 },true);
 { const _rd2=renderDoc; renderDoc=function(...a){ const r=_rd2.apply(this,a); requestAnimationFrame(updateCounters); return r; }; }
 { const _rs=renderStage; renderStage=function(...a){ const r=_rs.apply(this,a); updateCounters(); return r; }; }
 /* comments per variant + surface: Agentation keeps markers per URL hash, so the hash follows the variant and the touchpoint (not in #prototype) */
-function syncAgtHash(){ if(location.hash==="#prototype") return; const h="#"+String(ui.variant||"v")+"-"+String(ui.context||"all"); if(location.hash!==h){ try{ location.replace(h); }catch(e){} } }
+/* 1.1.7: the database is the one source of comments. Agentation only shows what is in this browser's storage for the
+   current page address, so before it reads (address change) the shell writes the matching comments from the database there:
+   variant + surface + screen. A comment made in another browser, or more than 7 days ago, shows again. */
+function agtFor(variant,ctx,state){ return (S.agt||[]).filter(a=>a.status!=="resolved"&&a.raw&&a.where==="phone"&&(a.variant||"")===variant&&(a.ctx||"")===ctx&&(!a.state||a.state===state)); }
+function writeAgtStore(h){ const key="feedback-annotations-"+location.pathname+h;
+  const list=agtFor(ui.variant,ui.context,ui.sel&&ui.sel.state).map(a=>({...a.raw,id:a.id,comment:a.comment,timestamp:Date.now()}));
+  let cur=[]; try{ cur=JSON.parse(localStorage.getItem(key)||"[]"); }catch(e){}
+  const sig=l=>JSON.stringify((l||[]).map(x=>[String(x.id),x.comment]).sort());
+  if(sig(cur)===sig(list)) return false; try{ localStorage.setItem(key,JSON.stringify(list)); }catch(e){ return false; } return true; }
+function syncAgtHash(){ if(location.hash==="#prototype") return;
+  const h="#"+[ui.variant||"v",ui.context||"all",(ui.sel&&ui.sel.state)||"s"].map(String).join("-");
+  const changed=writeAgtStore(h);
+  if(location.hash!==h){ try{ location.replace(h); }catch(e){} }
+  else if(changed){ try{ location.replace(h+"-r"); }catch(e){} } /* same address, new comments: bounce so Agentation reloads them */ }
 { const _rs2=renderStage; renderStage=function(...a){ const r=_rs2.apply(this,a); syncAgtHash(); return r; }; }
 { const _sv=save; save=function(...a){ const r=_sv.apply(this,a); requestAnimationFrame(updateCounters); return r; }; }
 document.addEventListener("input",e=>{ if(e.target.closest&&e.target.closest(".ed")) requestAnimationFrame(updateCounters); });
@@ -279,7 +326,7 @@ function renderDoc(force){
   const D=document.getElementById("doc");
   const blk=(key,title,html,ph,grp,tag="h3")=>`<section class="dsec" data-sec="${key}" data-grp="${grp}"><${tag} class="sec-h">${title}</${tag}><div class="ed" contenteditable="true" data-key="${key}" data-ph="${esc(ph)}" spellcheck="true">${html||""}</div></section>`;
   let h=`<div class="doc-head"><div class="crumb">${esc(PACK.id)}</div><div class="doc-trow"><div class="doc-title">${esc(PACK.title)}</div><button class="hbtn" id="b-ticket" contenteditable="false">Preview</button></div></div>
-    <nav class="jump" id="jump"><button data-jump="brief">Brief</button><button data-jump="solution">Solution</button><button data-jump="edges">Edge cases & touchpoints</button><button data-jump="ds">Design system changes</button><button data-jump="questions">Open questions</button></nav>
+    <nav class="jump" id="jump"><button data-jump="brief">Brief</button><button data-jump="solution">Solution</button><button data-jump="edges">Edge cases & touchpoints</button><button data-jump="side">Side effects</button><button data-jump="impl">Implementation</button><button data-jump="questions">Open questions</button></nav>
     <div class="tools"><button data-cmd="h2" title="Heading">H</button><button data-cmd="ol" title="Numbered list">1.</button><button data-cmd="ul" title="Bullet list">•</button><button data-cmd="indent" title="Indent (Tab)">→</button><button data-cmd="outdent" title="Outdent (Shift+Tab)">←</button><button data-cmd="bold" title="Bold"><b>B</b></button>
       <span class="sp"></span><button class="cnt cy" id="cntC" title="Your comments for Claude (screen + spec): click to go to the next one">0</button><button class="cnt cb" id="cntA" title="Claude's additions (blue) to accept or decline: click to go to the next one">0</button></div>
     <div class="edscroll" id="edscroll">`;
@@ -292,18 +339,27 @@ function renderDoc(force){
     h+=`<button class="addscr" data-adds="${m.id}">+ screen</button>`;
   }
   h+=`<button class="addmode" data-addm="1">+ mode</button>`;
-  h+=`<h2 class="grp-h" data-grp-h="edges">Edge cases & touchpoints</h2>`+blk("edges","Across screens",S.docs.edges,"Effects on existing data · Edge cases across screens · Side effects (emails, notifications, tracking). Write “none” if checked.","edges")
-    +`<h3 class="tp-group">Touchpoints</h3>`+CONTEXTS.map(t=>`<section class="dsec tp-sec" data-sec="tp:${t.id}" data-grp="edges"><h3 class="sec-h">${esc(t.name)}${t.figma?` <a class="tp-fig" href="${t.figma}" target="_blank" rel="noopener">Figma ↗</a>`:""}${t.note?` <span class="tp-nb">${esc(t.note)}</span>`:""}</h3><div class="ed" contenteditable="true" data-key="tp:${t.id}" data-ph="What differs here: background, what sits below the field, placement, copy. Only the screens that differ." spellcheck="true">${S.docs["tp:"+t.id]||""}</div></section>`).join("");
-  h+=`<h2 class="grp-h" data-grp-h="ds">Design system changes</h2>`+blk("ds","Components",S.docs.ds,"One line per component: name · new or changed · what changed · Figma link","ds");
+  /* 1.1.4: touchpoints back with the edge cases (Hannes 23.11); side effects stay their own section */
+  h+=`<h2 class="grp-h" data-grp-h="edges">Edge cases & touchpoints</h2>`+blk("edges","Across screens",S.docs.edges,"Edge cases across screens: empty, loading, error, limits, other platforms. Write “none” if checked.","edges")
+    +(CONTEXTS.length?`<h3 class="tp-group">Touchpoints</h3>`+CONTEXTS.map(t=>{ const sm=tpModes(t), txt=S.docs["tp:"+t.id]||"";
+      /* 1.1.9: a touchpoint that has its own screens under Solution only links there; it gets no text field (unless old text is still in it) */
+      const link=sm.length?`<p class="tp-sol">Specced in Solution: ${sm.map(m=>`<button class="tp-go" data-tpgo="${m.id}">${esc(m.name)} →</button>`).join(" ")}</p>`:"";
+      const ed=(!sm.length||textOf(txt).trim())?`<div class="ed" contenteditable="true" data-key="tp:${t.id}" data-ph="What differs here: background, what sits below the field, placement, copy. Only the screens that differ." spellcheck="true">${txt}</div>`:"";
+      return `<section class="dsec tp-sec${sm.length?" tp-has":""}" data-sec="tp:${t.id}" data-grp="edges"><h3 class="sec-h">${esc(t.name)}${t.figma?` <a class="tp-fig" href="${t.figma}" target="_blank" rel="noopener">Figma ↗</a>`:""}${t.note?` <span class="tp-nb">${esc(t.note)}</span>`:""}</h3>${link}${ed}</section>`; }).join(""):"");
+  h+=`<h2 class="grp-h" data-grp-h="side">Side effects</h2>`+blk("data","Effects on existing data",S.docs.data,"How existing data is affected (threads, settings, progress, analytics …) and how it's handled. Write “none” if checked.","side")
+    +blk("side","Notifications, emails & tracking",S.docs.side,"New or changed notifications, emails, tracking events. Write “none” if checked.","side");
+  h+=`<h2 class="grp-h" data-grp-h="impl">Implementation</h2>`+`<section class="dsec" data-sec="links" data-grp="impl"><h3 class="sec-h">Links</h3><ul class="impl-links">${(PACK.links||[]).map(l=>`<li><span class="il-k">${esc(l.label)}</span>${l.url?`<a href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.name||l.url)} ↗</a>`:`<span class="il-none">${esc(l.name||"added at handover")}</span>`}</li>`).join("")||`<li class="il-none">No links in the pack yet (pack.json → links)</li>`}</ul></section>`
+    +blk("ds","Design system changes",S.docs.ds,"One line per component: name · new or changed · what changed · Figma link","impl");
+  /* 1.1.5: open questions always last (Hannes 23.11) */
   h+=`<h2 class="grp-h" data-grp-h="questions">Open questions</h2>`+blk("questions","Undecided",S.docs.questions,"What is unclear? Which decisions are still open?","questions");
   h+=`<div style="height:40vh"></div></div>`;
   D.innerHTML=`<div class="resizer" id="resizer" title="Drag to resize"></div>`+h; $("#edscroll").scrollTop=keep;
   updateCovMeta(); updateAcc(); markActive(); markEmpty(); placeAiCtl();
 }
 function markModes(){ document.querySelectorAll("[data-mdot]").forEach(d=>{ const m=mode(d.dataset.mdot); if(!m) return; const n=m.states.length, f=m.states.filter(x=>textOf(x.doc).trim()).length; d.className="mdot "+(f===0?"none":f===n?"all":"some"); d.title=`${f} of ${n} screens specced`; }); }
-function markEmpty(){ markModes(); document.querySelectorAll("#edscroll .dsec").forEach(sec=>{ const ed=sec.querySelector(".ed"); sec.classList.toggle("empty",!textOf(ed.innerHTML).trim()); }); }
+function markEmpty(){ markModes(); document.querySelectorAll("#edscroll .dsec").forEach(sec=>{ const ed=sec.querySelector(".ed"); if(!ed) return; sec.classList.toggle("empty",!textOf(ed.innerHTML).trim()); }); }
 function placeAiCtl(){ const sc=$("#edscroll"); if(!sc) return; sc.querySelectorAll(".aictl").forEach(x=>x.remove()); const so=sc.getBoundingClientRect();
-  sc.querySelectorAll(".ed span.ai,.ed .imp").forEach((sp,i)=>{ const rs=sp.getClientRects(); const r=rs[0]; if(!r) return; const edEl=sp.closest(".ed")||sp, col=edEl.getBoundingClientRect(), colRight=col.right-parseFloat(getComputedStyle(edEl).paddingRight||0); const c=document.createElement("div"); c.className="aictl"; const roomRight=colRight-so.left+16+96<=sc.clientWidth;
+  thIds(sc); prHeads(sc).forEach((sp,i)=>{ const rs=sp.getClientRects(); const r=rs[0]; if(!r) return; const edEl=sp.closest(".ed")||sp, col=edEl.getBoundingClientRect(), colRight=col.right-parseFloat(getComputedStyle(edEl).paddingRight||0); const c=document.createElement("div"); c.className="aictl"; const roomRight=colRight-so.left+16+96<=sc.clientWidth;
     if(roomRight){ c.style.top=(r.top-so.top+sc.scrollTop-2)+"px"; c.style.left=(colRight-so.left+16)+"px"; }
     else { const rl=rs[rs.length-1], fits=rl.right-so.left+16<=sc.clientWidth-100; c.style.top=(fits?rl.top-so.top+sc.scrollTop-1:rl.bottom-so.top+sc.scrollTop+2)+"px"; c.style.left=(fits?rl.right-so.left+16:colRight-so.left-96)+"px"; } /* 1.0.5: no room after the last line: under it, right-aligned */ /* narrow pane: no margin, fall back to after the last line */
     const imp=sp.classList.contains("imp"); if(imp){ c.classList.add("impc"); c.style.top=(r.top-so.top+sc.scrollTop+2)+"px"; c.style.left=(r.left-so.left+sc.scrollLeft)+"px"; } c.dataset.p=sp.dataset.p||""; const tt=sp.dataset.p&&thAll()[sp.dataset.p]; if(tt&&tt.msgs&&tt.msgs.length) c.classList.add("has"); c.innerHTML=`${imp?`<span class="src" title="Imported from a source you wrote: keep it as your text or drop it">From ${esc(sp.dataset.src||"source")}</span>`:""}<button class="ok" title="${imp?"Keep: make it your text":"Accept: make it your text"}" aria-label="Accept">✓</button><button class="no" title="${imp?"Drop this block":"Decline: remove it"}">✕</button>${thBtn(sp)}`; c._sp=sp; sc.appendChild(c); }); thIds(sc); thDots(sc);  }
@@ -363,14 +419,12 @@ docEl.addEventListener("click",e=>{ const b=e.target.closest("[data-cmd]"); if(b
   const j=e.target.closest("[data-jump]"); if(j){ const hd=document.querySelector(`[data-grp-h="${j.dataset.jump}"]`), sc=$("#edscroll"); if(hd&&sc){ progScroll=Date.now(); sc.scrollTo({top:Math.max(0,hd.offsetTop-sc.offsetTop-56),behavior:"smooth"}); const first=document.querySelector(`.dsec[data-grp="${j.dataset.jump}"]`); if(first&&j.dataset.jump!=="solution"){ ui.sel={...ui.sel,kind:first.dataset.sec}; } markActive(); document.querySelectorAll("#jump button").forEach(x=>x.classList.toggle("on",x===j)); } return; }
   const st=e.target.closest("[data-mstat]"); if(st){ const m=mode(st.dataset.mstat); m.status={open:"rework",rework:"done",done:"open"}[m.status]; save(); st.className="stat "+m.status; st.textContent=STAT[m.status]; st.title="Status: "+m.status+" · click to change"; return; }
   const ad=e.target.closest("[data-adds]"); if(ad){ const m=mode(ad.dataset.adds); const ns={id:uid("s-"),name:"New screen",kind:"custom",doc:"",links:{}}; m.states.push(ns); save(); go(ns.id); setTimeout(()=>{ const i=document.querySelector(`.sec-name[data-state="${ns.id}"]`); i?.focus(); i?.select(); },80); return; }
+  const tg=e.target.closest("[data-tpgo]"); if(tg){ const m=mode(tg.dataset.tpgo); if(m&&m.states[0]) go(m.states[0].id); const h=document.querySelector(`.mode-h[data-mode="${tg.dataset.tpgo}"]`), scr=$("#edscroll"); if(h&&scr){ progScroll=Date.now(); scr.scrollTo({top:Math.max(0,h.offsetTop-scr.offsetTop-24),behavior:"smooth"}); } return; }
   if(e.target.closest("[data-addm]")){ const m={id:uid("m-"),name:"New mode",status:"open",figma:"",states:[{id:uid("s-"),name:"Default",kind:"custom",doc:"",links:{}}]}; S.modes.push(m); save(); go(m.states[0].id); setTimeout(()=>{ const i=document.querySelector(`.mode-name[data-mname="${m.id}"]`); i?.focus(); i?.select(); },80); return; }
   const dm=e.target.closest("[data-delm]"); if(dm){ const m=mode(dm.dataset.delm); if(!m) return; if(m.states.some(x=>textOf(x.doc).trim())){ dm.textContent="Has specs: delete its screens first"; return; } if(!dm.dataset.arm){ dm.dataset.arm=1; dm.textContent="Click again to delete"; return; } S.modes=S.modes.filter(x=>x!==m); save(); const f=flat()[0]; if(f) go(f.s.id); else render(true); return; }
   const ctl=e.target.closest(".aictl button"); if(ctl){ const sp=ctl.parentElement._sp, ed=sp&&sp.closest(".ed"); if(!ed) return;
     if(ctl.classList.contains("rp")){ openThread(sp); return; }
-    thClose(); thDone(sp, ctl.classList.contains("ok") ? "accepted" : "declined");
-    if(ctl.classList.contains("ok")) sp.replaceWith(...sp.childNodes);
-    else { const li=sp.closest("li"); sp.remove(); if(li&&!textOf(li.innerHTML).trim()) li.remove(); }
-    edSave(ed); placeAiCtl(); return; }
+    thClose(); edSave(prApply(sp, ctl.classList.contains("ok"))); placeAiCtl(); return; }
 });
 docEl.addEventListener("mousedown",e=>{ if(e.target.closest("[data-cmd]")) e.preventDefault(); });
 function cleanSpans(ed){ const sl=getSelection(); const an=sl.anchorNode, ao=sl.anchorOffset; let hit=false;
@@ -516,14 +570,17 @@ function md(html){
   }); return o; };
   return walk(d,0).replace(/\n{3,}/g,"\n\n").trim();
 }
-function ticketMd(){
-  let o=`# Problem, goal & scope\n${md(S.docs.brief)}\n\n# Proposed solution\n## Global rules\n${md(S.docs.rules)}\n`;
+function ticketMd(){   /* same sections and order as the workbench (and the Notion ticket after handover) */
+  let o=`# Brief\n${md(S.docs.brief)}\n\n# Solution\n## Global rules\n${md(S.docs.rules)}\n`;
   for(const m of S.modes){ o+=`\n## ${m.name}${m.figma?` ([Figma](${m.figma}))`:""}\n`; for(const s of m.states) o+=`\n### ${s.name}\n${md(s.doc)||"_no spec yet_"}\n`; }
-  o+=`\n# Edge cases & touchpoints\n${md(S.docs.edges||"")||"_none yet_"}\n\n## Touchpoints\n${CONTEXTS.map(t=>`### ${t.name}${t.note?` (${t.note})`:""}\nFigma: ${t.figma||"–"}\n${md(S.docs["tp:"+t.id]||"")||"_not specced yet_"}`).join("\n\n")}\n\n# Design system changes\n${md(S.docs.ds||"")||"_none_"}\n\n# Open questions\n${md(S.docs.questions)}\n`; return o;
+  o+=`\n# Edge cases & touchpoints\n${md(S.docs.edges||"")||"_none yet_"}\n`;
+  if(CONTEXTS.length) o+=`\n## Touchpoints\n${CONTEXTS.map(t=>`### ${t.name}${t.note?` (${t.note})`:""}\nFigma: ${t.figma||"–"}\n${md(S.docs["tp:"+t.id]||"")||(tpModes(t).length?`_Specced in Solution: ${tpModes(t).map(m=>m.name).join(", ")}_`:"_not specced yet_")}`).join("\n\n")}\n`;
+  o+=`\n# Side effects\n## Effects on existing data\n${md(S.docs.data||"")||"_not checked yet_"}\n\n## Notifications, emails & tracking\n${md(S.docs.side||"")||"_not checked yet_"}\n`;
+  o+=`\n# Implementation\n${(PACK.links||[]).map(l=>`- ${l.label}: ${l.url?`[${l.name||l.url}](${l.url})`:(l.name||"added at handover")}`).join("\n")}\n\n## Design system changes\n${md(S.docs.ds||"")||"_none_"}\n\n# Open questions\n${md(S.docs.questions)}\n`; return o;
 }
 const modal=document.getElementById("modal"), card=document.getElementById("mcard");
 document.addEventListener("click",e=>{ if(!(e.target.closest&&e.target.closest("#b-ticket"))) return;
-  card.innerHTML=`<h2>Ticket preview</h2><p class="meta">Assembled from the workbench: Brief → Global rules → Specs per screen → Open questions.</p><pre class="md">${esc(ticketMd())}</pre><div class="row-end"><button class="hbtn" id="cp">Copy markdown</button><button class="hbtn pri" id="cl">Close</button></div>`;
+  card.innerHTML=`<h2>Ticket preview</h2><p class="meta">Same sections as the Notion ticket after handover: Brief → Solution → Edge cases & touchpoints → Side effects → Implementation → Open questions.</p><pre class="md">${esc(ticketMd())}</pre><div class="row-end"><button class="hbtn" id="cp">Copy markdown</button><button class="hbtn pri" id="cl">Close</button></div>`;
   modal.classList.add("show");
 });
 card.addEventListener("click",async e=>{ if(e.target.id==="cl") modal.classList.remove("show"); if(e.target.id==="cp"){ try{ await navigator.clipboard.writeText(ticketMd()); e.target.textContent="Copied"; }catch(err){ e.target.textContent="Copy blocked: select the text"; } } });
@@ -588,12 +645,14 @@ addEventListener("keydown",e=>{
    Every note is mirrored into S.agt so Claude can read it from the database. */
 window.USE_AGT=true;
 (function(){
-  const pick=a=>({id:a.id,comment:a.comment,element:a.element,elementPath:a.elementPath,selectedText:a.selectedText||null,nearbyText:(a.nearbyText||"").slice(0,200)||null,attributes:a.attributes||null,isMultiSelect:!!a.isMultiSelect,
+  /* 1.1.7: keep Agentation's own annotation (position etc.) so its marker can be redrawn from the database in any browser */
+  const rawOf=a=>{ try{ const o=JSON.parse(JSON.stringify(a)); for(const k of Object.keys(o)){ if(JSON.stringify(o[k]??"").length>1500) delete o[k]; } return o; }catch(e){ return null; } };
+  const pick=a=>({raw:rawOf(a),id:a.id,comment:a.comment,element:a.element,elementPath:a.elementPath,selectedText:a.selectedText||null,nearbyText:(a.nearbyText||"").slice(0,200)||null,attributes:a.attributes||null,isMultiSelect:!!a.isMultiSelect,
     where:(()=>{ try{ const n=document.querySelector(a.elementPath); if(n&&n.closest(".phone")) return "phone"; if(n&&n.closest("#edscroll")) return "spec"; }catch(e){} return a.x!=null&&document.getElementById("pwrap")&&(()=>{const r=document.getElementById("pwrap").getBoundingClientRect(); return a.x>=r.left&&a.x<=r.right?"phone":"page";})(); })(),
     ctx:ui.context,state:ui.sel&&ui.sel.state||null,variant:ui.variant,at:new Date(a.timestamp||Date.now()).toISOString(),status:"pending"});
   const up=(fn)=>{ S.agt=S.agt||[]; fn(); save(); try{ updateCounters(); }catch(e){} };
   addEventListener("agt:add",e=>up(()=>{ S.agt=S.agt.filter(x=>x.id!==e.detail.id); S.agt.push(pick(e.detail)); }));
-  addEventListener("agt:update",e=>up(()=>{ const i=S.agt.findIndex(x=>x.id===e.detail.id); if(i>-1) S.agt[i]={...S.agt[i],comment:e.detail.comment}; else S.agt.push(pick(e.detail)); }));
+  addEventListener("agt:update",e=>up(()=>{ const i=S.agt.findIndex(x=>x.id===e.detail.id); if(i>-1) S.agt[i]={...S.agt[i],comment:e.detail.comment,raw:S.agt[i].raw?{...S.agt[i].raw,comment:e.detail.comment}:S.agt[i].raw}; else S.agt.push(pick(e.detail)); }));
   addEventListener("agt:delete",e=>up(()=>{ S.agt=S.agt.filter(x=>x.id!==e.detail.id); }));
   addEventListener("agt:clear",e=>up(()=>{ const ids=new Set((e.detail||[]).map(a=>a.id)); S.agt=S.agt.filter(x=>!ids.has(x.id)); }));
   addEventListener("agt:submit",e=>up(()=>{ (e.detail.list||[]).forEach(a=>{ if(!S.agt.find(x=>x.id===a.id)) S.agt.push(pick(a)); }); }));
@@ -604,25 +663,41 @@ window.USE_AGT=true;
    full column width: messages, the revised proposal with its previous versions, Accept / Decline and the only input.
    Decline takes the input as an optional reason. Stored in S.threads[id] = {msgs:[{w:"h"|"c",t,at}], prev:[old texts], status}.
    A reply from Hannes sets wait=true (yellow, counts in the yellow counter) until Claude answers (Claude writes msgs w:"c", revises the span, wait=false). */
+/* 1.1.4 / 1.1.6: proposal groups. A blue line and its blue CHILD lines (nested under it, no unchanged text in between) are one proposal;
+   blue lines next to each other on the same level stay separate proposals (Hannes 23.11).
+   one ✓ ✕ ↩, one dot, one thread (the first line's id), accepted or declined together. Nothing changes in the stored spec. */
+function prGroups(sc){ sc=sc||$("#edscroll"); const out=[]; if(!sc) return out; let cur=null, prev=null;
+  sc.querySelectorAll(".ed span.ai,.ed .imp").forEach(sp=>{
+    const headLi=cur&&cur[0].closest("li"), spLi=sp.closest("li");
+    if(cur&&sp.classList.contains("ai")&&prev.classList.contains("ai")&&prev.closest(".ed")===sp.closest(".ed")&&!prev.contains(sp)&&!sp.contains(prev)&&headLi&&spLi&&headLi!==spLi&&headLi.contains(spLi)){
+      const r=document.createRange(); r.setStartAfter(prev); r.setEndBefore(sp); if(!r.toString().replace(/\u200b/g,"").trim()){ cur.push(sp); prev=sp; return; } }
+    cur=[sp]; out.push(cur); prev=sp; });
+  out.forEach(g=>g.forEach(x=>{ x._grp=g; })); return out; }
+function prHeads(sc){ return prGroups(sc).map(g=>g[0]); }
+function prGrp(sp){ prGroups(); return (sp&&sp._grp&&sp._grp.includes(sp))?sp._grp:[sp]; }
+function prText(sp){ return prGrp(sp).map(x=>x.textContent).join(" · "); }
+function prApply(sp,ok){ const g=prGrp(sp), ed=g[0].closest(".ed"); g.forEach(x=>thDone(x, ok?"accepted":"declined"));
+  [...g].reverse().forEach(x=>{ if(ok) x.replaceWith(...x.childNodes); else { const li=x.closest("li"); x.remove(); if(li&&!textOf(li.innerHTML).trim()&&!li.querySelector("span.ai,.imp")) li.remove(); } });
+  if(!ok) ed.querySelectorAll("ul,ol").forEach(l=>{ if(!l.children.length) l.remove(); });
+  return ed; }
 function thAll(){ S.threads=S.threads||{}; return S.threads; }
-function thWaiting(){ const T=thAll(); return [...document.querySelectorAll("#edscroll span.ai[data-p],#edscroll .ed .imp[data-p]")].filter(sp=>T[sp.dataset.p]&&T[sp.dataset.p].wait).length; }
+function thWaiting(){ const T=thAll(); return prHeads().filter(sp=>sp.dataset.p&&T[sp.dataset.p]&&T[sp.dataset.p].wait).length; }
 function thIds(sc){ let changed=new Set(); sc.querySelectorAll(".ed span.ai,.ed .imp").forEach(sp=>{ if(!sp.dataset.p){ sp.dataset.p=uid("p-"); changed.add(sp.closest(".ed")); } }); changed.forEach(ed=>{ if(ed){ const f=ed.dataset.state?find(ed.dataset.state):null; if(f) f.s.doc=ed.innerHTML; else if(ed.dataset.key) S.docs[ed.dataset.key]=ed.innerHTML; } }); if(changed.size) save(); }
 function thBtn(sp){ const t=sp.dataset.p&&thAll()[sp.dataset.p], n=t?t.msgs.length:0; return `<button class="rp${n?(t.wait?" wait":(thIsUnread(sp)?" yours":" seen")):""}" title="${n?(t.wait?"Waiting for Claude":"Claude answered: your turn"):"Reply"}">${n?`<svg viewBox="0 0 12 12" width="11" height="11" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 2.5h8v5.5H5L2.5 10V2.5z"/></svg>${n}`:"↩"}</button>`; }
 function thDone(sp,status){ const t=sp&&sp.dataset.p&&thAll()[sp.dataset.p]; if(t){ t.status=status; t.wait=false; t.text=sp.textContent; t.at=new Date().toISOString(); } }
-/* 1.0.16: a redraw that waited for the popover runs once it is closed (and nobody is typing) */
 function thLateRender(){ const a=document.activeElement; if(needRender&&!tmr&&!saving&&!document.querySelector(".thpop")&&!(a&&a.closest&&a.closest(".ed,.sec-name"))){ needRender=false; render(true); setSync("saved"); } }
 function thClose(){ document.querySelectorAll(".aictl.cur").forEach(x=>x.classList.remove("cur")); document.querySelectorAll(".thpop").forEach(x=>x.remove()); document.querySelectorAll("span.ai.thcur,.imp.thcur").forEach(x=>x.classList.remove("thcur"));  setTimeout(thLateRender,300); }
 const thEsc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 function openThread(sp){
-  const sc=$("#edscroll"); if(!sc||!sp||!sp.isConnected) return; thIds(sc); thClose();
-  const all=[...sc.querySelectorAll(".ed span.ai,.ed .imp")], i=all.indexOf(sp), id=sp.dataset.p, T=thAll(), t=T[id]||{msgs:[],prev:[]};
-  sp.classList.add("thcur"); sc.querySelectorAll(".aictl").forEach(c=>c.classList.toggle("cur",c._sp===sp));
-  const ed=sp.closest(".ed"), so=sc.getBoundingClientRect(), col=ed.getBoundingClientRect(), rs=sp.getClientRects(), last=rs[rs.length-1];
+  const sc=$("#edscroll"); if(!sc||!sp||!sp.isConnected) return; thIds(sc); thClose(); sp=prGrp(sp)[0]; const grp=prGrp(sp);
+  const all=prHeads(sc), i=all.indexOf(sp), id=sp.dataset.p, T=thAll(), t=T[id]||{msgs:[],prev:[]};
+  grp.forEach(x=>x.classList.add("thcur")); sc.querySelectorAll(".aictl").forEach(c=>c.classList.toggle("cur",c._sp===sp));
+  const ed=sp.closest(".ed"), so=sc.getBoundingClientRect(), col=ed.getBoundingClientRect(), rs=sp.getClientRects(), lrs=grp[grp.length-1].getClientRects(), last=lrs[lrs.length-1];
   const pop=document.createElement("div"); pop.className="thpop"; pop.setAttribute("role","dialog"); pop.setAttribute("aria-label","Thread on this proposal");
   pop.style.top=(last.bottom-so.top+sc.scrollTop+8)+"px"; pop.style.left=(col.left-so.left)+"px"; pop.style.width=Math.min(col.width,560)+"px";
   pop.style.setProperty("--ax",Math.max(14,Math.min((rs[0].left-col.left)+12,Math.min(col.width,560)-24))+"px");
   const msgs=(t.msgs||[]).map(m=>`<div class="m"><span class="who${m.w==="c"?" c":""}">${m.w==="c"?"Claude":"You"}</span>${thEsc(m.t)}</div>`).join("");
-  const prev=(t.prev&&t.prev.length)?`<div class="m prop"><span class="who">Revised proposal</span>${thEsc(sp.textContent)}${t.prev.map(x=>`<s>${thEsc(x)}</s>`).join("")}</div>`:"";
+  const prev=(t.prev&&t.prev.length)?`<div class="m prop"><span class="who">Revised proposal</span>${thEsc(prText(sp))}${t.prev.map(x=>`<s>${thEsc(x)}</s>`).join("")}</div>`:"";
   pop.innerHTML=`<div class="ph"><span>Proposal ${i+1} of ${all.length}</span><span class="sp"></span><button data-th="up" title="Previous proposal">↑</button><button data-th="down" title="Next proposal">↓</button><button data-th="x" title="Close (Esc)">✕</button></div>`
     +(msgs||prev?`<div class="msgs">${msgs}${prev}</div>`:"")
     +`<div class="act"><button data-th="ok" class="acc">✓ Accept</button><button data-th="no">✕ Decline</button></div>`
@@ -633,15 +708,13 @@ function openThread(sp){
   inp.addEventListener("input",grow);
   ui._draft=ui._draft||{}; if(ui._draft[id]){ inp.value=ui._draft[id]; setTimeout(grow,0); }
   inp.addEventListener("input",()=>{ ui._draft[id]=inp.value; });
-  /* 1.0.16: a thread counts as read only once Hannes starts typing a reply (or sends / accepts / declines), not when it opens */
   inp.addEventListener("input",()=>{ if(inp.value.trim()) thSeen(sp); });
-  const send=()=>{ const v=inp.value.trim(); if(!v) return; const T=thAll(); T[id]=T[id]||{msgs:[],prev:[]}; T[id].msgs.push({w:"h",t:v,at:new Date().toISOString()}); T[id].wait=true; T[id].text=sp.textContent; delete ui._draft[id]; thSeen(sp); save(); placeAiCtl(); updateCounters(); openThread(sp); };
+  const send=()=>{ const v=inp.value.trim(); if(!v) return; const T=thAll(); T[id]=T[id]||{msgs:[],prev:[]}; T[id].msgs.push({w:"h",t:v,at:new Date().toISOString()}); T[id].wait=true; T[id].text=prText(sp); delete ui._draft[id]; thSeen(sp); save(); placeAiCtl(); updateCounters(); openThread(sp); };
   inp.addEventListener("keydown",e=>{ if(e.key==="Enter"&&!e.shiftKey&&!e.isComposing){ e.preventDefault(); e.stopPropagation(); send(); } });
-  const step=d=>{ const a=[...sc.querySelectorAll(".ed span.ai,.ed .imp")]; if(!a.length){ thClose(); return; } const j=(a.indexOf(sp)+d+a.length)%a.length; a[j].scrollIntoView({block:"center",behavior:"smooth"}); setTimeout(()=>openThread(a[j]),250); };
+  const step=d=>{ const a=prHeads(sc); if(!a.length){ thClose(); return; } const j=(a.indexOf(sp)+d+a.length)%a.length; a[j].scrollIntoView({block:"center",behavior:"smooth"}); setTimeout(()=>openThread(a[j]),250); };
   const finish=ok=>{ const why=inp.value.trim(); delete ui._draft[id]; const T=thAll(); if(why){ T[id]=T[id]||{msgs:[],prev:[]}; T[id].msgs.push({w:"h",t:why,at:new Date().toISOString(),why:!ok}); }
-    thDone(sp, ok?"accepted":"declined"); const ed2=sp.closest(".ed");
-    if(ok) sp.replaceWith(...sp.childNodes); else { const li=sp.closest("li"); sp.remove(); if(li&&!textOf(li.innerHTML).trim()) li.remove(); }
-    edSave(ed2); placeAiCtl(); updateCounters(); const a=[...sc.querySelectorAll(".ed span.ai,.ed .imp")]; thClose(); if(a.length){ const nx=a[Math.min(i,a.length-1)]; nx.scrollIntoView({block:"center",behavior:"smooth"}); setTimeout(()=>openThread(nx),250); } };
+    const ed2=prApply(sp,ok);
+    edSave(ed2); placeAiCtl(); updateCounters(); const a=prHeads(sc); thClose(); if(a.length){ const nx=a[Math.min(i,a.length-1)]; nx.scrollIntoView({block:"center",behavior:"smooth"}); setTimeout(()=>openThread(nx),250); } };
   pop.addEventListener("click",e=>{ const b=e.target.closest("[data-th]"); if(!b) return; e.preventDefault(); const k=b.dataset.th;
     if(k==="x") thClose(); else if(k==="up") step(-1); else if(k==="down") step(1); else if(k==="ok") finish(true); else if(k==="no") finish(false); });
   pop.querySelector("[data-send]").addEventListener("click",e=>{ e.preventDefault(); send(); });
@@ -656,7 +729,7 @@ document.addEventListener("pointerdown",e=>{ const p=document.querySelector(".th
 /* 1.0.8: a short grace period, so the pointer can travel from the proposal to its controls without them disappearing */
 let hovT=null;
 document.addEventListener("pointerover",e=>{ const sc=$("#edscroll"); if(!sc) return; const sp=e.target.closest&&e.target.closest("#edscroll span.ai,#edscroll .ed .imp"), ctl=e.target.closest&&e.target.closest(".aictl");
-  const target=sp||(ctl&&ctl._sp)||null; clearTimeout(hovT);
+  const target=(sp&&prGrp(sp)[0])||(ctl&&ctl._sp)||null; clearTimeout(hovT);
   const apply=()=>sc.querySelectorAll(".aictl").forEach(c=>c.classList.toggle("hov",!!target&&c._sp===target));
   if(target) apply(); else hovT=setTimeout(apply,450); });
 
@@ -667,10 +740,10 @@ document.addEventListener("pointerover",e=>{ const sc=$("#edscroll"); if(!sc) re
 function thSeenAll(){ S.seen=S.seen||{}; return S.seen; }
 function thLastClaude(id){ const t=thAll()[id]; if(!t||!t.msgs) return ""; const c=t.msgs.filter(m=>m.w==="c"); return c.length?c[c.length-1].at||"":""; }
 function thIsUnread(sp){ const id=sp&&sp.dataset.p; if(!id) return true; const seen=thSeenAll()[id]; if(!seen) return true; const lc=thLastClaude(id); return !!lc&&lc>seen; }
-function thUnread(){ return [...document.querySelectorAll("#edscroll .ed span.ai,#edscroll .ed .imp")].filter(thIsUnread); }
+function thUnread(){ return prHeads().filter(thIsUnread); }
 function thSeen(sp){ const id=sp&&sp.dataset.p; if(!id||!thIsUnread(sp)) return; thSeenAll()[id]=new Date().toISOString(); save(); const sc=$("#edscroll"); if(sc){ thDots(sc); sc.querySelectorAll(".aictl").forEach(c=>{ if(c._sp===sp){ const b=c.querySelector(".rp.yours"); if(b){ b.classList.remove("yours"); b.classList.add("seen"); } } }); } updateCounters(); }
 function thDots(sc){ sc.querySelectorAll(".undot").forEach(x=>x.remove()); const so=sc.getBoundingClientRect();
   thUnread().forEach(sp=>{ const r=sp.getClientRects()[0]; if(!r) return; const ed=sp.closest(".ed"), lr=(ed||sp).getBoundingClientRect(); const d=document.createElement("i"); d.className="undot"; d.title="Not looked at yet";
     d.style.top=(r.top-so.top+sc.scrollTop+r.height/2-3.5)+"px"; d.style.left=(lr.left-so.left-16)+"px"; sc.appendChild(d); }); }
 let thHoverT=null;
-/* 1.0.16: hovering no longer marks a proposal as read */
+/* 1.1.1: hovering no longer marks a proposal as read */
