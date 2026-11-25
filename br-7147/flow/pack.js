@@ -157,7 +157,7 @@ const DEFAULT = {
  ]
 };
 /* Variants shown in the workbench. "pill" keeps its id (comments are stored per variant id) and is now "Pill inverted". */
-const VARIANTS=[{id:"pill-light",name:"Pill"},{id:"pill",name:"Pill inverted",figma:FIG("12532-148660")},{id:"pill-sq",name:"Pill status quo"}];  /* status quo (Hannes 24.11): white field with outline on light screens, inverted (light) field on dark screens */
+const VARIANTS=[{id:"pill-light",name:"Pill"},{id:"pill",name:"Pill inverted",figma:FIG("12532-148660")},{id:"pill-sq",name:"Pill status quo"},{id:"pill-sq-w",name:"Status quo + white dialog"}];  /* pill-sq-w (Hannes 25.11): field as Pill status quo, upload dialog white with black outline and dividers, field-like corners */  /* status quo (Hannes 24.11): white field with outline on light screens, inverted (light) field on dark screens */
 /* Archived 23.11 (Hannes): explored, no longer shown. Code and CSS stay, so they still render if put back into VARIANTS.
    Notes and screenshots: packs/br-7147/archive/VARIANTS.md */
 const VARIANTS_ARCHIVED=[{id:"open",name:"Workbook line",figma:FIG("12532-149018")},{id:"angled",name:"No underline"},{id:"inv",name:"Inverted",figma:FIG("12702-194812")}];
@@ -294,7 +294,7 @@ function phoneHTML(st,live={},interactive=true){
   const M=interactive?ensureModel():seed(st.kind); if(interactive) syncThreadCtx(M);
   const q={text:M.text,focused:M.focused,inline:isInline(M),fs:M.focused&&!!M.fs,sheet:M.menu,picker:M.picker,pickKind:M.pickKind,attach:M.atts.length?M.atts:false,typing:M.waiting,note:M.note,reserved:M.reserved};
   if(!VARIANTS.some(x=>x.id===ui.variant)&&!(VARIANTS_ARCHIVED.some(x=>x.id===ui.variant)&&ui._showArchived)) ui.variant="pill";
-  const ctx=ui.context, dark=isDarkCtx(ctx), quiz=ctx==="quiz", disc=ctx==="discussion", diary=ctx==="diary", v=ui.variant, inv=v==="inv", vcls=v==="pill-sq"?(dark?"v-pill":"v-pill v-pill-light"):v==="pill-light"?"v-pill v-pill-light":inv?"v-open v-inv":v==="angled"?"v-open v-angled":"v-"+v;
+  const ctx=ui.context, dark=isDarkCtx(ctx), quiz=ctx==="quiz", disc=ctx==="discussion", diary=ctx==="diary", v=ui.variant, inv=v==="inv", vcls=(v==="pill-sq"||v==="pill-sq-w")?(dark?"v-pill":"v-pill v-pill-light"):v==="pill-light"?"v-pill v-pill-light":inv?"v-open v-inv":v==="angled"?"v-open v-angled":"v-"+v;
   const tab=ctx==="tutor"&&!q.focused;
   const hasText=(q.text||"").trim().length>0||!!q.attach, canSend=(q.text||"").trim().length>0||(q.attach&&q.attach.some(t=>t!=="loading"&&!t.endsWith("~"))); /* send shows once the first attachment has finished uploading */
   const ink=dark?"#2f2f2f":"#fff";
@@ -328,7 +328,7 @@ function phoneHTML(st,live={},interactive=true){
     ${quiz&&!q.focused?`<div class="q-result"><button class="q-disc" ${el("q-disc","Open discussion room")}>0 ${I.bubble}</button><button class="q-end" ${el("q-end","End quiz")}>End</button></div>`:""}
     ${q.focused?`<div class="kbd"><div>${"<i></i>".repeat(10)}</div><div>${"<i></i>".repeat(9)}</div><div>${"<i></i>".repeat(7)}</div><div><i></i><i></i><i class="w"></i><i></i></div></div>`:`<div class="home"></div>`}
     ${q.note?`<div class="ph-note"><b>${esc(q.note[0])}</b>${esc(q.note[1])}</div>`:""}
-    ${q.sheet?`<div class="up-scrim" data-dim="typing-empty"></div><div class="up-menu" role="menu">
+    ${q.sheet?`<div class="up-scrim" data-dim="typing-empty"></div><div class="up-menu${ui.variant==="pill-sq-w"?" up-white":""}" role="menu">
       <button ${el("opt-camera","Upload: Camera")}><span class="ic">${I.fCamera}</span>Camera</button>
       <button ${el("opt-gallery","Upload: Gallery")}><span class="ic">${I.fImage}</span>Gallery</button>
       <button ${el("opt-doc","Upload: Document")}><span class="ic">${I.fDoc}</span>Document</button>
