@@ -33,7 +33,15 @@ def md(h):
 t = P.get('title', tk); L = P.get('links', {})
 spec = [f"# {P['ticket']} · {t} — spec", "", f"> Generated from the Feature Workbench at commit `{commit}`. Same sections as the Notion ticket. Don't edit by hand; change the workbench and export again. Agents start at `HANDOFF.md`.", ""]
 docs = D['docs']
-if docs.get('brief'): spec += ['## Brief', '', md(docs['brief']), '']
+# The Notion ticket keeps Hannes' own Problem (with images) and Inspiration at the top, so spec.md leaves the workbench's
+# Problem out. It goes to problem.md instead: compare it with Notion's Problem and add only what Notion lacks (never replace).
+brief = docs.get('brief', ''); prob = ''
+mp_ = re.search(r'<h2[^>]*>\s*Problem\s*</h2>(.*?)(?=<h2|$)', brief, flags=re.S|re.I)
+if mp_: prob = md(mp_.group(1)); brief = brief[:mp_.start()] + brief[mp_.end():]
+if prob:
+    open(os.path.join(out, 'problem.md'), 'w').write(f"# {P['ticket']} · Problem (workbench)\n\n> Not part of spec.md. Compare with the Problem in the Notion ticket; add only what Notion lacks there, never replace it.\n\n{prob}\n")
+    print("CHECK: compare problem.md with the Notion ticket's Problem; add what Notion lacks there (don't replace it)")
+if brief.strip(): spec += ['## Brief', '', md(brief), '']
 spec += ['## Solution', '']
 if docs.get('rules'): spec += ['### Global rules', '', md(docs['rules']), '']
 for m in D['modes']:
