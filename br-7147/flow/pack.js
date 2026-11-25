@@ -165,8 +165,8 @@ const CONTEXTS=[
  {id:"tutor",name:"AI Tutor tab",ctx:"tutor",figma:FIG("12639-183880")},
  {id:"dialog",name:"Chatbot / AI Dialog",ctx:"dialog",figma:FIG("12639-183918")},
  {id:"quiz",name:"AI Tutor (Quiz)",ctx:"quiz",figma:FIG("12720-16346")},
- {id:"discussion",name:"Discussion Room (Quiz)",ctx:"discussion",figma:FIG("12721-16560"),note:"Potentially out of scope"},
- {id:"diary",name:"Learning Diary",ctx:"diary",figma:FIG("12639-183838"),note:"Out of scope (→ BR-7144)"}];
+ {id:"discussion",name:"Discussion Room (Quiz)",ctx:"discussion",figma:FIG("12721-16560"),note:"In scope"},
+ {id:"diary",name:"Learning Diary",ctx:"diary",figma:FIG("12639-183838"),note:"In scope"}];
 const isDarkCtx=c=>c==="dialog"||c==="quiz";
 
 function migrate(old){ // v1 → v2: carry over any written specs and statuses
@@ -363,7 +363,10 @@ const SYS={
 };
 /* names: not shown in the field (Hannes 24.11: too small to read); used as the accessibility label */
 const ATT_NAME={doc:"Rationale Zahlen.pdf",image:"Photo",drawing:"Canvas",loading:"Uploading"};
-function sysSheet(kind,el){ const d=SYS[kind]; if(!d) return ""; const L=d.left||0, wPct=d.w/402*100;
+function sysSheet(kind,el){
+  /* tapping an attached photo opens a plain full-screen preview, no canvas (Hannes 25.11; canvas only for drawings) */
+  if(kind==="pview") return `<div class="up-scrim" data-dim="sys" style="background:rgba(0,0,0,.25)"></div><div class="p-view"><button class="p-view-x" ${el("view-close","Photo preview: Close")} aria-label="Close preview">${nuc("Close",16)}</button><img src="${PREV.photo||"assets/photo.png"}" alt="Attached photo"></div>`;
+  const d=SYS[kind]; if(!d) return ""; const L=d.left||0, wPct=d.w/402*100;
   const spots=d.spots.map(([id,label,x,y,w,h],i)=>`<button class="sys-spot" ${el(id,label)} data-spot="${i}" aria-label="${esc(label)}" style="left:${x/d.w*100}%;top:${y/d.h*100}%;width:${w/d.w*100}%;height:${h/d.h*100}%"></button>`).join("");
   return `<div class="up-scrim" data-dim="sys" style="background:rgba(0,0,0,.25)"></div><div class="sys-sheet" style="left:${L/402*100}%;width:${wPct}%;bottom:${d.bottom||0}px;aspect-ratio:${d.w}/${d.h};${d.radius?`border-radius:${d.radius}px;`:""}"><img src="assets/${d.img}.png" alt="" draggable="false">${spots}</div>`; }
 /* attachment menu opens to the right of the + button, vertically centred on it; shifted up/down only as far as needed to stay on screen */
@@ -498,10 +501,10 @@ document.getElementById("pwrap").addEventListener("click",e=>{
   const b=e.target.closest(".badge");
   if(b){ badgeClick(b.dataset.el,b.dataset.label); return; }
   const M=ensureModel(); const ta=$("#pwrap textarea"); if(ta) M.text=ta.value;
-  if(e.target.dataset.dim){ if(M.picker){ const back=M.pickKind==="edit"||M.pickKind==="view"; M.picker=false; M.menu=!back; if(back) M.focused=true; rerenderKeepCaret(back); }
+  if(e.target.dataset.dim){ if(M.picker){ const back=M.pickKind==="edit"||M.pickKind==="view"||M.pickKind==="pview"; M.picker=false; M.menu=!back; if(back) M.focused=true; rerenderKeepCaret(back); }
     else { const keep=inCmp(e)&&!!M.focused; M.menu=false; if(!keep){ M.focused=false; ta&&ta.blur(); } rerenderKeepCaret(keep); } syncSel(); return; }
   const op=e.target.closest("[data-open]");
-  if(op){ const t=M.atts[+op.dataset.open]; if(t==="loading"||t.endsWith("~")) return; M.viewKbd=!!M.focused; ta&&ta.blur(); M.picker=true; M.pickKind=t==="doc"?"view":"edit"; rerenderKeepCaret(); syncSel(); return; }
+  if(op){ const t=M.atts[+op.dataset.open]; if(t==="loading"||t.endsWith("~")) return; M.viewKbd=!!M.focused; ta&&ta.blur(); M.picker=true; M.pickKind=t==="doc"?"view":t==="drawing"?"edit":"pview"; rerenderKeepCaret(); syncSel(); return; }
   const rmb=e.target.closest("[data-rm]");
   if(rmb){ M.atts.splice(+rmb.dataset.rm,1); rerenderKeepCaret(!!M.focused); syncSel(); return; }
   const t=e.target.closest("[data-el]");
