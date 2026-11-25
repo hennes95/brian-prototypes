@@ -31,3 +31,10 @@ Screenshots in this folder: AI Tutor tab, idle and typing (`<id>-idle-rest.png`,
   - No line under the field (removed from the spec on 23.11)
   - No angled top line in Focus mode and the Quiz touchpoint (came from Inverted; removed from the spec on 23.11)
   - The tab bar keeps its angled top edge: it shows when the field folds away while scrolling up
+
+## Archived 25.11.2026 (Hannes): "Status quo + white dialog" is the chosen design
+- **Pill** (`pill-light`): white field with dark outline on every screen; dark upload dialog.
+- **Pill inverted** (`pill`, Figma 12532-148660): dark field on light screens, light field on dark screens; dark upload dialog.
+- **Pill status quo** (`pill-sq`): white field with outline on light screens, light inverted field on dark screens; dark upload dialog.
+- Kept: **Status quo + white dialog** (`pill-sq-w`): field as Pill status quo, upload dialog white with black outline and dividers, corners like the field (28), light duo-tone icons.
+- The CSS for all of them stays in pack.css (classes `v-pill`, `v-pill-light`, `up-white`), so an archived variant can be shown again via the workbench's archived-variants toggle.
