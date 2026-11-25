@@ -396,7 +396,9 @@ function renderStage(){
     /* R4: scrolling up hides top bar (and the field when empty/unfocused); scrolling down brings them back right away, not only at the bottom */
     /* R4 = BR-7144 R5, ported 1:1 from BR-7144 wireChat (Hannes 24.11): same thresholds, same lock, toggles classes only (no layout reads while scrolling) */
     let lastTop=ch.scrollTop, hid=false, lockUntil=0;
-    const typing=()=>!!$("#pwrap .cmp.focused:not(.resting), #pwrap .cmp.focused-inline")||ui.live.menu||ui.live.picker;
+    /* the field also stays when it holds text or attachments (Resting with content, Hannes 25.11); only the top bar folds */
+    const filled=()=>{ const t=$("#pwrap .cmp textarea"); return !!((t&&t.value.trim())||$("#pwrap .cmp .att")); };
+    const typing=()=>!!$("#pwrap .cmp.focused:not(.resting), #pwrap .cmp.focused-inline")||ui.live.menu||ui.live.picker||filled();
     const setHid=h=>{ if(h===hid) return; hid=h; lockUntil=performance.now()+350;
       const cm=$("#pwrap .cmp"); if(hid&&cm) ph.style.setProperty("--cmpc",(cm.offsetHeight+parseFloat(getComputedStyle(cm).marginTop||0))+"px");
       ph.classList.toggle("headhidden",hid); ph.classList.toggle("cmphidden",hid&&!typing()); };
