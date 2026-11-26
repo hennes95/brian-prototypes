@@ -164,7 +164,8 @@ const DEFAULT = {
  ]
 };
 /* Variants shown in the workbench. "pill" keeps its id (comments are stored per variant id) and is now "Pill inverted". */
-const VARIANTS=[{id:"pill-sq-w",name:"Status quo + white dialog"}];  /* the chosen design (Hannes 25.11): field as "Pill status quo" (white with outline on light screens, light inverted on dark screens), upload dialog white with black outline and dividers, field-like corners */
+const VARIANTS=[{id:"pill-sq-w",name:"Status quo + white dialog"},{id:"pill-sq-w-sq",name:"Square miniatures"}];  /* exploration (Hannes 26.11, Ralph's point: documents are upright): same as the chosen design, attachment miniatures square at the same height */
+  /* the chosen design (Hannes 25.11): field as "Pill status quo" (white with outline on light screens, light inverted on dark screens), upload dialog white with black outline and dividers, field-like corners */
 /* Archived 23.11 (Hannes): explored, no longer shown. Code and CSS stay, so they still render if put back into VARIANTS.
    Notes and screenshots: packs/br-7147/archive/VARIANTS.md */
 const VARIANTS_ARCHIVED=[{id:"pill-light",name:"Pill"},{id:"pill",name:"Pill inverted",figma:FIG("12532-148660")},{id:"pill-sq",name:"Pill status quo"},{id:"open",name:"Workbook line",figma:FIG("12532-149018")},{id:"angled",name:"No underline"},{id:"inv",name:"Inverted",figma:FIG("12702-194812")}];
@@ -260,8 +261,11 @@ async function loadPreviews(){
 /* Attachment visuals from BR-7144 at the small size (Hannes 23.11): photo with a white frame, canvas card, document page with fold;
    thin outline + hard shadow, straight (no tilt). Loading stays as it is. A file the student picked replaces the sample image. */
 let attDocN=0;
-function attDocSVG(src){ const id="adp"+(++attDocN), page="M0 0H272L316.5 43.4L317.1 178.8H0Z"; /* fold ~75% bigger than BR-7144 at this small size (Hannes 24.11) */
+function attDocSVG(src){ if(ui.variant==="pill-sq-w-sq") return attDocSVGsq(src); const id="adp"+(++attDocN), page="M0 0H272L316.5 43.4L317.1 178.8H0Z"; /* fold ~75% bigger than BR-7144 at this small size (Hannes 24.11) */
   return `<svg class="docsvg" viewBox="0 0 321 183" preserveAspectRatio="none" role="img" aria-label="Document"><defs><clipPath id="${id}"><path d="${page}"/></clipPath></defs><g clip-path="url(#${id})"><rect width="321" height="183" fill="#fff"/><image href="${src}" width="317.1" height="178.8" preserveAspectRatio="xMidYMid slice"/><rect width="321" height="183" fill="#000" opacity=".03"/></g><path class="dln" d="${page}"/><path class="dsh" d="M275 3.3V46.4H319.2Z"/><path class="dfold" d="M272 .3V43.4H316.2Z"/></svg>`; }
+/* square miniature (variant "Square miniatures"): same page language, square page, fold kept at the same visual size */
+function attDocSVGsq(src){ const id="adp"+(++attDocN), page="M0 0H139L178.8 39.8V178.8H0Z";
+  return `<svg class="docsvg" viewBox="0 0 183 183" preserveAspectRatio="none" role="img" aria-label="Document"><defs><clipPath id="${id}"><path d="${page}"/></clipPath></defs><g clip-path="url(#${id})"><rect width="183" height="183" fill="#fff"/><image href="${src}" width="178.8" height="178.8" preserveAspectRatio="xMidYMin slice"/><rect width="183" height="183" fill="#000" opacity=".03"/></g><path class="dln" d="${page}"/><path class="dsh" d="M142 3V42.8H181.8Z"/><path class="dfold" d="M139 .3V40.1H178.8Z"/></svg>`; }
 const ATT={
  get image(){ return `<span class="pic"><img src="${PREV.photo||"assets/photo.png"}" alt=""></span>`; },
  get loading(){ return attLoad("image"); },
@@ -301,14 +305,14 @@ function phoneHTML(st,live={},interactive=true){
   const M=interactive?ensureModel():seed(st.kind); if(interactive) syncThreadCtx(M);
   const q={text:M.text,focused:M.focused,inline:isInline(M),fs:M.focused&&!!M.fs,sheet:M.menu,picker:M.picker,pickKind:M.pickKind,attach:M.atts.length?M.atts:false,typing:M.waiting,note:M.note,reserved:M.reserved};
   if(!VARIANTS.some(x=>x.id===ui.variant)&&!(VARIANTS_ARCHIVED.some(x=>x.id===ui.variant)&&ui._showArchived)) ui.variant="pill-sq-w";
-  const ctx=ui.context, dark=isDarkCtx(ctx), quiz=ctx==="quiz", disc=ctx==="discussion", diary=ctx==="diary", v=ui.variant, inv=v==="inv", vcls=(v==="pill-sq"||v==="pill-sq-w")?(dark?"v-pill":"v-pill v-pill-light"):v==="pill-light"?"v-pill v-pill-light":inv?"v-open v-inv":v==="angled"?"v-open v-angled":"v-"+v;
+  const ctx=ui.context, dark=isDarkCtx(ctx), quiz=ctx==="quiz", disc=ctx==="discussion", diary=ctx==="diary", v=ui.variant, inv=v==="inv", vcls=(v==="pill-sq"||v==="pill-sq-w"||v==="pill-sq-w-sq")?(dark?"v-pill":"v-pill v-pill-light"):v==="pill-light"?"v-pill v-pill-light":inv?"v-open v-inv":v==="angled"?"v-open v-angled":"v-"+v;
   const tab=ctx==="tutor"&&!q.focused;
   const hasText=(q.text||"").trim().length>0||!!q.attach, canSend=(q.text||"").trim().length>0||(q.attach&&q.attach.some(t=>t!=="loading"&&!t.endsWith("~"))); /* send shows once the first attachment has finished uploading */
   const ink=dark?"#2f2f2f":"#fff";
   const extra=(M.thread||[]).map(x=>x.who==="s"?`<div class="m-s"><div>${esc(x.text)}${x.atts&&x.atts.length?`<div class="oos" data-oos="In-chat attachments: not part of BR-7147 (→ BR-7144)"><span class="oos-chip">📎 ${x.atts.length} attachment${x.atts.length>1?"s":""}</span></div>`:""}</div><div class="wl"></div></div>`:`<div class="m-t"><p>${esc(x.text)}</p><div class="act"><button ${el("speaker2","Read answer aloud")} aria-label="Read aloud">${I.speaker}</button></div></div>`).join("");
   const typing=q.typing;
   const reply="";
-  return `<div class="phone ${dark?"dark":""} ${quiz?"quiz":""} ${disc?"disc":""} ${diary?"diary":""} ${inv?"vinv":""} ${q.focused?"kbdopen":""} ${q.reserved?"reserved":""} ${q.picker?"headhidden":""}">
+  return `<div class="phone ${dark?"dark":""} ${quiz?"quiz":""} ${disc?"disc":""} ${diary?"diary":""} ${inv?"vinv":""} ${q.focused?"kbdopen":""} ${q.reserved?"reserved":""} ${q.picker?"headhidden":""} ${v==="pill-sq-w-sq"?"sqatt":""}">
     <div class="p-status"><span>9:41</span><svg width="66" height="12" viewBox="0 0 66 12" fill="currentColor"><rect x="0" y="7" width="3" height="4" rx=".7"/><rect x="4.5" y="5" width="3" height="6" rx=".7"/><rect x="9" y="3" width="3" height="8" rx=".7"/><rect x="13.5" y="0" width="3" height="11" rx=".7"/><path d="M28 3.2a9 9 0 0 1 12 0l-1.2 1.3a7.2 7.2 0 0 0-9.6 0zM30.4 5.8a5.4 5.4 0 0 1 7.2 0L36.4 7a3.6 3.6 0 0 0-4.8 0zM34 10.6l-1.4-1.5a2 2 0 0 1 2.8 0z"/><rect x="44" y=".5" width="20" height="11" rx="2.7" fill="none" stroke="currentColor"/><rect x="46" y="2.5" width="16" height="7" rx="1.3"/></svg></div>
     ${disc?"":diary?`<div class="p-head d-head"><button ${el("back","Back")} aria-label="Back">${I.back}</button><span class="t">Today, 17.11.2026</span></div>`:`<div class="p-head">${dark?`<button ${el("help","Help")} aria-label="Help">${I.help}</button>`:`<button ${el("menu","Open chat history")} aria-label="Menu">${I.menu}</button>`}<span class="t">${quiz?"Linear Functions":dark?"Creating Linear Equations":"AI-Tutor"}</span>${dark?`<button ${el("close","Close")} aria-label="Close">${I.close}</button>`:`<button ${el("newchat","New chat")} aria-label="New chat">${I.newchat}</button>`}</div>`}
     ${disc?discBody(extra):diary?diaryBody(extra):quiz?`<div class="p-chat q-chat"><div class="q-prog"><span class="q-bar"><i></i></span></div><div class="q-card"><div class="q-q"><p>What does <b>m</b> stand for in y = mx + b?</p><div class="q-ans">The point where the line crosses the y-axis</div></div><div class="q-foot"><span>${I.speaker}</span><span class="q-flip">${I.flip}</span></div></div><div class="q-hint">Tap the card</div><div class="q-wrong">Wrong!</div>${extra}${typing?`<div class="typing"><div class="ava">B</div><div class="dots"><span></span><span></span><span></span></div></div>`:""}</div>`:`<div class="p-chat">
@@ -335,7 +339,7 @@ function phoneHTML(st,live={},interactive=true){
     ${quiz&&!q.focused?`<div class="q-result"><button class="q-disc" ${el("q-disc","Open discussion room")}>0 ${I.bubble}</button><button class="q-end" ${el("q-end","End quiz")}>End</button></div>`:""}
     ${q.focused?`<div class="kbd"><div>${"<i></i>".repeat(10)}</div><div>${"<i></i>".repeat(9)}</div><div>${"<i></i>".repeat(7)}</div><div><i></i><i></i><i class="w"></i><i></i></div></div>`:`<div class="home"></div>`}
     ${q.note?`<div class="ph-note"><b>${esc(q.note[0])}</b>${esc(q.note[1])}</div>`:""}
-    ${q.sheet?`<div class="up-scrim" data-dim="typing-empty"></div><div class="up-menu${ui.variant==="pill-sq-w"?" up-white":""}" role="menu">
+    ${q.sheet?`<div class="up-scrim" data-dim="typing-empty"></div><div class="up-menu${ui.variant.startsWith("pill-sq-w")?" up-white":""}" role="menu">
       <button ${el("opt-camera","Upload: Camera")}><span class="ic">${I.fCamera}</span>Camera</button>
       <button ${el("opt-gallery","Upload: Gallery")}><span class="ic">${I.fImage}</span>Gallery</button>
       <button ${el("opt-doc","Upload: Document")}><span class="ic">${I.fDoc}</span>Document</button>

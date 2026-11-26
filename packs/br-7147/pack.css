@@ -434,3 +434,8 @@ body.native .v-pill.notab:not(.focused){padding-bottom:4px;margin-bottom:calc(10
 
 /* dark screens: same white field as everywhere (Hannes 25.11), so the + has no grey circle either */
 .phone.dark .v-pill .c-plus{background:none}
+
+/* variant "Square miniatures" (exploration 26.11): every miniature is square at the current height, so documents read as a page without making the field taller */
+.phone.sqatt .att{width:52px;height:52px}
+.phone.sqatt .att.a-doc{margin-bottom:0}
+.phone.sqatt .att.a-doc.a-up .dink{clip-path:polygon(0 0,76% 0,76% 21.8%,97.7% 21.8%,97.7% 97.7%,0 97.7%)}
