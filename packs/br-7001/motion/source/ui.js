@@ -95,13 +95,13 @@
     const inner = document.querySelector('.dialkit-root .dialkit-panel-wrapper'); if(!inner) return;
     let foot = inner.querySelector(':scope > .mk-foot');
     if(!foot){ foot = document.createElement('div'); foot.className = 'mk-foot';
-      foot.innerHTML = '<button type="button" class="mk-num" title="Reset all changes (⌘R)"></button><button type="button" class="mk-save">Save</button>';
+      foot.innerHTML = '<button type="button" class="mk-num" title="Reset all changes (⌘R)"><span class="mk-n"></span><svg class="mk-r" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8a5 5 0 1 0 1.6-3.7"/><path d="M3 2.5v3h3"/></svg></button><button type="button" class="mk-save">Save</button>';
       foot.querySelector('.mk-save').addEventListener('click', save);
       const num = foot.querySelector('.mk-num'); num.addEventListener('pointerdown', e=>{ e.preventDefault(); e.stopPropagation(); resetAll(); }); num._mkReset = resetAll;
       num.addEventListener('mouseenter',()=>hover = num); num.addEventListener('mouseleave',()=>{ if(hover===num) hover = null; });
       inner.appendChild(foot); }
     const n = countChanges(s.variant,s.kind), num = foot.querySelector('.mk-num');
-    num.textContent = n; num.hidden = !n; foot.querySelector('.mk-save').disabled = !n;
+    num.querySelector('.mk-n').textContent = n; num.setAttribute('aria-label', n+' changes, reset all'); num.hidden = !n; foot.querySelector('.mk-save').disabled = !n;
     document.querySelectorAll('#kindSeg button').forEach(b=>b.classList.toggle('mk-dirty', countChanges(s.variant,b.dataset.k)>0));
     const tn = E().panelAll(s.variant,s.kind).tweaks.filter(t=>t.role==='timing' && !same(V()[t.k], refOff(s.variant,s.kind,t.k))).length, tb = timingBtn.querySelector('.mk-tnum');
     tb.textContent = tn; tb.hidden = !tn;

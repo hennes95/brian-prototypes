@@ -131,10 +131,11 @@ body.mk-focus-on #tl{width:auto!important;left:50%!important;right:auto!importan
 .dialkit-root .mk-foot{padding-left:9px!important}
 /* the count is a button: hover swaps it for the reset icon (resets every change of this animation) */
 .mk-num{border:0;cursor:pointer;position:relative}
-.mk-num:hover{font-size:0!important}
-.mk-num:hover::before{content:"";position:absolute;inset:3px;background:#fff;
-  -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 8a5 5 0 1 0 1.6-3.7'/%3E%3Cpath d='M3 2.5v3h3'/%3E%3C/svg%3E") center/14px 14px no-repeat;
-          mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 8a5 5 0 1 0 1.6-3.7'/%3E%3Cpath d='M3 2.5v3h3'/%3E%3C/svg%3E") center/14px 14px no-repeat}
+.mk-num{-webkit-appearance:none;appearance:none;line-height:22px}
+.mk-num .mk-n{display:block;font:600 12px/22px Inter,system-ui,-apple-system,sans-serif;color:#fff}
+.mk-num .mk-r{display:none;width:14px;height:14px;color:#fff}
+.mk-num:hover .mk-n{display:none}
+.mk-num:hover .mk-r{display:block}
 /* timing area: collapsed by default, fixed height when open (switching animations never makes the stage jump) */
 .mk-tracks{height:180px;overflow-y:auto}
 .mk-tracks[hidden]{display:none!important}
@@ -196,7 +197,7 @@ html,body{background:#141414!important}
 .mk-prow input{accent-color:#fff}
 .dialkit-root .mk-foot{background:var(--d-glass)!important;border-top-color:var(--d-border)!important}
 .dialkit-root .dialkit-panel-wrapper{border-color:var(--d-border)!important}
-.mk-num:hover::before{background:var(--d-glass)}
+
 .mk-scrub:focus-visible{box-shadow:0 0 0 2px rgba(255,255,255,.5)}
 .mk-scrub .f{background:rgba(255,255,255,.08)}
 .mk-scrub .h{background:rgba(255,255,255,.45)}
