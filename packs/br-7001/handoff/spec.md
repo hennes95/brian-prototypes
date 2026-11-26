@@ -1,6 +1,6 @@
 # BR-7001 · AI Tutor use cases — spec
 
-> Generated from the Feature Workbench at commit `a4f3706`. Same sections as the Notion ticket. Don't edit by hand; change the workbench and export again. Agents start at `HANDOFF.md`.
+> Generated from the Feature Workbench at commit `767c416`. Same sections as the Notion ticket. Don't edit by hand; change the workbench and export again. Agents start at `HANDOFF.md`.
 
 ## Brief
 
@@ -163,5 +163,4 @@
 
 ## Open questions
 
-- [x] Can the tutor link specific activities that open when tapped? (Jaap) → yes
-- [x] Thread title for a use-case thread: how does today's thread-naming logic work, and does it fit a title from the block label (Copies BR-7001, e.g. "Create a study plan")? (Jaap/Ataberk) → flexible so we can do "Study Plan for {dynamiccontentbased}"
+_none_
