@@ -6,7 +6,7 @@ const PACK={
   id:"BR-7147", title:"Redesign Input Field",
   links:[ /* link hub (Implementation), from pack.json → links */
     {label:"Design", name:"Figma · FLOW 2", url:"https://www.figma.com/design/GbI4xt40lr0Jmk3rkgrtM0/Student-App?node-id=12639-183097"},
-    {label:"Copies", name:"no page yet", url:""},
+    {label:"Copies", name:"Copies BR-7147", url:"https://app.notion.com/p/424fca9f403c81cd9caec23dc3d0acde"},
     {label:"Feature Workbench", name:"Feature Workbench", url:"https://claude.ai/artifact/SFdRA3hiQiMcfjCadnfLj9"},
     {label:"Animation Workbench", name:"none yet", url:""},
     {label:"Prototype", name:"Phone prototype", url:"https://hennes95.github.io/brian-prototypes/br-7147/"},
