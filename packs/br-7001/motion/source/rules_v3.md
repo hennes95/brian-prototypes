@@ -1,5 +1,5 @@
-### V3 rules (developer handoff · chosen variant)
-Build V3 only. V1 and V2 above are explored alternatives; their values stay in the manifest for the workbench.
+### V4 rules (developer handoff · chosen variant)
+Build V4 only (manifest variant `E`). V4 is V3 with a smart stagger: whatever moves through the stack (the flying block, the keyboard edge) knocks the blocks loose, the rest go as dominoes. V1–V3 above are explored alternatives; their values stay in the manifest for the workbench.
 
 #### Setup (how the animation is built)
 - R1: Every animation is a pure function of time: `at(tMs) -> Frame`. No per-frame state; scrubbing, replay and tests = sampling `at(t)`.
@@ -26,14 +26,20 @@ Build V3 only. V1 and V2 above are explored alternatives; their values stay in t
 - Tilt reaches 0° at `straighten` % of the flight (cubic-bezier(.2,.8,.2,1)); the block grows by `lift` % mid-flight (sin).
 - Surface (fill, border, shadow, icon) fades from `surfAt` % over `surfDur` %; the label crossfades from block style (12 px bold) to message style (14 px medium, #3a3a3a) from `textAt` % over `textDur` %, scaling between the sizes.
 - Landing: when both springs are at rest the real message text takes over (same position, no jump). Avatar and "Student - hh:mm" fade in from `metaAt` % over `metaFade` ms, rising `metaRise` px. Brian follows `tutorDelay` ms after the flight (fade 600 ms), dots for `loading` ms, then the reply.
-- Other blocks fall: release delay = ripple · |j − i| + random · start; y = y0 + kick·u + ½·gravity·u²; x drift = dr·drift·q·1.6; rotation = spin·(u − q) (±spinRand %, random sign); q = 0.22·(1 − e^(−u/0.22)); wobble = wobble·sign·sin(18u)·e^(−7u).
+- Other blocks fall. When each one lets go (V4):
+  - Blocks above the tapped one (the flying block passes them): at the first moment (sampled in 2 ms steps) the flying block's centre is at or above the block's centre, plus `pass` ms. Push: dx = block x − flying block x at that moment; vx += sign(dx) · `push` · max(0, 1 − |dx| / `reach`) (|dx| < 2 px: random sign); the spin direction follows the push.
+  - Blocks below the tapped one: dominoes, delay = ripple · (j − i) + random · start (nearest first).
+  - Fall physics (all): y = y0 + kick·u + ½·gravity·u²; x drift = dr·drift·q·1.6; rotation = spin·(u − q) (±spinRand %, random sign); q = 0.22·(1 − e^(−u/0.22)); wobble = wobble·sign·sin(18u)·e^(−7u).
 - Intro fades out over 450 ms.
 ##### Focus (user taps the message field)
 - The keyboard slides up right away (the app uses the OS keyboard and its own animation; the input bar rides on it, 245 px higher when open).
-- All blocks break away `blocksAt` ms after the tap, lowest block first (`ripple` ms apart), with the falling physics of Open (`kick`, `gravity`, `spin` ±55 %, `drift`, wobble 7).
+- The edge: the top of the input bar, y = 731 − 245 · kb (kb = keyboard progress). A block lets go `blocksAt` ms after the rising edge reaches its bottom edge (cy + half height of the tilted block; first moment in 2 ms steps). Blocks the edge never reaches (with the keyboard up the edge stops at y 486) follow upwards as dominoes, `ripple` ms after the block below them.
+- Falling physics of Open (`kick`, `gravity`, `spin` ±55 %, `drift`, wobble 7).
 - The intro stays.
 ##### Back out (user leaves the field without sending: tap outside, keyboard swiped down, app switch, call)
-- Identical to Back (same values), started from the Focus state: the keyboard goes down, the blocks rise back in, the intro (still visible) stays.
+- The keyboard goes down (edge y = 731 − 245 · kb sinks). A block whose bottom edge was covered rises back once the sinking edge is at or below it, plus `blocksAt` ms; blocks that were never covered come first, top first, `stagger` ms apart, starting at `blocksAt`.
+- Each block rises `rise` px from below its spot (behind the edge; x ± 60·rand px, tilt ± 30·rand °) on the back spring, opacity 0 → 1 over 120 ms. A block still on screen (the user left right away) springs back from where it is, without fading.
+- Back's values (spring, stagger, rand, blocksAt, tap, total) plus `rise`. The intro (still visible) stays.
 ##### Sending a typed message: no animation
 - As in the app today: the student message appears, the intro goes, the tutor follows. Nothing flies; the keyboard stays up. (Hannes 26.11.)
 ##### Back (user taps "+" in the chat; also after sending)
@@ -45,5 +51,5 @@ Build V3 only. V1 and V2 above are explored alternatives; their values stay in t
 - Disabled while an animation runs / after a block was tapped. No hover on touch devices.
 
 #### Acceptance
-- R9: Test vectors (manifest `vectors.D`): open = block 1, seed 12345; back = seed 777 from the end of open; enter = seed 999; focus = seed 4242; blur (Back out) = seed 5151 from the end of focus. Frames sampled at `T` match within 0.01 px / 0.01° / 0.01 opacity (blocks, intro, stu, tut, kb, morph, stuText). The TS reference port passes all of them.
+- R9: Test vectors (manifest `vectors.E`): open = block 1, seed 12345; back = seed 777 from the end of open; enter = seed 999; focus = seed 4242; blur (Back out) = seed 5151 from the end of focus. Frames sampled at `T` match within 0.01 px / 0.01° / 0.01 opacity (blocks, intro, stu, tut, kb, morph, stuText). The TS reference port passes all of them.
 - R10: 60 fps on a mid-range phone; animate transforms and opacity only.

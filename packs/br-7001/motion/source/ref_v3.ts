@@ -1,14 +1,19 @@
 /**
- * AI Tutor use-case blocks – motion model (V3, final values). Reference port of the package engine (variant D).
+ * AI Tutor use-case blocks – motion model (V4, final values). Reference port of the package engine (variant E = V4).
+ * V4 = V3 plus a smart stagger: whatever moves through the stack (the flying block, the keyboard edge) knocks the blocks loose;
+ * the rest go as dominoes.
  * Pure functions of time: at(tMs) -> Frame. Framework-agnostic; drive it with requestAnimationFrame / a Ticker
  * and hand the frame to the screen code (motion:screen-react / motion:screen-dart), which takes exactly this shape.
  *
  * Animations (every one starts with the user action: `tap` ms finger down, then the motion):
  *   enter()            user opens the AI Tutor tab: blocks arrive near their place, intro text last
- *   open(i)            user taps block i: it flies into the student message and becomes its text; the others fall
+ *   open(i)            user taps block i: it flies into the student message and becomes its text; blocks it passes let go
+ *                      as it passes them (pushed away from its path), blocks below it go as dominoes
  *   back(from)         user taps "+" in the chat: chat fades, blocks rise back in from below, intro returns
- *   focus()            user taps the message field: keyboard slides up, all blocks break away (bottom first)
- *   backOut(from)      user leaves the field without sending: same as back(), keyboard goes down, intro stays
+ *   focus()            user taps the message field: keyboard slides up; a block lets go when the input bar's top edge
+ *                      reaches it, the blocks it never reaches follow upwards as dominoes
+ *   backOut(from)      user leaves the field without sending: keyboard goes down; a block rises back once the edge has
+ *                      uncovered its spot, blocks that were never covered first (top first); intro stays
  * `from` = the frame on screen when the user acted (e.g. open(...).at(t), focus().at(t)).
  * Sending a typed message has no animation: the message appears as in the app today (no function here).
  *
@@ -29,11 +34,12 @@ export const GEO = {
   labelLeft: 44,                         // block label left edge inside the block
   chipFont: 12, msgFont: 14,             // label size in the block / in the message
   kbInputDy: -245,                       // input bar offset when the keyboard is up
+  inputTop: 731,                         // top edge of the input bar with the keyboard down (the edge that knocks blocks loose)
   kbSpring: { visualDuration: 0.38, bounce: 0 } as Spring,   // stand-in for the OS keyboard slide (use the real inset in the app)
   offscreen: 990,                        // falling blocks are done below this y
 };
 
-/** Final tuned values (V3). Change here only. */
+/** Final tuned values (V4). Change here only. */
 // <<PARAMS
 export const P = __PARAMS__;
 // PARAMS>>
@@ -105,6 +111,10 @@ function withTap(m: Raw, tap: number, total: number, pressBlock: boolean): Timel
   return { duration: m.duration * f + tap, motionEnd: m.motionEnd * f + tap,
     at: (t) => ({ ...m.at(Math.max(0, t - tap) / f), pressed: pressBlock && t >= 60 }) };
 }
+/** bottom edge of a resting (tilted) block; the input-bar edge at keyboard progress kb; first sampled time (2 ms steps) where f holds */
+const bottomOf = (d: { cy: number; r: number }) => { const a = Math.abs(d.r) * Math.PI / 180; return d.cy + BLOCK.w / 2 * Math.sin(a) + BLOCK.h / 2 * Math.cos(a); };
+const edgeAt = (kb: number) => GEO.inputTop + GEO.kbInputDy * kb;
+function firstAt(f: (t: number) => boolean, end: number): number | null { for (let t = 0; t <= end; t += 2) if (f(t)) return t; return null; }
 /** falling block (open: the untapped ones; focus: all of them) */
 function faller(d: { cx: number; cy: number; r: number }, dly: number, vy: number, vx: number, w: number, sg: number, wobble: number, g: number) {
   return (t: number): Pose => { const u = Math.max(0, (t - dly) / 1000), q = .22 * (1 - Math.exp(-u / .22));
@@ -137,15 +147,24 @@ export function open(i: number, seed = (Math.random() * 2 ** 31) | 0, p = P.open
   const fx = capped(p.flyX), fy = capped(p.flyY), F = Math.max(visMs(p.flyX), visMs(p.flyY)), flightEnd = Math.max(fx.end, fy.end);
   const surfAt = F * p.surfAt / 100, surfD = Math.max(1, F * p.surfDur / 100), txtAt = F * p.textAt / 100, txtD = Math.max(1, F * p.textDur / 100);
   const metaAt = F * p.metaAt / 100, tutAt = F + p.tutorDelay, straight = Math.max(.01, p.straighten / 100), g = p.gravity;
+  const fxAt = (t: number) => td.cx + (TX - td.cx) * fx.at(t), fyAt = (t: number) => td.cy + (TY - td.cy) * fy.at(t);
   const others = L.map((_, j) => j).filter((j) => j !== i).map((j) => {
     const d = L[j], sd = rnd(), sr = RR(-1, 1), dr = RR(-1, 1), st = rnd();            // draw order matters for parity
-    const dly = p.ripple * Math.abs(j - i) + st * p.start, sg = sd < .5 ? 1 : -1, vy = p.kick;
+    let dly: number, push = 0;
+    if (j < i) {                     // above the tapped block: lets go when the flying block passes it, pushed away from the path
+      const tp = firstAt((t) => fyAt(t) <= d.cy, flightEnd), tt = tp ?? flightEnd, dx = d.cx - fxAt(tt);
+      dly = tt + p.pass;
+      push = (Math.abs(dx) < 2 ? (sd < .5 ? 1 : -1) : Math.sign(dx)) * p.push * Math.max(0, 1 - Math.abs(dx) / Math.max(1, p.reach));
+    } else dly = p.ripple * (j - i) + st * p.start;    // below: dominoes, nearest first
+    const sg = push ? Math.sign(push) : sd < .5 ? 1 : -1, vy = p.kick;
     const tau = (-vy + Math.sqrt(vy * vy + 2 * g * Math.max(GEO.offscreen - d.cy, 0))) / g + .1;
-    return { j, end: dly + tau, at: faller(d, dly, vy, dr * p.drift, sg * p.spin * (1 + sr * p.spinRand / 100), sg, p.wobble, g) };
+    return { j, end: dly + tau * 1000, end3: p.ripple * Math.abs(j - i) + st * p.start + tau,
+             at: faller(d, dly, vy, dr * p.drift + push, sg * p.spin * (1 + sr * p.spinRand / 100), sg, p.wobble, g) };
   });
   const K = GEO.msgFont / GEO.chipFont, doneAt = p.loading > 0 ? tutAt + p.loading : Infinity;
-  const motionEnd = Math.max(flightEnd, metaAt + p.metaFade, ...others.map((n) => n.end)) + 100;
-  const raw: Raw = { motionEnd, duration: Math.max(motionEnd, isFinite(doneAt) ? doneAt + 500 : tutAt + 1200),
+  const end3 = Math.max(flightEnd, metaAt + p.metaFade, ...others.map((n) => n.end3)) + 100;
+  const motionEnd = Math.max(end3, Math.max(...others.map((n) => n.end)) + 100);
+  const raw: Raw = { motionEnd, duration: Math.max(Math.max(end3, isFinite(doneAt) ? doneAt + 500 : tutAt + 1200), motionEnd),
     at: (t) => {
       const pf = clamp(t / F, 0, 1), landed = t >= flightEnd, txe = bezOpacity(clamp((t - txtAt) / txtD, 0, 1)), blocks: Pose[] = [];
       blocks[i] = { cx: td.cx + (TX - td.cx) * fx.at(t), cy: td.cy + (TY - td.cy) * fy.at(t), r: td.r * (1 - bezMsg(clamp(pf / straight, 0, 1))),
@@ -177,16 +196,40 @@ export function back(from: Frame, seed = (Math.random() * 2 ** 31) | 0, p = P.ba
       stu: from.stu * (1 - clamp(t / p.chatOut, 0, 1)), tut: from.tut * (1 - clamp(t / p.chatOut, 0, 1)), done: from.done }) };
   return withTap(raw, p.tap, p.total, false);
 }
-/** BACK OUT: leaving the field without sending (tap outside, keyboard swiped down, app switch). Identical to back(), started
- *  from the Focus state: blocks rise back in, keyboard goes down, the intro (still visible) stays. */
-export const backOut = (from: Frame, seed?: number) => back(from, seed);
+/* ---------- BACK OUT: leaving the field without sending (tap outside, keyboard swiped down, app switch) ----------
+ * The keyboard goes down. A block whose spot the input-bar edge covered rises back (from `rise` px below, behind the edge) once
+ * the sinking edge has uncovered it; blocks that were never covered come first, top first (`stagger` ms apart). A block still
+ * on screen (the user left right away) springs back from where it is. The intro (still visible) stays. */
+export function backOut(from: Frame, seed = (Math.random() * 2 ** 31) | 0, p = P.backOut, L = REST): Timeline {
+  const rnd = mulberry32(seed), sp = capped(p.spring), k0 = from.kb ?? 1; let k = 0;
+  const items = L.map((d, j) => {
+    const b = bottomOf(d), covered = edgeAt(k0) < b, tu = covered ? firstAt((t) => edgeAt(k0 * (1 - KB.at(t))) >= b, KB.end) : null;
+    const a = p.rand, dx = (rnd() * 2 - 1) * 60 * a, dr = (rnd() * 2 - 1) * 30 * a;
+    const q = from.blocks[j], seen = !!q && q.o > 0 && q.cy - (bottomOf({ cy: 0, r: q.r })) < ART.h;
+    const dly = seen ? p.blocksAt : covered ? (tu ?? KB.end) + p.blocksAt : p.blocksAt + p.stagger * (k++);
+    const s0 = seen ? { cx: q.cx, cy: q.cy, r: q.r, o: q.o } : { cx: d.cx + dx, cy: d.cy + p.rise, r: d.r + dr, o: 0 };
+    return { d, dly, s0, seen };
+  });
+  const motionEnd = Math.max(KB.end, ...items.map((it) => it.dly + sp.end)) + 60;
+  const raw: Raw = { motionEnd, duration: motionEnd + 200,
+    at: (t) => ({ kb: k0 * (1 - KB.at(t)), blocks: items.map(({ d, dly, s0, seen }) => { const u = t - dly;
+        if (u < 0) return seen ? { cx: s0.cx, cy: s0.cy, r: s0.r, s: 1, o: s0.o } : { cx: d.cx, cy: 1100, r: d.r, s: 1, o: 0 };
+        const k1 = 1 - sp.at(u);
+        return { cx: d.cx + (s0.cx - d.cx) * k1, cy: d.cy + (s0.cy - d.cy) * k1, r: d.r + (s0.r - d.r) * k1, s: 1, o: seen ? 1 : clamp(u / 120, 0, 1) }; }),
+      intro: 1, stu: 0, tut: 0, done: false }) };
+  return withTap(raw, p.tap, p.total, false);
+}
 
 /* ---------- FOCUS: user taps the message field ----------
- * Keyboard slides up right away; the blocks let go `blocksAt` ms later, lowest block first (`ripple` ms apart), and fall. */
+ * Keyboard slides up right away; a block lets go `blocksAt` ms after the input bar's top edge reaches its bottom edge; blocks the
+ * edge never reaches follow upwards, `ripple` ms apart (dominoes). They fall like the untapped blocks in open(). */
 export function focus(seed = (Math.random() * 2 ** 31) | 0, p = P.focus, L = REST): Timeline {
   const rnd = mulberry32(seed), RR = (a: number, b: number) => a + rnd() * (b - a), g = p.gravity, N = L.length;
+  const rel: number[] = new Array(N);                // when each block lets go: the rising edge reaches it, or dominoes above it
+  for (let j = N - 1; j >= 0; j--) { const b = bottomOf(L[j]), te = firstAt((t) => edgeAt(KB.at(t)) <= b, KB.end);
+    rel[j] = te !== null ? te + p.blocksAt : (j < N - 1 ? rel[j + 1] : p.blocksAt) + p.ripple; }
   const ns = L.map((d, j) => {
-    const sd = rnd(), sr = RR(-1, 1), dr = RR(-1, 1), dly = p.blocksAt + p.ripple * (N - 1 - j), sg = sd < .5 ? 1 : -1, vy = p.kick;
+    const sd = rnd(), sr = RR(-1, 1), dr = RR(-1, 1), dly = rel[j], sg = sd < .5 ? 1 : -1, vy = p.kick;
     const tau = (-vy + Math.sqrt(vy * vy + 2 * g * Math.max(GEO.offscreen - d.cy, 0))) / g + .1;
     return { end: dly + tau * 1000, at: faller(d, dly, vy, dr * p.drift, sg * p.spin * (1 + sr * .55), sg, 7, g) };
   });

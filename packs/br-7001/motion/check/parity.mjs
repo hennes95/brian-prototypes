@@ -1,8 +1,8 @@
-// Parity: TS reference port (out/ref_v3.out.ts) vs the package engine's test vectors (variant D, values.json). Exit 1 on mismatch.
+// Parity: TS reference port (out/ref_v3.out.ts) vs the package engine's test vectors (variant E = V4, manifest values). Exit 1 on mismatch.
 import { createRequire } from 'module'; import { copyFileSync } from 'fs'; import { dirname, join } from 'path'; import { fileURLToPath } from 'url';
 const here = join(dirname(fileURLToPath(import.meta.url)), '..'), require = createRequire(import.meta.url);
 globalThis.window = globalThis; require(join(here, 'source/motionlib.js')); require(join(here, 'out/motion-engine.js'));
-const E = MotionEngine.create({ spring: MotionLib.spring }), v = require(join(here, 'values.json')).values, ref = E.vectors('D', v);
+const E = MotionEngine.create({ spring: MotionLib.spring }), v = require(join(here, 'out/values4.json')), ref = E.vectors('E', v);
 copyFileSync(join(here, 'out/ref_v3.out.ts'), join(here, 'out/ref_check.ts'));
 const R = await import(join(here, 'out/ref_check.ts'));
 const o = R.open(1, 12345), f = R.focus(4242);

@@ -1,18 +1,29 @@
-# Fills the V3 reference ports (TS + Dart) with the saved workbench values (dbdump/tweaks/current.json).
+# Fills the V4 reference ports (TS + Dart) with the saved workbench values (dbdump/tweaks/current.json).
 import json
-v = json.load(open('values.json'))['values']
+import subprocess, re
+# final values = V4 (variant E), exactly as the manifest builds them (assemble.py): saved values, V3 values copied to the
+# V4 keys where nothing was saved for V4, engine defaults for the rest
+vals = {k:x for k,x in json.load(open('values.json'))['values'].items() if 'Blur' not in k and k!='blurSpring3'}
+_d3 = lambda k: k.endswith('3') or k in ('flyYSpring','flyXSpring') or bool(re.match(r'^[fd][A-Z][A-Za-z]*$', k))
+for _k in [k for k in list(vals) if _d3(k)]: vals.setdefault(_k[:-1]+'4' if _k.endswith('3') else _k+'4', vals[_k])
+defs = json.loads(subprocess.run(['node','-e',"global.window=globalThis;require('./source/motionlib.js');require('./out/motion-engine.js');process.stdout.write(JSON.stringify(MotionEngine.create({spring:MotionLib.spring}).defaults()))"],capture_output=True,check=True).stdout)
+v = dict(defs, **vals)
+json.dump(vals, open('out/values4.json','w'))   # the parity check samples the engine with exactly these
 sp = lambda s: {'visualDuration': s['visualDuration'], 'bounce': s['bounce']}
 P = {
- 'enter': {'tap': v['tapEnter3'], 'total': v['durEnter3'], 'stagger': v['staggerEnter3'], 'rand': v['randEnter3']/100, 'textAt': v['textEnter3'], 'spring': sp(v['enterSpring3'])},
- 'open': {'tap': v['tapOpen3'], 'total': v['durOpen3'], 'flyX': sp(v['flyXSpring']), 'flyY': sp(v['flyYSpring']), 'straighten': v['fStraighten'], 'lift': v['fLift'],
-          'surfAt': v['fSurfAt'], 'surfDur': v['fSurfDur'], 'textAt': v['fTextAt'], 'textDur': v['fTextDur'], 'metaAt': v['fMetaAt'], 'metaFade': v['fMetaFade'],
-          'metaRise': v['fMetaRise'], 'tutorDelay': v['fTutorDelay'], 'loading': v['loading3'], 'ripple': v['dRipple'], 'start': v['dStart'], 'kick': v['dKick'],
-          'gravity': v['dGravity'], 'spin': v['dSpin'], 'spinRand': v['dSpinRand'], 'drift': v['dDrift'], 'wobble': v['dWobble']},
- 'back': {'tap': v['tapBack3'], 'total': v['durBack3'], 'stagger': v['staggerBack3'], 'rand': v['randBack3']/100, 'blocksAt': v['blocksAtBack3'],
-          'introAt': v['introAtBack3'], 'introIn': v['introInBack3'], 'chatOut': v['chatOutBack3'], 'spring': sp(v['backSpring3'])},
- 'focus': {'tap': v['tapFocus3'], 'total': v['durFocus3'], 'blocksAt': v['blocksAtFocus3'], 'ripple': v['gRipple3'], 'kick': v['gKick3'], 'gravity': v['gGravity3'],
-           'spin': v['gSpin3'], 'drift': v['gDrift3']},
- 'wiggle': v['wiggle3']/100,
+ 'enter': {'tap': v['tapEnter4'], 'total': v['durEnter4'], 'stagger': v['staggerEnter4'], 'rand': v['randEnter4']/100, 'textAt': v['textEnter4'], 'spring': sp(v['enterSpring4'])},
+ 'open': {'tap': v['tapOpen4'], 'total': v['durOpen4'], 'flyX': sp(v['flyXSpring4']), 'flyY': sp(v['flyYSpring4']), 'straighten': v['fStraighten4'], 'lift': v['fLift4'],
+          'surfAt': v['fSurfAt4'], 'surfDur': v['fSurfDur4'], 'textAt': v['fTextAt4'], 'textDur': v['fTextDur4'], 'metaAt': v['fMetaAt4'], 'metaFade': v['fMetaFade4'],
+          'metaRise': v['fMetaRise4'], 'tutorDelay': v['fTutorDelay4'], 'loading': v['loading4'], 'ripple': v['dRipple4'], 'start': v['dStart4'], 'kick': v['dKick4'],
+          'gravity': v['dGravity4'], 'spin': v['dSpin4'], 'spinRand': v['dSpinRand4'], 'drift': v['dDrift4'], 'wobble': v['dWobble4'],
+          'pass': v['wPass4'], 'push': v['wPush4'], 'reach': v['wReach4']},
+ 'back': {'tap': v['tapBack4'], 'total': v['durBack4'], 'stagger': v['staggerBack4'], 'rand': v['randBack4']/100, 'blocksAt': v['blocksAtBack4'],
+          'introAt': v['introAtBack4'], 'introIn': v['introInBack4'], 'chatOut': v['chatOutBack4'], 'spring': sp(v['backSpring4'])},
+ 'backOut': {'tap': v['tapBack4'], 'total': v['durBack4'], 'stagger': v['staggerBack4'], 'rand': v['randBack4']/100, 'blocksAt': v['blocksAtBack4'],
+          'rise': v['wRise4'], 'spring': sp(v['backSpring4'])},
+ 'focus': {'tap': v['tapFocus4'], 'total': v['durFocus4'], 'blocksAt': v['blocksAtFocus4'], 'ripple': v['gRipple4'], 'kick': v['gKick4'], 'gravity': v['gGravity4'],
+           'spin': v['gSpin4'], 'drift': v['gDrift4']},
+ 'wiggle': v['wiggle4']/100,
 }
 def ts(o, ind='  '):
     if isinstance(o, dict):

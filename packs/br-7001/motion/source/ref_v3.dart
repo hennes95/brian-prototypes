@@ -1,13 +1,16 @@
-// AI Tutor use-case blocks – motion model (V3, final values). Port of the TypeScript reference (motion:ref-ts), same numbers.
+// AI Tutor use-case blocks – motion model (V4, final values). Port of the TypeScript reference (motion:ref-ts), same numbers.
 // Pure functions of time: at(tMs) -> ScreenFrame, the exact frame the screen code (motion:screen-dart) renders.
 // Save the screen code as ai_tutor_screen.dart next to this file (or change the import).
 //
 // Animations (every one starts with the user action: `tap` ms finger down, then the motion):
 //   enter()          user opens the AI Tutor tab: blocks arrive near their place, intro text last
-//   open(i)          user taps block i: it flies into the student message and becomes its text; the others fall
+//   open(i)          user taps block i: it flies into the student message and becomes its text; blocks it passes let go as it
+//                    passes them (pushed away from its path), blocks below it go as dominoes
 //   back(from)       user taps "+" in the chat: chat fades, blocks rise back in from below, intro returns
-//   focus()          user taps the message field: keyboard slides up, all blocks break away (bottom first)
-//   backOut(from)    user leaves the field without sending: same as back(), keyboard goes down, intro stays
+//   focus()          user taps the message field: keyboard slides up; a block lets go when the input bar's top edge reaches it,
+//                    the blocks it never reaches follow upwards as dominoes
+//   backOut(from)    user leaves the field without sending: keyboard goes down; a block rises back once the edge has uncovered
+//                    its spot, blocks that were never covered first (top first); intro stays
 // `from` = the frame on screen when the user acted (e.g. open(...).at(t)).
 // Sending a typed message has no animation: the message appears as in the app today (no function here).
 // Artboard 402 x 874 logical px (scale the whole artboard once by width / 402). Angles in degrees, time in ms.
@@ -19,12 +22,13 @@ import 'ai_tutor_screen.dart' show Pose, Morph, ScreenFrame;
 class Rest { final double cx, cy, r; const Rest(this.cx, this.cy, this.r); }
 /// Where the elements rest (tower, top -> bottom). Any number of elements works.
 const rest = [Rest(200.7, 434.9, -2), Rest(180.7, 490.4, 0), Rest(200.7, 546.4, 2), Rest(219.7, 601.9, -4), Rest(200.7, 658.0, -2)];
-const blockW = 231.5;
+const blockW = 231.5, blockH = 50.0;
 /// Measured geometry (artboard px).
 class Geo {
   static const msgTextLeft = 68.0, msgTextCy = 163.6;      // student message text line: left edge, line centre
   static const labelLeft = 44.0, chipFont = 12.0, msgFont = 14.0;
   static const kbInputDy = -245.0;                         // input bar offset when the keyboard is up
+  static const inputTop = 731.0;                           // top edge of the input bar, keyboard down (the edge that knocks blocks loose)
   static const kbSpring = Spring.visual(0.38, 0);          // stand-in for the OS keyboard slide (use the real inset in the app)
   static const offscreen = 990.0;
 }
@@ -40,18 +44,22 @@ class Spring {
 class EnterP { final double tap, total, stagger, rand, textAt; final Spring spring;
   const EnterP({required this.tap, required this.total, required this.stagger, required this.rand, required this.textAt, required this.spring}); }
 class OpenP { final double tap, total, straighten, lift, surfAt, surfDur, textAt, textDur, metaAt, metaFade, metaRise, tutorDelay, loading,
-    ripple, start, kick, gravity, spin, spinRand, drift, wobble; final Spring flyX, flyY;
+    ripple, start, kick, gravity, spin, spinRand, drift, wobble, pass, push, reach; final Spring flyX, flyY;
   const OpenP({required this.tap, required this.total, required this.flyX, required this.flyY, required this.straighten, required this.lift,
     required this.surfAt, required this.surfDur, required this.textAt, required this.textDur, required this.metaAt, required this.metaFade,
     required this.metaRise, required this.tutorDelay, required this.loading, required this.ripple, required this.start, required this.kick,
-    required this.gravity, required this.spin, required this.spinRand, required this.drift, required this.wobble}); }
+    required this.gravity, required this.spin, required this.spinRand, required this.drift, required this.wobble,
+    required this.pass, required this.push, required this.reach}); }
 class BackP { final double tap, total, stagger, rand, blocksAt, introAt, introIn, chatOut; final Spring spring;
   const BackP({required this.tap, required this.total, required this.stagger, required this.rand, required this.blocksAt, required this.introAt,
     required this.introIn, required this.chatOut, required this.spring}); }
+class BackOutP { final double tap, total, stagger, rand, blocksAt, rise; final Spring spring;
+  const BackOutP({required this.tap, required this.total, required this.stagger, required this.rand, required this.blocksAt, required this.rise,
+    required this.spring}); }
 class FocusP { final double tap, total, blocksAt, ripple, kick, gravity, spin, drift;
   const FocusP({required this.tap, required this.total, required this.blocksAt, required this.ripple, required this.kick, required this.gravity,
     required this.spin, required this.drift}); }
-/// Final tuned values (V3). Change here only.
+/// Final tuned values (V4). Change here only.
 // <<PARAMS
 class P {
   // __PARAMS__
@@ -126,6 +134,10 @@ Pose Function(double) _faller(Rest d, double dly, double vy, double vx, double w
 };
 double _tau(double vy, double g, double cy) => (-vy + math.sqrt(vy * vy + 2 * g * math.max(Geo.offscreen - cy, 0))) / g + .1;
 double _max(Iterable<double> xs) => xs.reduce(math.max);
+/// bottom edge of a resting (tilted) block; the input-bar edge at keyboard progress kb; first sampled time (2 ms steps) where f holds
+double _halfH(double r) { final a = r.abs() * math.pi / 180; return blockW / 2 * math.sin(a) + blockH / 2 * math.cos(a); }
+double _edgeAt(double kb) => Geo.inputTop + Geo.kbInputDy * kb;
+double? _firstAt(bool Function(double) f, double end) { for (var t = 0.0; t <= end; t += 2) { if (f(t)) return t; } return null; }
 
 /* ---------- ENTER: user opens the AI Tutor tab ---------- */
 Timeline enter({int? seed, EnterP p = P.enter, List<Rest> L = rest}) {
@@ -154,15 +166,24 @@ Timeline open(int i, {int? seed, OpenP p = P.open, List<Rest> L = rest}) {
   final fx = _Capped(p.flyX), fy = _Capped(p.flyY), F = math.max(p.flyX.visMs, p.flyY.visMs), flightEnd = math.max(fx.end, fy.end);
   final surfAt = F * p.surfAt / 100, surfD = math.max(1.0, F * p.surfDur / 100), txtAt = F * p.textAt / 100, txtD = math.max(1.0, F * p.textDur / 100);
   final metaAt = F * p.metaAt / 100, tutAt = F + p.tutorDelay, straight = math.max(.01, p.straighten / 100), g = p.gravity;
-  final others = <({int j, double end, Pose Function(double) at})>[];
+  double fxAt(double t) => td.cx + (tx - td.cx) * fx.at(t), fyAt(double t) => td.cy + (ty - td.cy) * fy.at(t);
+  final others = <({int j, double end, double end3, Pose Function(double) at})>[];
   for (var j = 0; j < L.length; j++) { if (j == i) continue;
     final d = L[j], sd = rnd(), sr = rr(-1, 1), dr = rr(-1, 1), st = rnd();            // draw order matters for parity
-    final dly = p.ripple * (j - i).abs() + st * p.start, sg = sd < .5 ? 1.0 : -1.0, vy = p.kick;
-    others.add((j: j, end: dly + _tau(vy, g, d.cy), at: _faller(d, dly, vy, dr * p.drift, sg * p.spin * (1 + sr * p.spinRand / 100), sg, p.wobble, g)));
+    double dly, push = 0;
+    if (j < i) {                    // above the tapped block: lets go when the flying block passes it, pushed away from the path
+      final tt = _firstAt((t) => fyAt(t) <= d.cy, flightEnd) ?? flightEnd, dx = d.cx - fxAt(tt);
+      dly = tt + p.pass;
+      push = (dx.abs() < 2 ? (sd < .5 ? 1.0 : -1.0) : dx.sign) * p.push * math.max(0.0, 1 - dx.abs() / math.max(1.0, p.reach));
+    } else { dly = p.ripple * (j - i) + st * p.start; }   // below: dominoes, nearest first
+    final sg = push != 0 ? push.sign : (sd < .5 ? 1.0 : -1.0), vy = p.kick, tau = _tau(vy, g, d.cy);
+    others.add((j: j, end: dly + tau * 1000, end3: p.ripple * (j - i).abs() + st * p.start + tau,
+        at: _faller(d, dly, vy, dr * p.drift + push, sg * p.spin * (1 + sr * p.spinRand / 100), sg, p.wobble, g)));
   }
   final K = Geo.msgFont / Geo.chipFont, doneAt = p.loading > 0 ? tutAt + p.loading : double.infinity;
-  final motionEnd = _max([flightEnd, metaAt + p.metaFade, ...others.map((n) => n.end)]) + 100;
-  return _withTap(math.max(motionEnd, doneAt.isFinite ? doneAt + 500 : tutAt + 1200), motionEnd, (t, pressed) {
+  final end3 = _max([flightEnd, metaAt + p.metaFade, ...others.map((n) => n.end3)]) + 100;
+  final motionEnd = math.max(end3, _max(others.map((n) => n.end)) + 100);
+  return _withTap(math.max(math.max(end3, doneAt.isFinite ? doneAt + 500 : tutAt + 1200), motionEnd), motionEnd, (t, pressed) {
     final pf = _clamp(t / F, 0, 1), landed = t >= flightEnd, txe = bezOpacity(_clamp((t - txtAt) / txtD, 0, 1));
     final blocks = List<Pose>.filled(L.length, const Pose(0, 0, 0, 1, 1));
     blocks[i] = Pose(td.cx + (tx - td.cx) * fx.at(t), td.cy + (ty - td.cy) * fy.at(t), td.r * (1 - bezMsg(_clamp(pf / straight, 0, 1))),
@@ -194,18 +215,42 @@ Timeline back(ScreenFrame from, {int? seed, BackP p = P.back, List<Rest> L = res
     stu: from.stu * (1 - _clamp(t / p.chatOut, 0, 1)), tut: from.tut * (1 - _clamp(t / p.chatOut, 0, 1)), done: from.done, pressed: pressed),
     p.tap, p.total, false);
 }
-/// BACK OUT: leaving the field without sending (tap outside, keyboard swiped down, app switch). Identical to back(),
-/// started from the Focus state: blocks rise back in, keyboard goes down, the intro (still visible) stays.
-Timeline backOut(ScreenFrame from, {int? seed}) => back(from, seed: seed);
+/* ---------- BACK OUT: leaving the field without sending (tap outside, keyboard swiped down, app switch) ----------
+   The keyboard goes down. A block whose spot the input-bar edge covered rises back (from `rise` px below, behind the edge) once the
+   sinking edge has uncovered it; blocks that were never covered come first, top first (`stagger` ms apart). A block still on screen
+   (the user left right away) springs back from where it is. The intro (still visible) stays. */
+Timeline backOut(ScreenFrame from, {int? seed, BackOutP p = P.backOut, List<Rest> L = rest}) {
+  final rnd = mulberry32(seed ?? _randomSeed()), sp = _Capped(p.spring), k0 = from.kb; var k = 0;
+  final items = <({Rest d, double dly, Pose s0, bool seen})>[];
+  for (var j = 0; j < L.length; j++) {
+    final d = L[j], b = d.cy + _halfH(d.r), covered = _edgeAt(k0) < b;
+    final tu = covered ? _firstAt((t) => _edgeAt(k0 * (1 - _kb.at(t))) >= b, _kb.end) : null;
+    final dx = (rnd() * 2 - 1) * 60 * p.rand, dr = (rnd() * 2 - 1) * 30 * p.rand;
+    final q = j < from.blocks.length ? from.blocks[j] : null, seen = q != null && q.o > 0 && q.cy - _halfH(q.r) < 874;
+    final dly = seen ? p.blocksAt : covered ? (tu ?? _kb.end) + p.blocksAt : p.blocksAt + p.stagger * (k++);
+    items.add((d: d, dly: dly, s0: seen ? q! : Pose(d.cx + dx, d.cy + p.rise, d.r + dr, 1, 0), seen: seen));
+  }
+  final motionEnd = _max([_kb.end, ...items.map((it) => it.dly + sp.end)]) + 60;
+  return _withTap(motionEnd + 200, motionEnd, (t, pressed) => ScreenFrame(kb: k0 * (1 - _kb.at(t)),
+    blocks: [for (final it in items) () { final u = t - it.dly, s0 = it.s0, d = it.d;
+      if (u < 0) return it.seen ? Pose(s0.cx, s0.cy, s0.r, 1, s0.o) : Pose(d.cx, 1100, d.r, 1, 0);
+      final k1 = 1 - sp.at(u);
+      return Pose(d.cx + (s0.cx - d.cx) * k1, d.cy + (s0.cy - d.cy) * k1, d.r + (s0.r - d.r) * k1, 1, it.seen ? 1 : _clamp(u / 120, 0, 1)); }()],
+    intro: 1, stu: 0, tut: 0, done: false, pressed: pressed), p.tap, p.total, false);
+}
 
 /* ---------- FOCUS: user taps the message field ----------
-   Keyboard slides up right away; the blocks let go `blocksAt` ms later, lowest block first (`ripple` ms apart), and fall. */
+   Keyboard slides up right away; a block lets go `blocksAt` ms after the input bar's top edge reaches its bottom edge; blocks the
+   edge never reaches follow upwards, `ripple` ms apart (dominoes). They fall like the untapped blocks in open(). */
 Timeline focus({int? seed, FocusP p = P.focus, List<Rest> L = rest}) {
   final rnd = mulberry32(seed ?? _randomSeed()); double rr(double a, double b) => a + rnd() * (b - a);
   final g = p.gravity, N = L.length;
+  final rel = List<double>.filled(N, 0);             // when each block lets go: the rising edge reaches it, or dominoes above it
+  for (var j = N - 1; j >= 0; j--) { final b = L[j].cy + _halfH(L[j].r), te = _firstAt((t) => _edgeAt(_kb.at(t)) <= b, _kb.end);
+    rel[j] = te != null ? te + p.blocksAt : (j < N - 1 ? rel[j + 1] : p.blocksAt) + p.ripple; }
   final ns = <({double end, Pose Function(double) at})>[];
   for (var j = 0; j < N; j++) {
-    final d = L[j], sd = rnd(), sr = rr(-1, 1), dr = rr(-1, 1), dly = p.blocksAt + p.ripple * (N - 1 - j), sg = sd < .5 ? 1.0 : -1.0, vy = p.kick;
+    final d = L[j], sd = rnd(), sr = rr(-1, 1), dr = rr(-1, 1), dly = rel[j], sg = sd < .5 ? 1.0 : -1.0, vy = p.kick;
     ns.add((end: dly + _tau(vy, g, d.cy) * 1000, at: _faller(d, dly, vy, dr * p.drift, sg * p.spin * (1 + sr * .55), sg, 7, g)));
   }
   final motionEnd = _max([_kb.end, ...ns.map((n) => n.end)]) + 60;

@@ -98,7 +98,7 @@ bld = rep(bld, "P({open:'durOpen',back:'durBack',enter:'durEnter'}[kd],vr)", "P(
 bld = rep(bld, "    if(kd==='idle') return buildIdle(e.seed,vr);", """    if(kd==='idle') return buildIdle(e.seed,vr);
     if(kd==='focus' || kd==='blur' || kd==='send'){ if(vr!=='D' && vr!=='E') return null;
       if(kd==='focus') return withTap(timeScale(vr==='E' ? buildFocus4(vr,e.seed) : buildFocus(vr,e.seed),'focus',vr),FIELD.fieldPt,-1,vr,'focus');
-      if(kd==='blur' && vr==='E') return withTap(timeScale(buildBlur4(vr,e.seed),'blur',vr),[200,300],-1,vr,'blur');
+      if(kd==='blur' && vr==='E'){ const f = ks[vr].focus || {seed:1}, fm = buildFocus4(vr,f.seed); return withTap(timeScale(buildBlur4(vr,e.seed,fm.at(Math.min(e.fromT,fm.dur))),'blur',vr),[200,300],-1,vr,'blur'); }
       if(kd==='send') return withTap(timeScale(buildSend(vr,e.seed,e.text),'send',vr),[FIELD.sendPt[0],FIELD.sendPt[1]+KB.inputDy],-1,vr,'send');
       const f = ks[vr].focus || {seed:1}, fm = buildFocus(vr,f.seed);
       const bm = buildIn('back',e.seed,{model:fm,t:Math.min(e.fromT,fm.dur)},vr); bm.kind = 'blur';   // Back out IS Back, started from the Focus state

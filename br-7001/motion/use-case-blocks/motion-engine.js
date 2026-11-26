@@ -436,7 +436,7 @@ root.MotionEngine = { id:'ai-tutor-blocks', create(ctx){
     if(kd==='idle') return buildIdle(e.seed,vr);
     if(kd==='focus' || kd==='blur' || kd==='send'){ if(vr!=='D' && vr!=='E') return null;
       if(kd==='focus') return withTap(timeScale(vr==='E' ? buildFocus4(vr,e.seed) : buildFocus(vr,e.seed),'focus',vr),FIELD.fieldPt,-1,vr,'focus');
-      if(kd==='blur' && vr==='E') return withTap(timeScale(buildBlur4(vr,e.seed),'blur',vr),[200,300],-1,vr,'blur');
+      if(kd==='blur' && vr==='E'){ const f = ks[vr].focus || {seed:1}, fm = buildFocus4(vr,f.seed); return withTap(timeScale(buildBlur4(vr,e.seed,fm.at(Math.min(e.fromT,fm.dur))),'blur',vr),[200,300],-1,vr,'blur'); }
       if(kd==='send') return withTap(timeScale(buildSend(vr,e.seed,e.text),'send',vr),[FIELD.sendPt[0],FIELD.sendPt[1]+KB.inputDy],-1,vr,'send');
       const f = ks[vr].focus || {seed:1}, fm = buildFocus(vr,f.seed);
       const bm = buildIn('back',e.seed,{model:fm,t:Math.min(e.fromT,fm.dur)},vr); bm.kind = 'blur';   // Back out IS Back, started from the Focus state
@@ -575,7 +575,7 @@ root.MotionEngine = { id:'ai-tutor-blocks', create(ctx){
   Object.keys(DEF).forEach(k=>{ if(V[k]===undefined) V[k] = JSON.parse(JSON.stringify(DEF[k])); });
   /* V3 code reads V3 keys; for V4 the same code reads the V4 values through this view */
   const VOF = vr => vr!=='E' ? V : new Proxy(V,{get:(o,k)=>(typeof k==='string' && D_KEYS.has(k)) ? o[K4(k)] : o[k]});
-  const EDGE0 = 731, kbEdge = kb => EDGE0 + KB.inputDy*kb;              // top of the input bar (artboard px); the keyboard pushes it up
+  const ART_H = 874, EDGE0 = 731, kbEdge = kb => EDGE0 + KB.inputDy*kb;              // top of the input bar (artboard px); the keyboard pushes it up
   const firstAt = (f,end)=>{ for(let t=0;t<=end;t+=2) if(f(t)) return t; return null; };
   const bottomOf = d => d.cy + hh(d.r);
 
@@ -584,9 +584,9 @@ root.MotionEngine = { id:'ai-tutor-blocks', create(ctx){
     const TX = FLY.textLeft-FLY.labelLeft+W/2, TY = FLY.textCy-FLY.labelDy;
     const sx = springEase(V.flyXSpring), sy = springEase(V.flyYSpring), bx = springMs(V.flyXSpring)*1.6, by = springMs(V.flyYSpring)*1.6;
     const fx = t => td.cx+(TX-td.cx)*(t>=bx?1:sx(t)), fy = t => td.cy+(TY-td.cy)*(t>=by?1:sy(t));
-    const rnd = rng(seed*7+13), g = V.dGravity, OFF = 990, end = Math.max(bx,by);
+    const rnd = rng(seed), g = V.dGravity, OFF = 990, end = Math.max(bx,by);          // same draws as V3 Open
     const ns = DEFS.map((d,j)=>j).filter(j=>j!==i).map(j=>{
-      const d = DEFS[j], sd=rnd(), sr=rnd()*2-1, dr=rnd()*2-1, st=rnd();
+      const d = DEFS[j], sd=rnd(), sr=-1+rnd()*2, dr=-1+rnd()*2, st=rnd();
       let dly, push = 0;
       if(j<i){ const tp = firstAt(t=>fy(t)<=d.cy, end); const tt = tp===null ? end : tp;
         dly = tt + V.wPass4;
@@ -614,7 +614,7 @@ root.MotionEngine = { id:'ai-tutor-blocks', create(ctx){
   }
   function buildFocus4(vr,seed){
     const m = buildFocus(vr,seed), V = VOF(vr), rel = releases4(V), rnd = rng(seed), g = V.gGravity3, OFF = 990;
-    const ns = DEFS.map((d,j)=>{ const sd=rnd(), sr=rnd()*2-1, dr=rnd()*2-1;
+    const ns = DEFS.map((d,j)=>{ const sd=rnd(), sr=-1+rnd()*2, dr=-1+rnd()*2;
       const vy = V.gKick3, vx = dr*V.gDrift3, sg = (sd<.5?1:-1), w = sg*V.gSpin3*(1+sr*.55), ts = .22;
       const tau = (-vy+Math.sqrt(vy*vy+2*g*Math.max(OFF-d.cy,0)))/g + .1;
       return {j,d,dly:rel[j],vy,vx,w,sg,ts,end:rel[j]+tau*1000}; });
@@ -625,19 +625,23 @@ root.MotionEngine = { id:'ai-tutor-blocks', create(ctx){
     return m;
   }
   /* Back out: the keyboard sinks; a block rises back once the edge has uncovered its spot; never-covered blocks first, top first */
-  function buildBlur4(vr,seed){
-    const V = VOF(vr), rnd = rng(seed), N = DEFS.length, ba = V.blocksAtBack3, sp = V.backSpring3, ease = springEase(sp), sEnd = springMs(sp)*1.6;
-    const m = {variant:vr,seed,kind:'blur',tapped:-1,i:0}; let k = 0;
+  function buildBlur4(vr,seed,from){
+    const V = VOF(vr), rnd = rng(seed), ba = V.blocksAtBack3, sp = V.backSpring3, ease = springEase(sp), sEnd = springMs(sp)*1.6;
+    const k0 = from && from.kb!==undefined ? from.kb : 1, m = {variant:vr,seed,kind:'blur',tapped:-1,i:0}; let k = 0;
     const ns = DEFS.map((d,j)=>{
-      const b = bottomOf(d), covered = kbEdge(1) < b;
-      const tu = covered ? firstAt(t=>kbEdge(1-kbEase(t))>=b, KB_END) : null;
-      const dly = covered ? (tu===null ? KB_END : tu) + ba : ba + V.staggerBack3*(k++);
-      const a = V.randBack3/100, dx = (rnd()*2-1)*60*a, dr = (rnd()*2-1)*30*a;
-      return {j,d,dly,dx,dr,end:dly+sEnd};
+      const b = bottomOf(d), covered = kbEdge(k0) < b;
+      const tu = covered ? firstAt(t=>kbEdge(k0*(1-kbEase(t)))>=b, KB_END) : null;
+      const a = V.randBack3/100, dx = (-1+rnd()*2)*60*a, dr = (-1+rnd()*2)*30*a;
+      const p = from && from.blocks ? from.blocks[j] : null, seen = !!p && p.o>0 && p.cy-hh(p.r)<ART_H;   // still on screen: springs back from where it is
+      const dly = seen ? ba : covered ? (tu===null ? KB_END : tu) + ba : ba + V.staggerBack3*(k++);
+      const s0 = seen ? {cx:p.cx,cy:p.cy,r:p.r,o:p.o} : {cx:d.cx+dx,cy:d.cy+V.wRise4,r:d.r+dr,o:0};
+      return {j,d,dly,s0,seen,end:dly+sEnd};
     });
     m.motionEnd = Math.max(KB_END, ...ns.map(n=>n.end))+60; m.dur = m.motionEnd+200;
-    m.at = t=>({ kb:1-kbEase(t), blocks: ns.map(n=>{ const u = t-n.dly; if(u<0) return gone(n.d); const e = u>=sEnd ? 1 : ease(u), k1 = 1-e;
-        return {cx:n.d.cx+n.dx*k1, cy:n.d.cy+V.wRise4*k1, r:n.d.r+n.dr*k1, s:1, o:clamp(u/120,0,1)}; }),
+    m.at = t=>({ kb:k0*(1-kbEase(t)), blocks: ns.map(n=>{ const u = t-n.dly, s0 = n.s0;
+        if(u<0) return n.seen ? {cx:s0.cx,cy:s0.cy,r:s0.r,s:1,o:s0.o} : gone(n.d);
+        const e = u>=sEnd ? 1 : ease(u), k1 = 1-e;
+        return {cx:n.d.cx+(s0.cx-n.d.cx)*k1, cy:n.d.cy+(s0.cy-n.d.cy)*k1, r:n.d.r+(s0.r-n.d.r)*k1, s:1, o:n.seen ? 1 : clamp(u/120,0,1)}; }),
       intro:1, shake:[0,0], stu:0, tut:0, done:false });
     return m;
   }
