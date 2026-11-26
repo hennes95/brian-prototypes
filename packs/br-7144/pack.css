@@ -220,3 +220,7 @@ body.native .vw-hd{padding-top:env(safe-area-inset-top)}
 /* text-less message: the line sits close under the attachment (Hannes 25.11) */
 .sm:not(:has(.ans .tx)){gap:12px}
 .sm:not(:has(.ans .tx)) .ans{width:100%}
+
+/* variant "No attachment subtitles" (Hannes 26.11): name/info lines under attachments hidden; loading still shows through the ink dots, the +N badge still counts */
+.phone.nocap .as .cap{display:none}
+.phone.nocap .as-more:has(.more-n){padding-bottom:16px}  /* room for the +N badge that hangs below the stack */

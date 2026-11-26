@@ -75,7 +75,7 @@ const DEFAULT = {
     +`<ul><li>${ai("Top bar gets shorter; title and icons follow the design system (Figma COMPONENT UPDATE)")}</li></ul>`}]}
  ]
 };
-const VARIANTS=[{id:"v1",name:"Design V1",figma:FIG("12117-83")}];
+const VARIANTS=[{id:"v1",name:"Design V1",figma:FIG("12117-83")},{id:"v2-nocap",name:"No attachment subtitles"}];  /* exploration (Hannes 26.11): how much do the name/info lines under attachments add? */
 const CONTEXTS=[
  {id:"tutor",name:"AI Tutor",ctx:"tutor",figma:FIG("12126-163424")},
  {id:"dialog",name:"AI Dialog",ctx:"dialog",figma:FIG("12495-101166")},
@@ -248,7 +248,7 @@ function phoneHTML(st,live={},interactive=true){
   const items=interactive&&(THREAD.length||WAITING)?CHAT.filter(m=>m.t!=="brian"):CHAT;   // the scripted "Brian is generating" only ends the scripted chat
   const extra=interactive?THREAD.map(m=>itemHTML(m,dark)).join("")+(WAITING?brianHTML(""):""):"";
   const bp=KIND==="tablet"||KIND==="desktop";
-  return `<div class="phone bx ${dark?"dark":""}">
+  return `<div class="phone bx ${dark?"dark":""}${ui.variant==="v2-nocap"?" nocap":""}">
     ${STATUS}${topbarHTML(dark)}
     <div class="p-chat"><div class="cx">${items.map(m=>itemHTML(m,dark)).join("")}${extra}</div></div>
     ${composerHTML()}${tab?TABS:`<div class="home"></div>`}
