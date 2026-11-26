@@ -31,12 +31,14 @@
     const sn = await vdoc.get(); const local = loadVStore();
     if(sn.exists && !Object.keys(local).some(k=>k!=='_at')){ const d = sn.data(); if(d && d.panels){ vstore = Object.assign({}, d.panels, {_at:d.at}); Object.keys(restored).forEach(k=>delete restored[k]); if(window.__mockAfterPanel) window.__mockAfterPanel(); } }
   }catch(e){} })();
-  function persistVersions(id){ const ds = DS(), sto = loadVStore();
+  function persistVersions(id){ const ds = DS(), sto = pruneVStore(loadVStore());
     sto[id] = {presets: ds.getPresets(id).map(p=>({id:p.id, name:p.name, values:p.values})), active: ds.getActivePresetId(id)||null, extra: extra[id]||{}};
     sto._at = new Date().toISOString();
     try{ localStorage.setItem(VKEY(), JSON.stringify(sto)); }catch(e){}
     clearTimeout(vT); vT = setTimeout(()=>{ if(!vdoc) return; const panels = JSON.parse(JSON.stringify(sto)), at = panels._at; delete panels._at; const r = vdoc.set({panels, at}); if(r && r.catch) r.catch(()=>{}); }, 600); }
-  function restoreVersions(id){ if(restored[id]) return; restored[id] = 1; const sv = loadVStore()[id]; const ds = DS();
+  const knownPanel = id=>{ try{ const m = __mwb.pkg().manifest; return m.variants.some(v=>m.animations.some(a=>pid(v.id,a.id)===id)); }catch(e){ return true; } };
+  function pruneVStore(sto){ Object.keys(sto).forEach(k=>{ if(k!=='_at' && !knownPanel(k)) delete sto[k]; }); return sto; }
+  function restoreVersions(id){ if(restored[id]) return; restored[id] = 1; const sv = pruneVStore(loadVStore())[id]; const ds = DS();
     if(!sv || !sv.presets || !sv.presets.length || ds.getPresets(id).length) return;
     ds.presets.set(id, sv.presets.map(p=>({id:p.id, name:p.name, values:JSON.parse(JSON.stringify(p.values))})));
     ds.activePreset.set(id, sv.active||null); extra[id] = sv.extra||{}; lastActive[id] = sv.active||null; ds.commit(id); }
@@ -75,7 +77,13 @@
     offPanel(vr,kd).forEach(k=>{ if(!same(V()[k], refOff(vr,kd,k))) n++; });
     return n;
   }
-  function decorate(){
+  /* errors from the panel code go to the artifact database (debug/last), so Claude can read what broke in a viewer's browser */
+  let errDb = null; (async()=>{ try{ errDb = window.claude && claude.use ? await claude.use('db') : null; }catch(e){} })();
+  function report(where, e){ try{ console.error('[mwb] '+where, e); if(errDb) errDb.doc('debug/last').set({where, msg:String(e && e.message || e), stack:String(e && e.stack || '').slice(0,1500), at:new Date().toISOString(), ua:navigator.userAgent}).catch(()=>{}); }catch(_){} }
+  window.addEventListener('error', ev=>report('window', ev.error || ev.message));
+  window.addEventListener('unhandledrejection', ev=>report('promise', ev.reason));
+  function decorate(){ try{ decorate0(); }catch(e){ report('decorate', e); } }
+  function decorate0(){
     const kit = __mwb.dk(); if(!kit) return; const id = kit.id, ds = DS(), s = st();
     try{ if(ds.getBaseName(id)!=='Base') ds.renamePreset(id, null, 'Base'); }catch(e){}
     const vals = ds.getValues(id), ref = refPanel(id), norm = x=>String(x||'').replace(/\s+/g,''), keyOf = {};
@@ -107,7 +115,8 @@
     tb.textContent = tn; tb.hidden = !tn;
     placeDots();
   }
-  function resetAll(){ const s = st(), kit = __mwb.dk(); if(!kit) return; const ref = refPanel(kit.id), up = {};
+  function resetAll(){ try{ resetAll0(); }catch(e){ report('reset', e); } }
+  function resetAll0(){ const s = st(), kit = __mwb.dk(); if(!kit) return; const ref = refPanel(kit.id), up = {};
     Object.keys(ref).forEach(l=>{ const v = ref[l]; up[l] = v && typeof v==='object' ? Object.assign({type:'spring'}, v) : v; });
     offPanel(s.variant,s.kind).forEach(k=>{ V()[k] = refOff(s.variant,s.kind,k); });
     kit.setValues(up); __mwb.retime(); setTimeout(()=>{ decorate(); renderTracks(); }, 120); toast('All changes reset'); }
@@ -134,7 +143,8 @@
   timingBtn.addEventListener('click', ()=>setTiming(!timingOpen)); tracks.hidden = !timingOpen; timingBtn.classList.toggle('on', timingOpen);
   let pxPerMs = .2;
   const snapTo = (t,v)=>{ if(!t) return v; const q = Math.round(v/t.step)*t.step; return Math.min(t.max, Math.max(t.min, +q.toFixed(4))); };
-  function renderTracks(){
+  function renderTracks(){ try{ renderTracks0(); }catch(e){ report('tracks', e); } }
+  function renderTracks0(){
     const m = __mwb.model(); if(!m || !timingOpen){ tracks.innerHTML = ''; const hg = tl.offsetHeight; if(hg!==renderTracks._h){ renderTracks._h = hg; setTimeout(()=>window.dispatchEvent(new Event('resize')),0); } return; }
     const s = st(), vr = s.variant, kd = s.kind, T = E().timeline(vr,kd), tap = V()[T.tap.k], tot = V()[T.total.k];
     const f = tot>0 ? tot/T.total.natural : 1, S = t=>tap+t*f, U = x=>(x-tap)/f, endAt = tap + T.total.natural*f;
