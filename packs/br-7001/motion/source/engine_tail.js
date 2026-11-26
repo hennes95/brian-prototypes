@@ -6,6 +6,7 @@
        block label: left edge 44 from the block's outer left edge (border + 16 padding + 17 icon + 10 gap, as rendered), centred */
   const FLY = {textLeft:68, textCy:163.6, labelLeft:44, labelDy:0, chipFont:12, msgFont:14};
   function build3(vr,i,seed){
+    const V = VOF(vr);
     const rnd = rng(seed), RR = (a,b)=>a+rnd()*(b-a), td = DEFS[i];
     const m = {variant:vr,i,seed,kind:'open',tapped:i};
     const TX = FLY.textLeft-FLY.labelLeft+W/2, TY = FLY.textCy-FLY.labelDy;
@@ -73,6 +74,7 @@
   const atRest = d=>({cx:d.cx,cy:d.cy,r:d.r,s:1,o:1}), gone = d=>({cx:d.cx,cy:1100,r:d.r,s:1,o:0});
 
   function buildFocus(vr,seed){
+    const V = VOF(vr);
     const rnd = rng(seed), RR = (a,b)=>a+rnd()*(b-a), g = V.gGravity3, OFF = 990;
     const m = {variant:vr,seed,kind:'focus',tapped:-1,i:0};
     const ns = DEFS.map((d,j)=>{
@@ -99,21 +101,116 @@
     return m;
   }
 
+  /* ================= V4 (E): V3 plus a smart stagger (exploration, not in the handoff) =================
+     Same screens and dials as V3 with their own values (key + '4'; V3 keys ending in 3 swap the 3 for a 4).
+     Open: blocks the flying block passes let go when it passes them (pushed sideways away from its path, then they fall);
+     blocks below the tapped one go as dominoes. Focus: a block lets go when the rising input-bar edge reaches it; the blocks above
+     the edge's highest point go as dominoes. Back out: each block rises back once the sinking edge uncovers its spot, top first. */
+  SUF.E = '4';
+  const K4 = k => /3$/.test(k) ? k.slice(0,-1)+'4' : k+'4';
+  const D_KEYS = new Set(CAT.D.map(t=>t.k).concat(['flyYSpring','flyXSpring','backSpring3','enterSpring3']));
+  const V4T = [
+    T('wPass','Let go after being passed',0,400,5,30,' ms','How soon a block lets go once the flying block has passed it','The flying block knocks every block it passes; this is the delay after the pass.','The instant it passes.','Late, after the pass.','The blocks above the tapped one.'),
+    T('wPush','Sideways push',0,800,10,260,' px/s','How hard a passed block is pushed away from the flight path','Passed blocks are pushed sideways, away from the flying block, then fall.','No push, they just fall.','Shoved aside.','The blocks above the tapped one.'),
+    T('wReach','Push reach',20,300,5,140,' px','How far from the flight path the push still works','Blocks further than this from the flying block get no push; closer ones get more.','Only blocks right in the path.','Everything gets pushed.','The blocks above the tapped one.'),
+    T('wRise','Rise from',40,400,10,170,' px','How far below its spot a block starts when it comes back','Back out: each block rises this far from behind the keyboard edge into its spot.','Short rise.','Long rise.','The blocks during Back out.')
+  ];
+  CAT.E = CAT.D.map(t=>{ const o = Object.assign({},t,{k:K4(t.k)});
+      if(t.k==='dRipple') Object.assign(o,{label:'Domino delay (below the tapped block)',what:'Blocks below the tapped one let go one after another, nearest first.'});
+      if(t.k==='blocksAtFocus3') Object.assign(o,{label:'Let go after the edge reaches it',what:'A block lets go this long after the rising input bar reaches it.'});
+      if(t.k==='gRipple3') Object.assign(o,{label:'Domino delay (above the keyboard)',what:'Blocks the keyboard never reaches let go one after another, upwards.'});
+      if(t.k==='staggerBack3') Object.assign(o,{what:'Back: delay between blocks. Back out: delay between the blocks the keyboard never covered (top first).'});
+      return o; })
+    .concat(V4T.map(t=>Object.assign({},t,{k:t.k+'4'})));
+  CAT.E.forEach(t=>{ ALL[t.k] = t; if(DEF[t.k]===undefined) DEF[t.k] = t.def; });
+  ['flyYSpring','flyXSpring','backSpring3','enterSpring3'].forEach(k=>{ DEF[K4(k)] = JSON.parse(JSON.stringify(DEF[k])); });
+  D_KEYS.forEach(k=>{ const k4 = K4(k); if(k4 in DEF && DEF[k]!==undefined && typeof DEF[k]!=='object' && !V4T.some(t=>t.k+'4'===k4)) DEF[k4] = DEF[k]; });
+  Object.keys(DEF).forEach(k=>{ if(V[k]===undefined) V[k] = JSON.parse(JSON.stringify(DEF[k])); });
+  /* V3 code reads V3 keys; for V4 the same code reads the V4 values through this view */
+  const VOF = vr => vr!=='E' ? V : new Proxy(V,{get:(o,k)=>(typeof k==='string' && D_KEYS.has(k)) ? o[K4(k)] : o[k]});
+  const EDGE0 = 731, kbEdge = kb => EDGE0 + KB.inputDy*kb;              // top of the input bar (artboard px); the keyboard pushes it up
+  const firstAt = (f,end)=>{ for(let t=0;t<=end;t+=2) if(f(t)) return t; return null; };
+  const bottomOf = d => d.cy + hh(d.r);
+
+  function build4(vr,i,seed){
+    const m = build3(vr,i,seed), V = VOF(vr), td = DEFS[i];
+    const TX = FLY.textLeft-FLY.labelLeft+W/2, TY = FLY.textCy-FLY.labelDy;
+    const sx = springEase(V.flyXSpring), sy = springEase(V.flyYSpring), bx = springMs(V.flyXSpring)*1.6, by = springMs(V.flyYSpring)*1.6;
+    const fx = t => td.cx+(TX-td.cx)*(t>=bx?1:sx(t)), fy = t => td.cy+(TY-td.cy)*(t>=by?1:sy(t));
+    const rnd = rng(seed*7+13), g = V.dGravity, OFF = 990, end = Math.max(bx,by);
+    const ns = DEFS.map((d,j)=>j).filter(j=>j!==i).map(j=>{
+      const d = DEFS[j], sd=rnd(), sr=rnd()*2-1, dr=rnd()*2-1, st=rnd();
+      let dly, push = 0;
+      if(j<i){ const tp = firstAt(t=>fy(t)<=d.cy, end); const tt = tp===null ? end : tp;
+        dly = tt + V.wPass4;
+        const dx = d.cx - fx(tt), near = Math.max(0, 1-Math.abs(dx)/Math.max(1,V.wReach4));
+        push = (Math.abs(dx)<2 ? (sd<.5?1:-1) : Math.sign(dx)) * V.wPush4 * near; }
+      else dly = V.dRipple*(j-i) + st*V.dStart;
+      const vy = V.dKick, vx = dr*V.dDrift + push, sg = push ? Math.sign(push) : (sd<.5?1:-1), w = sg*V.dSpin*(1+sr*V.dSpinRand/100), ts = .22;
+      const tau = (-vy+Math.sqrt(vy*vy+2*g*Math.max(OFF-d.cy,0)))/g + .1;
+      return {j,d,dly,vy,vx,w,sg,ts,end:dly+tau*1000};
+    });
+    m.motionEnd = Math.max(m.motionEnd, Math.max(...ns.map(n=>n.end))+100); m.dur = Math.max(m.dur, m.motionEnd);
+    const base = m.at;
+    m.at = t=>{ const f = base(t);
+      ns.forEach(n=>{ const u = Math.max(0,(t-n.dly)/1000), q = n.ts*(1-Math.exp(-u/n.ts));
+        f.blocks[n.j] = {cx:n.d.cx+n.vx*q*1.6, cy:n.d.cy+n.vy*u+.5*g*u*u, r:n.d.r+n.w*(u-q)+V.dWobble*n.sg*Math.sin(u*18)*Math.exp(-u*7), s:1, o:1}; });
+      return f; };
+    return m;
+  }
+  /* Focus: release time = when the input-bar edge reaches the block's bottom; blocks it never reaches follow upwards as dominoes */
+  function releases4(V){
+    const N = DEFS.length, rel = new Array(N);
+    for(let j=N-1;j>=0;j--){ const b = bottomOf(DEFS[j]), te = firstAt(t=>kbEdge(kbEase(t))<=b, KB_END);
+      rel[j] = te!==null ? te + V.blocksAtFocus3 : (j<N-1 ? rel[j+1] : V.blocksAtFocus3) + V.gRipple3; }
+    return rel;
+  }
+  function buildFocus4(vr,seed){
+    const m = buildFocus(vr,seed), V = VOF(vr), rel = releases4(V), rnd = rng(seed), g = V.gGravity3, OFF = 990;
+    const ns = DEFS.map((d,j)=>{ const sd=rnd(), sr=rnd()*2-1, dr=rnd()*2-1;
+      const vy = V.gKick3, vx = dr*V.gDrift3, sg = (sd<.5?1:-1), w = sg*V.gSpin3*(1+sr*.55), ts = .22;
+      const tau = (-vy+Math.sqrt(vy*vy+2*g*Math.max(OFF-d.cy,0)))/g + .1;
+      return {j,d,dly:rel[j],vy,vx,w,sg,ts,end:rel[j]+tau*1000}; });
+    m.motionEnd = Math.max(KB_END, ...ns.map(n=>n.end))+60; m.dur = m.motionEnd+200;
+    m.at = t=>({ blocks: ns.map(n=>{ const u = Math.max(0,(t-n.dly)/1000), q = n.ts*(1-Math.exp(-u/n.ts));
+        return {cx:n.d.cx+n.vx*q*1.6, cy:n.d.cy+n.vy*u+.5*g*u*u, r:n.d.r+n.w*(u-q)+7*n.sg*Math.sin(u*18)*Math.exp(-u*7), s:1, o:1}; }),
+      intro:1, shake:[0,0], stu:0, tut:0, done:false, kb:kbEase(t), field:0, focus:1 });
+    return m;
+  }
+  /* Back out: the keyboard sinks; a block rises back once the edge has uncovered its spot; never-covered blocks first, top first */
+  function buildBlur4(vr,seed){
+    const V = VOF(vr), rnd = rng(seed), N = DEFS.length, ba = V.blocksAtBack3, sp = V.backSpring3, ease = springEase(sp), sEnd = springMs(sp)*1.6;
+    const m = {variant:vr,seed,kind:'blur',tapped:-1,i:0}; let k = 0;
+    const ns = DEFS.map((d,j)=>{
+      const b = bottomOf(d), covered = kbEdge(1) < b;
+      const tu = covered ? firstAt(t=>kbEdge(1-kbEase(t))>=b, KB_END) : null;
+      const dly = covered ? (tu===null ? KB_END : tu) + ba : ba + V.staggerBack3*(k++);
+      const a = V.randBack3/100, dx = (rnd()*2-1)*60*a, dr = (rnd()*2-1)*30*a;
+      return {j,d,dly,dx,dr,end:dly+sEnd};
+    });
+    m.motionEnd = Math.max(KB_END, ...ns.map(n=>n.end))+60; m.dur = m.motionEnd+200;
+    m.at = t=>({ kb:1-kbEase(t), blocks: ns.map(n=>{ const u = t-n.dly; if(u<0) return gone(n.d); const e = u>=sEnd ? 1 : ease(u), k1 = 1-e;
+        return {cx:n.d.cx+n.dx*k1, cy:n.d.cy+V.wRise4*k1, r:n.d.r+n.dr*k1, s:1, o:clamp(u/120,0,1)}; }),
+      intro:1, shake:[0,0], stu:0, tut:0, done:false });
+    return m;
+  }
+
   /* ================= PANEL (which tweaks belong to which animation) ================= */
-  const SPR_ALL = {moveSpring:'Open: block morph (spring)', flyYSpring:'Open: flight up (Y spring)', flyXSpring:'Open: flight left (X spring), differs from Y = arc',
+  const SPR_ALL = {moveSpring:'Open: block morph (spring)', flyYSpring:'Open: flight up (Y spring)', flyXSpring:'Open: flight left (X spring), differs from Y = arc', flyYSpring4:'Open: flight up (Y spring)', flyXSpring4:'Open: flight left (X spring), differs from Y = arc', backSpring4:'Back: blocks (spring)', enterSpring4:'Enter: blocks (spring)',
     backSpring1:'Back: blocks (spring)', backSpring2:'Back: blocks (spring)', backSpring3:'Back: blocks (spring)',
     enterSpring1:'Enter: blocks (spring)', enterSpring2:'Enter: blocks (spring)', enterSpring3:'Enter: blocks (spring)',
     sendYSpring:'Send: text up (Y spring)', sendXSpring:'Send: text left (X spring), differs from Y = arc'};
   const KEYS = {back:['durBack','tapBack','staggerBack','randBack','chatOutBack','blocksAtBack','introAtBack','introInBack'], enter:['durEnter','tapEnter','staggerEnter','inLead','textEnter','randEnter','wiggle'],
-    focus:['durFocus','tapFocus','blocksAtFocus','gRipple','gKick','gGravity','gSpin','gDrift'], blur:['durBack','tapBack','staggerBack','randBack','blocksAtBack','introAtBack','introInBack'],
+    focus:['durFocus','tapFocus','blocksAtFocus','gRipple','gKick','gGravity','gSpin','gDrift'], blur:['durBack','tapBack','staggerBack','randBack','blocksAtBack','introAtBack','introInBack','wRise'],
     send:['durSend','tapSend','sMetaAt','sMetaFade','sMetaRise','sTutorDelay']};
   const labOf = t => t.label + (t.unit.trim()?' ('+t.unit.trim()+')':'');
   function panel(vr,kind){
     const showTw = t => kind==='open'
       ? (vr==='D' ? (/^[fd][A-Z]/.test(t.k) || ['tapOpen3','loading3','durOpen3'].includes(t.k))
+       : vr==='E' ? (/^[fd][A-Z]/.test(t.k) || ['tapOpen4','loading4','durOpen4','wPass4','wPush4','wReach4'].includes(t.k))
                   : (/^[bc][A-Z]/.test(t.k) || ['wind','shake','tapOpen','loading','durOpen'].includes(t.k.slice(0,-1))))
       : (KEYS[kind]||KEYS.enter).includes(t.k.slice(0,-1));
-    const showSpr = k => kind==='blur' ? k===('backSpring'+SUF[vr]) : kind==='send' ? (k==='sendYSpring'||k==='sendXSpring') : kind==='open' ? (vr==='C' ? k==='moveSpring' : vr==='D' ? (k==='flyYSpring'||k==='flyXSpring') : false) : k===(kind+'Spring'+SUF[vr]);
+    const showSpr = k => kind==='blur' ? k===('backSpring'+SUF[vr]) : kind==='send' ? (k==='sendYSpring'||k==='sendXSpring') : kind==='open' ? (vr==='C' ? k==='moveSpring' : vr==='D' ? (k==='flyYSpring'||k==='flyXSpring') : vr==='E' ? (k==='flyYSpring4'||k==='flyXSpring4') : false) : k===(kind+'Spring'+SUF[vr]);
     const TW = CAT[vr].filter(showTw).sort((a,b)=>(/^dur/.test(b.k)?1:0)-(/^dur/.test(a.k)?1:0));   // total duration first
     return {tweaks:TW.map(t=>({k:t.k,label:labOf(t),def:t.def,min:t.min,max:t.max,step:t.step,unit:t.unit.trim(),what:t.what,role:roleOf(vr,kind,t.k)})),
             springs:Object.keys(SPR_ALL).filter(showSpr).map(k=>({k,label:SPR_ALL[k],def:DEF[k]}))};
@@ -129,22 +226,28 @@
     try{ const K = {[vr]:{open:{seed:1,i:1}, back:{seed:1,fromT:Infinity}, enter:{seed:1}, focus:{seed:1}, blur:{seed:1,fromT:Infinity}, send:{seed:1}}}, m = modelFor(vr,kd,K); return m ? m.motionEnd - m.tapLead : 0; }
     finally{ V[dk] = keep; }
   }
-  function timeline(vr,kd){
-    const s = SUF[vr];
-    if(V3ONLY[kd] && vr!=='D') return {tap:{k:'tap'+KN[kd]+s}, total:{k:'dur'+KN[kd]+s, natural:0}, lanes:[]};
+  function timeline(vr,kd){ const tl = timeline0(vr,kd); if(vr!=='E') return tl;
+    const map = o=>{ if(o && D_KEYS.has(o.k)) o.k = K4(o.k); };
+    tl.lanes.forEach(l=>{ map(l.start); map(l.end); }); return tl; }
+  function timeline0(vr,kd){
+    const s = SUF[vr], V = VOF(vr);
+    if(V3ONLY[kd] && vr!=='D' && vr!=='E') return {tap:{k:'tap'+KN[kd]+s}, total:{k:'dur'+KN[kd]+s, natural:0}, lanes:[]};
     const end = naturalEnd(vr,kd), L = [], lock = (lane,a,b,note)=>L.push({lane,a,b,note,locked:true});
     if(kd==='focus'){
       lock('Keyboard slides up',0,KB_END,'system');
-      L.push({lane:'Blocks break away',a:V.blocksAtFocus3,b:end,note:'physics · bottom first',start:{k:'blocksAtFocus3',base:0,per:1}});
+      if(vr==='E') lock('Blocks break away',Math.min(...releases4(V)),end,'when the edge reaches them · dominoes above');
+      else L.push({lane:'Blocks break away',a:V.blocksAtFocus3,b:end,note:'physics · bottom first',start:{k:'blocksAtFocus3',base:0,per:1}});
     } else if(kd==='blur'){                     // Back out = the Back animation applied from the Focus state (same dials), plus the keyboard
-      const tb = timeline(vr,'back'); tb.lanes = [{lane:'Keyboard goes down',a:0,b:KB_END,note:'system',locked:true}].concat(tb.lanes.filter(l=>!/chat/i.test(l.lane)));
+      if(vr==='E'){ lock('Keyboard goes down',0,KB_END,'system'); L.push({lane:'Blocks rise',a:V.blocksAtBack3,b:end,note:'as the edge uncovers them · top first',start:{k:'blocksAtBack3',base:0,per:1}});
+        return {tap:{k:'tapBack4'}, total:{k:'durBack4', natural:end}, lanes:L}; }
+      const tb = timeline0(vr,'back'); tb.lanes = [{lane:'Keyboard goes down',a:0,b:KB_END,note:'system',locked:true}].concat(tb.lanes.filter(l=>!/chat/i.test(l.lane)));
       tb.total = Object.assign({}, tb.total, {natural:end}); return tb;
     } else if(kd==='send'){
       const F = Math.max(visMs(V.sendXSpring), visMs(V.sendYSpring)), tut = F+V.sTutorDelay3;
       lock('Text flies up',0,F,'X / Y springs'); lock('Intro fades',0,450,'');
       L.push({lane:'Avatar + name',a:F*V.sMetaAt3/100,b:F*V.sMetaAt3/100+V.sMetaFade3,start:{k:'sMetaAt3',base:0,per:F/100},end:{k:'sMetaFade3',base:F*V.sMetaAt3/100,per:1}});
       L.push({lane:'Brian',a:tut,b:tut+600,start:{k:'sTutorDelay3',base:F,per:1}});
-    } else if(kd==='open' && vr==='D'){
+    } else if(kd==='open' && (vr==='D'||vr==='E')){
       const F = Math.max(visMs(V.flyXSpring), visMs(V.flyYSpring)), tut = F+V.fTutorDelay;
       lock('Flight',0,F,'X / Y springs');
       L.push({lane:'Surface fades',a:F*V.fSurfAt/100,b:F*(V.fSurfAt+V.fSurfDur)/100,start:{k:'fSurfAt',base:0,per:F/100},end:{k:'fSurfDur',base:F*V.fSurfAt/100,per:F/100}});
@@ -189,7 +292,7 @@
     const keep = V; if(values) setValues(Object.assign({},DEF,values));
     const KS = {}; KS[vr] = {open:{seed:12345,i:1}, back:{seed:777,fromT:Infinity}, enter:{seed:999}, focus:{seed:4242}, blur:{seed:5151,fromT:Infinity}, send:{seed:6262}};
     const rd = v=>Math.round(v*100)/100, out = {T:VEC_T};
-    try{ ['open','back','enter'].concat(vr==='D'?['focus','blur']:[]).forEach(kd=>{ const m = modelFor(vr,kd,KS);
+    try{ ['open','back','enter'].concat(vr==='D'||vr==='E'?['focus','blur']:[]).forEach(kd=>{ const m = modelFor(vr,kd,KS);
       out[kd] = {duration:rd(m.dur),s:VEC_T.map(t=>{ const st = m.at(t); const o = {b:st.blocks.map(b=>[rd(b.cx),rd(b.cy),rd(b.r),rd(b.s),rd(b.o)]),intro:rd(st.intro),stu:rd(st.stu),tut:rd(st.tut)};
         if(st.kb!==undefined) o.kb = rd(st.kb); if(st.fly) o.fly = [rd(st.fly.x),rd(st.fly.cy),rd(st.fly.o)]; if(st.morph) o.m = [rd(st.morph.surface),rd(st.morph.chip),rd(st.morph.chipScale),rd(st.morph.msg),rd(st.morph.msgScale)]; if(st.stuText!==undefined) o.st = rd(st.stuText); return o; })}; }); }
     finally{ setValues(keep); }

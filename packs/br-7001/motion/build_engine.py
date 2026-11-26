@@ -73,7 +73,7 @@ defs = A(149,150) + '''
 blocks = A(216,232)
 bld = A(302,526)
 bld = rep(bld, A(321,325), "  const lblOff = i => 43 - W/2;   // label left edge, measured in the prototype: 43 px inside the block (same for every block)")
-bld = rep(bld, "    if(vr!=='C') return buildV1(vr,i,seed);", "    if(vr==='D') return build3(vr,i,seed);\n    if(vr!=='C') return buildV1(vr,i,seed);")
+bld = rep(bld, "    if(vr!=='C') return buildV1(vr,i,seed);", "    if(vr==='D') return build3(vr,i,seed);\n    if(vr==='E') return build4(vr,i,seed);\n    if(vr!=='C') return buildV1(vr,i,seed);")
 bld = rep(bld, "function buildIn(kd,seed,from){", "function buildIn(kd,seed,from,variant){")
 bld = rep(bld, "(kd==='enter' && variant==='C')", "(kd==='enter' && variant!=='B')")
 bld = rep(bld, "from.model.variant==='C'", "from.model.variant!=='B'")
@@ -96,13 +96,14 @@ bld = rep(bld, "stu: stu0*(1-clamp(t/450,0,1)), tut: tut0*(1-clamp(t/450,0,1))",
 bld = rep(bld, "P('tap'+({open:'Open',back:'Back',enter:'Enter'}[kd]),vr)", "P('tap'+({open:'Open',back:'Back',enter:'Enter',focus:'Focus',blur:'Back',send:'Send'}[kd]),vr)")
 bld = rep(bld, "P({open:'durOpen',back:'durBack',enter:'durEnter'}[kd],vr)", "P({open:'durOpen',back:'durBack',enter:'durEnter',focus:'durFocus',blur:'durBack',send:'durSend'}[kd],vr)")
 bld = rep(bld, "    if(kd==='idle') return buildIdle(e.seed,vr);", """    if(kd==='idle') return buildIdle(e.seed,vr);
-    if(kd==='focus' || kd==='blur' || kd==='send'){ if(vr!=='D') return null;
-      if(kd==='focus') return withTap(timeScale(buildFocus(vr,e.seed),'focus',vr),FIELD.fieldPt,-1,vr,'focus');
+    if(kd==='focus' || kd==='blur' || kd==='send'){ if(vr!=='D' && vr!=='E') return null;
+      if(kd==='focus') return withTap(timeScale(vr==='E' ? buildFocus4(vr,e.seed) : buildFocus(vr,e.seed),'focus',vr),FIELD.fieldPt,-1,vr,'focus');
+      if(kd==='blur' && vr==='E') return withTap(timeScale(buildBlur4(vr,e.seed),'blur',vr),[200,300],-1,vr,'blur');
       if(kd==='send') return withTap(timeScale(buildSend(vr,e.seed,e.text),'send',vr),[FIELD.sendPt[0],FIELD.sendPt[1]+KB.inputDy],-1,vr,'send');
       const f = ks[vr].focus || {seed:1}, fm = buildFocus(vr,f.seed);
       const bm = buildIn('back',e.seed,{model:fm,t:Math.min(e.fromT,fm.dur)},vr); bm.kind = 'blur';   // Back out IS Back, started from the Focus state
       return withTap(timeScale(bm,'blur',vr),[200,300],-1,vr,'blur'); }""")
-bld = rep(bld, "    if(kd==='back'){ const o = ks[vr].open; if(!o) return null; const om = build(vr,o.i,o.seed);", "    if(kd==='back'){ const o = ks[vr].open, sd = ks[vr].send; if(e.from==='send' && sd && vr==='D'){ const sm = buildSend(vr,sd.seed,sd.text); return withTap(timeScale(buildIn('back',e.seed,{model:sm,t:Math.min(e.fromT,sm.dur)},vr),'back',vr),PLUS_PT,-1,vr,'back'); } if(!o) return null; const om = build(vr,o.i,o.seed);")
+bld = rep(bld, "    if(kd==='back'){ const o = ks[vr].open; if(!o) return null; const om = build(vr,o.i,o.seed);", "    if(kd==='back'){ const o = ks[vr].open, sd = ks[vr].send; if(e.from==='send' && sd && (vr==='D'||vr==='E')){ const sm = buildSend(vr,sd.seed,sd.text); return withTap(timeScale(buildIn('back',e.seed,{model:sm,t:Math.min(e.fromT,sm.dur)},vr),'back',vr),PLUS_PT,-1,vr,'back'); } if(!o) return null; const om = build(vr,o.i,o.seed);")
 bld = rep(bld, "    m.at = t=>({\n      blocks: items.map(it=>{", "    const kb0 = st0 && st0.kb ? st0.kb : 0;\n    m.at = t=>({ kb: kb0 ? kb0*(1-kbEase(t)) : undefined,\n      blocks: items.map(it=>{")
 
 import re

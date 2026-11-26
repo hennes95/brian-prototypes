@@ -53,16 +53,29 @@ The tapped block’s label is the prompt sent to the tutor, so it flies up-left 
 4. Landing: when both springs are at rest the real message text takes over (same position, so no jump). Avatar and “Student - hh:mm” fade in from `fMetaAt` % (rising `fMetaRise` px); Brian follows `fTutorDelay` ms after the flight.
 5. The other blocks fall as in V2, with their own values. Back and Enter work as in V2, with their own values.
 
+### V4 · smart stagger (exploration, not in the handoff)
+V3 with its own values; only the order in which blocks leave and return changes: whatever moves through the stack knocks the blocks loose, the rest go as dominoes.
+- Open: a block the flying block passes lets go `wPass` ms after the pass, pushed sideways away from the path (`wPush` px/s, fading out over `wReach` px), then falls; blocks below the tapped one go as dominoes (`dRipple` ms apart, nearest first).
+- Focus: a block lets go `blocksAtFocus` ms after the rising input-bar edge reaches its bottom; blocks the edge never reaches follow upwards as dominoes (`gRipple`).
+- Back out: a block rises `wRise` px back into its spot once the sinking edge has uncovered it; blocks that were never covered come first, top first (`staggerBack`).
+- Enter and Back: as V3.
+
 ''' + open('source/rules_v3.md').read().strip()
 manifest = {"format":"motion-package/1","id":"ai-tutor-blocks","title":"AI Tutor · Use-case blocks","screen":"AI Tutor home screen","valuesRevision":1,
   "artboard":{"w":402,"h":874,"statusBar":40},"fonts":"Nunito Sans 500 / 700 (Google Fonts); Inter 600 for the status-bar time",
   "fontLinks":["https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@500;700&display=swap"],
-  "variants":[{"id":"B","name":"V1","about":"physical push"},{"id":"C","name":"V2","about":"handoff: block flies to the message, the others fall"},{"id":"D","name":"V3","about":"block flies into the student message and becomes its text"}],
+  "variants":[{"id":"B","name":"V1","about":"physical push"},{"id":"C","name":"V2","about":"handoff: block flies to the message, the others fall"},{"id":"D","name":"V3","about":"block flies into the student message and becomes its text"},{"id":"E","name":"V4","about":"V3 plus a smart stagger: what moves through the stack knocks the blocks loose (exploration, not in the handoff)"}],
   "defaultVariant":"D",
-  "animations":[{"id":"enter","name":"Enter","trigger":"open the AI Tutor tab"},{"id":"open","name":"Open","trigger":"tap a block"},{"id":"focus","name":"Focus","trigger":"tap the message field","variants":["D"]},{"id":"blur","name":"Back out","trigger":"tap outside the field while typing","variants":["D"]},{"id":"back","name":"Back","trigger":"tap “+” in the chat header"}],
+  "animations":[{"id":"enter","name":"Enter","trigger":"open the AI Tutor tab"},{"id":"open","name":"Open","trigger":"tap a block"},{"id":"focus","name":"Focus","trigger":"tap the message field","variants":["D","E"]},{"id":"blur","name":"Back out","trigger":"tap outside the field while typing","variants":["D","E"]},{"id":"back","name":"Back","trigger":"tap “+” in the chat header"}],
   "keyframeFormat":"phase: open = block tapped, back = plus button pressed (blocks fly back to the tower), enter = tab entry (blocks fly in); every animation starts with the user action (touch=[x,y,scale,opacity,type] finger down for the tap lead, pressed = tapped block dark) and then the animation plays; frames[].blocks[j]=[centerX,centerY,rotationDeg,scale,opacity] in artboard px (scale = resize the block, not a raster scale); intro = empty-state opacity; chat=[studentMsg,brianMsg,replyShown] 0-1; shake=[dx,dy] whole artboard; V3 frames add morph = {block, surface opacity, chipLabel [opacity, scale], messageLabel [opacity, scale], studentText}",
   "interactionDefaults":{"pressMs":150,"note":"one press / tap length for every UI interaction that starts an animation"},
   "values":{k:x for k,x in json.load(open('values.json'))['values'].items() if 'Blur' not in k and k!='blurSpring3'}}   # the values saved in the workbench
+# V4 starts from V3's saved values (own keys: a trailing 3 becomes 4, V3-only keys get a 4); values saved for V4 win
+_v = manifest['values']; _d3 = lambda k: k.endswith('3') or k in ('flyYSpring','flyXSpring') or bool(re.match(r'^[fd][A-Z][A-Za-z]*$', k))
+for _k in [k for k in list(_v) if _d3(k)]:
+    _k4 = _k[:-1]+'4' if _k.endswith('3') else _k+'4'
+    _v.setdefault(_k4, json.loads(json.dumps(_v[_k])))
+_v.update({k:x for k,x in json.load(open('values.json')).get('values4',{}).items()})
 manifest['vectors'] = json.loads(subprocess.run(['node','vec.js'],input=json.dumps(manifest).encode(),capture_output=True,check=True).stdout)
 engine = open('out/motion-engine.js').read()
 F = '````'
