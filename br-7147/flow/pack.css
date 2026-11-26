@@ -440,5 +440,4 @@ body.native .v-pill.notab:not(.focused){padding-bottom:4px;margin-bottom:calc(10
 .phone.sqatt .att.a-doc{margin-bottom:0}
 .phone.sqatt .att.a-doc.a-up .dink{clip-path:polygon(0 0,76% 0,76% 21.8%,97.7% 21.8%,97.7% 97.7%,0 97.7%)}
 /* remove button per Figma miniatures (Hannes 26.11): 16px dark square, 12px Close, its edge lines up with where the picture starts (photo frame 3px; canvas and document 2px) */
-.att .rm{top:2px;left:2px;width:16px;height:16px;box-sizing:border-box;border:1px solid #fff}  /* white outline stays to separate it from the picture (Hannes 26.11) */
-.att.a-image .rm,.att.a-up .rm{top:3px;left:3px}
+.att .rm{top:2px;left:2px;width:18px;height:18px;box-sizing:border-box;border:1px solid #fff}  /* dark 16px square flush with the picture's corner (3px in), white 1px outline around it (Hannes 26.11, same as Figma) */
