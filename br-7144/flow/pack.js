@@ -278,7 +278,6 @@ function wireChat(kind,proto){
   else if(kind==="scroll"){ ch.scrollTop=Math.max(0,ch.scrollHeight*0.35); }
   else if(hits.length){ const a=hits[0]; ch.scrollTop=Math.max(0,a.offsetTop-Math.max(16,(ch.clientHeight-a.offsetHeight)/2)); }
   else ch.scrollTop=ch.scrollHeight;
-  if(!proto) hits.forEach(n=>n.classList.add("hl"));
   /* scrolling back: top bar out to the top, input field (and tab bar) out to the bottom; scrolling down brings them back */
   let lastTop=ch.scrollTop, hid=false, lockUntil=0;
   const typing=()=>document.activeElement&&document.activeElement.closest&&!!document.activeElement.closest("#pwrap .fld");

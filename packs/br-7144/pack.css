@@ -31,7 +31,7 @@ body.native .phone.dark .ci{padding-bottom:calc(12px + env(safe-area-inset-botto
 .cx{display:flex;flex-direction:column;gap:8px;padding:16px 0 8px;min-height:100%;justify-content:flex-end;box-sizing:border-box}
 
 /* Chat_TutorMessage: full width, icon row below */
-.tm{display:flex;flex-direction:column;gap:20px;padding:12px 0 4px}
+.tm{display:flex;flex-direction:column;gap:12px;padding:12px 0 4px}
 .tp{padding:0 24px;display:flex;flex-direction:column;gap:8px}
 .tp p{margin:0}
 .tm .act{display:flex;gap:16px;padding-left:24px;height:16px}
@@ -40,8 +40,9 @@ body.native .phone.dark .ci{padding-bottom:calc(12px + env(safe-area-inset-botto
 .tm .act svg path{stroke:currentColor}
 
 /* Chat_StudentMessage: indented, asset slot on top, workbook line under the answer */
-.sm{display:flex;flex-direction:column;align-items:flex-end;gap:24px;padding:12px 24px 12px 64px}
-.sm .ans{display:flex;flex-direction:column;gap:8px;width:100%}
+.sm{display:flex;flex-direction:column;align-items:flex-end;gap:16px;padding:12px 24px 12px 64px}
+.sm .ans{display:flex;flex-direction:column;gap:8px;width:fit-content;max-width:100%}
+.sm .ans .tx{text-wrap:balance}  /* student text packed as narrow as possible (spec, Hannes 25.11) */
 .sm .tx{overflow-wrap:anywhere}
 .sm.short .ans{width:auto}
 .sm.short .tx{text-align:right}
@@ -138,8 +139,6 @@ body.native .phone.dark .ci{padding-bottom:calc(12px + env(safe-area-inset-botto
 @media (prefers-reduced-motion:reduce){.tb,.ci,.p-tabs{transition:opacity .15s}}
 
 /* workbench only: highlight of the current section's component, notes */
-body:not(.proto) .phone .hl{outline:1.5px dashed var(--accent,#3b5bdb);outline-offset:-1px;border-radius:4px;background-image:linear-gradient(rgba(59,91,219,.05),rgba(59,91,219,.05))}
-body:not(.proto) .phone .tagrow.hl{outline-offset:2px}
 .ph-note{position:absolute;left:24px;right:24px;top:40%;border:1.5px dashed #9a9a9a;border-radius:12px;padding:14px;text-align:center;color:#6d6d6d;background:rgba(255,255,255,.95);font-size:14px;z-index:7}
 .ph-note b{display:block;color:#3a3a3a}
 
@@ -217,3 +216,7 @@ body.native .vw-hd{padding-top:env(safe-area-inset-top)}
 
 /* stack with +N: a bit more room to the caption, the badge's thick border in the chat colour cuts it out of the pile (Hannes 24.11) */
 .as-more:has(.more-n){gap:16px}
+
+/* text-less message: the line sits close under the attachment (Hannes 25.11) */
+.sm:not(:has(.ans .tx)){gap:12px}
+.sm:not(:has(.ans .tx)) .ans{width:100%}
