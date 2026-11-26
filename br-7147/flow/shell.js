@@ -39,7 +39,7 @@ function merge3(b,l,r){ if(!b) return structuredClone(l); const out=structuredCl
     else if(!jeq(l[k],b[k])) out[k]=structuredClone(l[k]); }
   return out; }
 const syncEl=document.getElementById("sync");
-const SHELL_V="1.1.9"; /* shown next to the save status so a stale tab is visible */
+const SHELL_V="1.1.10"; /* shown next to the save status so a stale tab is visible */
 const setSync=t=>{ syncEl.textContent=t+" · "+SHELL_V; };
 function unwrap(s){ if(!s) return null; if(typeof s.data==="function") return s.data(); if(s.exists===false) return null; return s.data!==undefined?s.data:s; }
 const valid=d=>d&&d.v===2&&Array.isArray(d.modes)&&d.docs;
@@ -576,7 +576,7 @@ function ticketMd(){   /* same sections and order as the workbench (and the Noti
   o+=`\n# Edge cases & touchpoints\n${md(S.docs.edges||"")||"_none yet_"}\n`;
   if(CONTEXTS.length) o+=`\n## Touchpoints\n${CONTEXTS.map(t=>`### ${t.name}${t.note?` (${t.note})`:""}\nFigma: ${t.figma||"–"}\n${md(S.docs["tp:"+t.id]||"")||(tpModes(t).length?`_Specced in Solution: ${tpModes(t).map(m=>m.name).join(", ")}_`:"_not specced yet_")}`).join("\n\n")}\n`;
   o+=`\n# Side effects\n## Effects on existing data\n${md(S.docs.data||"")||"_not checked yet_"}\n\n## Notifications, emails & tracking\n${md(S.docs.side||"")||"_not checked yet_"}\n`;
-  o+=`\n# Implementation\n${(PACK.links||[]).map(l=>`- ${l.label}: ${l.url?`[${l.name||l.url}](${l.url})`:(l.name||"added at handover")}`).join("\n")}\n\n## Design system changes\n${md(S.docs.ds||"")||"_none_"}\n\n# Open questions\n${md(S.docs.questions)}\n`; return o;
+  o+=`\n# Implementation\n${(PACK.links||[]).map(l=>`- ${l.label}: ${l.url?`[${l.name||l.url}](${l.url})`:(l.name||"added at handover")}`).join("\n")}\n\n## Design system changes\n${md(S.docs.ds||"")||"_none_"}\n\n# Open questions\n${md((S.docs.questions||"").replace(/<li data-done[^>]*>/g,"<li>[x] ").replace(/<li>(?!\[x\] )/g,"<li>[ ] "))}\n`; return o;
 }
 const modal=document.getElementById("modal"), card=document.getElementById("mcard");
 document.addEventListener("click",e=>{ if(!(e.target.closest&&e.target.closest("#b-ticket"))) return;
@@ -747,3 +747,9 @@ function thDots(sc){ sc.querySelectorAll(".undot").forEach(x=>x.remove()); const
     d.style.top=(r.top-so.top+sc.scrollTop+r.height/2-3.5)+"px"; d.style.left=(lr.left-so.left-16)+"px"; sc.appendChild(d); }); }
 let thHoverT=null;
 /* 1.1.1: hovering no longer marks a proposal as read */
+
+/* 1.1.10: open questions are checkboxes: a click on the box (left of the line) ticks it and saves the spec */
+document.addEventListener("mousedown",e=>{ const li=e.target.closest&&e.target.closest('.dsec[data-sec="questions"] .ed>ul>li,.dsec[data-sec="questions"] .ed>.imp>ul>li'); if(!li) return;
+  const r=li.getBoundingClientRect(); if(e.clientX>r.left-4) return; e.preventDefault();
+  if(li.hasAttribute("data-done")) li.removeAttribute("data-done"); else li.setAttribute("data-done","1");
+  const ed=li.closest(".ed"); lastEd=ed; edSave(ed); });

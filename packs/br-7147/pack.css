@@ -407,7 +407,7 @@ body.native .v-pill.notab:not(.focused){padding-bottom:4px;margin-bottom:calc(10
 .y-empty b{font-size:16px;font-weight:800;margin-bottom:-4px}
 .y-empty p{max-width:323px}
 /* no lone last word on a line (Hannes 24.11) */
-.d-empty p,.y-empty p,.y-empty b,.d-empty .d-e1{text-wrap:pretty}
+/* text-wrap: pretty comes from the shell (1.1.10, Phone base styles) */
 /* Learning Diary header + activities row per Figma: date 24 Bold, "4 activities" 14 Bold */
 .d-head .t{font-size:24px;font-weight:700}
 .y-act{font-size:14px;font-weight:700;align-items:center}

@@ -1,5 +1,9 @@
 # Feature workbench shell: changelog
 
+## 1.1.10 (26.11.26)
+- Phone base styles (Hannes 26.11.): a new section in `shell.css` for styling rules inside every `.phone`, for every ticket (workbench chrome never goes there). First rule: `text-wrap: pretty`, so paragraphs never end on a lone last word. Packs no longer need their own line (BR-7147 dropped it; BR-7144 keeps its copy until its next upgrade). Gaps & Issues: "Shell: text-wrap pretty on every phone".
+- Open questions are checkboxes (Hannes 23.11.): every top-level question gets a box; a click on the box ticks it (greyed, saved with the spec as `<li data-done>`), a click on the text still edits. Also inside imported blocks. Ticket preview and handoff export write `- [x]` / `- [ ]`. Gaps & Issues: "Open questions as checkboxes in the workbench".
+
 ## 1.1.9 (24.11.26)
 - Touchpoints no longer duplicate Solution (Hannes 24.11.): a touchpoint whose context already has its own screens under Solution shows "Specced in Solution: <mode> →" and no text field. Clicking the link jumps to that mode. Only touchpoints without own screens ask for text. Text already written in such a touchpoint stays visible and editable until it is cleared.
 

@@ -51,7 +51,7 @@ spec += ['## Edge cases & touchpoints', '', md(docs.get('edges','')) or '_none_'
 tps = [k for k in docs if k.startswith('tp:') and md(docs[k])]
 if tps: spec += ['### Touchpoints', ''] + sum([[f"#### {k[3:]}", '', md(docs[k]), ''] for k in tps], [])
 spec += ['## Side effects', '', '### Effects on existing data', '', md(docs.get('data','')) or '_not checked_', '', '### Notifications, emails & tracking', '', md(docs.get('side','')) or '_not checked_', '']
-oq = md(docs.get('questions',''))   # open questions are always checkboxes, so they can be ticked off when clear
+oq = md(re.sub(r'<li data-done[^>]*>', '<li>[x] ', docs.get('questions','')))   # open questions are always checkboxes, so they can be ticked off when clear
 oq = re.sub(r'^(\s*)- (?!\[[ x]\] )', r'\1- [ ] ', oq, flags=re.M)
 LK = P.get('links', {})
 hub = [('Design', 'Figma', LK.get('figma') or next((m.get('figma') for m in D['modes'] if m.get('figma')), '')), ('Copies', 'Copies ' + P['ticket'], LK.get('copies')),

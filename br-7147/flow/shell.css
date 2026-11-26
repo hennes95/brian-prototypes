@@ -67,6 +67,8 @@ body.proto .kbd{display:none}
 html:has(body.native),body.native,body.native .app,body.native .main,body.native .stage{background:#fff!important;color-scheme:light}
 html:has(body.native.ctx-dark),body.native.ctx-dark,body.native.ctx-dark .app,body.native.ctx-dark .main,body.native.ctx-dark .stage{background:#2f2f2f!important}
 body.native .pwrap{left:0;top:0;transform:none!important}
+/* Phone base styles (1.1.10+): styling rules inside every .phone, for every ticket. Workbench chrome never goes here. */
+.phone{text-wrap:pretty} /* no lone last word in any paragraph (Hannes 24.11) */
 /* keyboard-safe: pin the app to the visible viewport, never let the page itself scroll (iOS shifts it when the keyboard opens) */
 html:has(body.native),body.native{overflow:hidden;height:100%;overscroll-behavior:none}
 body.native .minimap,body.native .cbtn{display:none!important}
@@ -314,3 +316,10 @@ span.ai.thcur{background:var(--accent-soft);border-radius:3px;box-shadow:0 0 0 3
 .tp-sol{margin:6px 0 0;font-size:14px;color:var(--muted,#6b6b6b)}
 .tp-go{border:0;background:none;padding:0;font:inherit;color:var(--accent,#2f5bd3);cursor:pointer}
 .tp-go:hover{text-decoration:underline}
+
+/* 1.1.10: open questions are checkboxes (tick when clear; saved with the spec as <li data-done>) */
+.dsec[data-sec="questions"] .ed>ul,.dsec[data-sec="questions"] .ed>.imp>ul{list-style:none;padding-left:26px}
+.dsec[data-sec="questions"] .ed>ul>li,.dsec[data-sec="questions"] .ed>.imp>ul>li{position:relative}
+.dsec[data-sec="questions"] .ed>ul>li::before,.dsec[data-sec="questions"] .ed>.imp>ul>li::before{content:"";position:absolute;left:-24px;top:.28em;width:14px;height:14px;border:1.5px solid var(--muted);border-radius:4px;box-sizing:border-box;cursor:pointer;background:var(--panel)}
+.dsec[data-sec="questions"] .ed>ul>li[data-done]::before,.dsec[data-sec="questions"] .ed>.imp>ul>li[data-done]::before{background:var(--ink);border-color:var(--ink);content:"✓";color:var(--panel);font:700 10px/11px var(--ui);text-align:center}
+.dsec[data-sec="questions"] .ed>ul>li[data-done],.dsec[data-sec="questions"] .ed>.imp>ul>li[data-done]{color:var(--muted)}
