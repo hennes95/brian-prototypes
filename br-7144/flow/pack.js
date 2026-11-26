@@ -75,7 +75,7 @@ const DEFAULT = {
     +`<ul><li>${ai("Top bar gets shorter; title and icons follow the design system (Figma COMPONENT UPDATE)")}</li></ul>`}]}
  ]
 };
-const VARIANTS=[{id:"v1",name:"Design V1",figma:FIG("12117-83")},{id:"v2-nocap",name:"No attachment subtitles"}];  /* exploration (Hannes 26.11): how much do the name/info lines under attachments add? */
+const VARIANTS=[{id:"v1",name:"Design V1",figma:FIG("12117-83")},{id:"v2-nocap",name:"No attachment subtitles"},{id:"v3-pagetag",name:"Page count tag on documents"},{id:"v4-portrait",name:"Portrait documents & photos"}];  /* v3: no subtitles, documents carry their page count as a tag (Hannes 26.11); v4: A4 upright and a portrait photo (Hannes 26.11) */  /* exploration (Hannes 26.11): how much do the name/info lines under attachments add? */
 const CONTEXTS=[
  {id:"tutor",name:"AI Tutor",ctx:"tutor",figma:FIG("12126-163424")},
  {id:"dialog",name:"AI Dialog",ctx:"dialog",figma:FIG("12495-101166")},
@@ -159,7 +159,9 @@ const LOADCAP={image:"Image · loading…",drawing:"Canvas · loading…",doc:"D
 /* Document preview, rebuilt from the Figma component (Document, 12495:98485): page with the top-right corner cut off,
    a folded triangle in that corner, thin outline and a hard shadow on page and fold. The image is the component's own image fill. */
 let docN=0;
+const PORTRAIT=()=>ui.variant==="v4-portrait";
 function docSVG(loading){
+  if(PORTRAIT()) return docSVGp(loading);
   const id="dpc"+(++docN), page="M0 0H291.1L316.5 24.8L317.1 178.8H0Z";
   return `<svg class="docsvg" viewBox="0 0 321 183" preserveAspectRatio="none" ${loading?'aria-hidden="true"':'role="img" aria-label="Document"'}>
     <defs><clipPath id="${id}"><path d="${page}"/></clipPath></defs>
@@ -169,15 +171,26 @@ function docSVG(loading){
     <path class="dfold" d="M291 .3V24.7H316.2Z"/>
   </svg>`;
 }
+/* portrait A4 (variant v4): same page, fold and shadow as docSVG, upright 170×240 */
+function docSVGp(loading){
+  const W=170,H=240,id="dpc"+(++docN), page=`M0 0H${W-29.9}L${W-4.5} 24.8L${W-3.9} ${H-4.2}H0Z`;
+  return `<svg class="docsvg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" ${loading?'aria-hidden="true"':'role="img" aria-label="Document"'}>
+    <defs><clipPath id="${id}"><path d="${page}"/></clipPath></defs>
+    <g clip-path="url(#${id})"><rect width="${W}" height="${H}" fill="#fff"/>${loading?"":`<image href="assets/document-portrait.png" width="${W-3.9}" height="${H-4.2}" preserveAspectRatio="xMidYMin slice"/><rect width="${W}" height="${H}" fill="#000" opacity=".03"/>`}</g>
+    <path class="dln" d="${page}"/>
+    <path class="dsh" d="M${W-27} 3.3V27.7H${W-1.8}Z"/>
+    <path class="dfold" d="M${W-30} .3V24.7H${W-4.8}Z"/>
+  </svg>`;
+}
 /* Loading = ink dots (variant B, Hannes 23.11): the surface inside the attachment's own boundary fills with dots;
    frame, line and shadow stay as in the sent state (the document keeps its outline and fold).
    loading===true → B∞, no progress known: density loops. loading=1…4 → B, density follows the upload, then the file snaps in. */
 const ink=lv=>`<span class="ink ${typeof lv==="number"?"d"+lv:"inf"}" role="img" aria-label="Uploading"></span>`;
 function thumb(k,loading,cls=""){
   const ld=loading!==false&&loading!=null;
-  if(k==="image") return `<span class="th th-img ${cls} ${ld?"ld":""}"><span class="ph">${ld?ink(loading):`<img src="assets/photo.png" alt="Photo">`}</span></span>`;
+  if(k==="image") return `<span class="th th-img ${cls} ${ld?"ld":""}"><span class="ph">${ld?ink(loading):`<img src="assets/${PORTRAIT()?"photo-portrait":"photo"}.png" alt="Photo">`}</span></span>`;
   if(k==="drawing") return `<span class="th th-draw ${cls} ${ld?"ld":""}">${ld?ink(loading):`<img src="assets/drawing.png" alt="Canvas">`}</span>`;
-  return `<span class="th th-doc ${cls} ${ld?"ld":""}">${docSVG(ld)}${ld?`<span class="dink">${ink(loading)}</span>`:""}</span>`;
+  return `<span class="th th-doc ${cls} ${ld?"ld":""}">${docSVG(ld)}${ld?`<span class="dink">${ink(loading)}</span>`:""}${!ld&&!cls.includes("st")?`<span class="pg">3 pages</span>`:""}</span>`;
 }
 function assetHTML(a,g){
   const id=a.loading?"att-loading":a.k==="two"||a.k==="more"?"att-multi":"att-"+a.k;
@@ -248,7 +261,7 @@ function phoneHTML(st,live={},interactive=true){
   const items=interactive&&(THREAD.length||WAITING)?CHAT.filter(m=>m.t!=="brian"):CHAT;   // the scripted "Brian is generating" only ends the scripted chat
   const extra=interactive?THREAD.map(m=>itemHTML(m,dark)).join("")+(WAITING?brianHTML(""):""):"";
   const bp=KIND==="tablet"||KIND==="desktop";
-  return `<div class="phone bx ${dark?"dark":""}${ui.variant==="v2-nocap"?" nocap":""}">
+  return `<div class="phone bx ${dark?"dark":""}${ui.variant==="v2-nocap"||ui.variant==="v3-pagetag"?" nocap":""}${ui.variant==="v3-pagetag"?" pagetag":""}${ui.variant==="v4-portrait"?" portrait":""}">
     ${STATUS}${topbarHTML(dark)}
     <div class="p-chat"><div class="cx">${items.map(m=>itemHTML(m,dark)).join("")}${extra}</div></div>
     ${composerHTML()}${tab?TABS:`<div class="home"></div>`}
@@ -287,7 +300,10 @@ function wireChat(kind,proto){
   ch.addEventListener("wheel",e=>{ if(hid&&e.deltaY>0) setHid(false); },{passive:true});
   if(kind==="scroll"&&!proto&&!THREAD.length){ hid=false; setHid(true); }
 }
-function markShortMsgs(){ document.querySelectorAll("#pwrap .sm .tx").forEach(d=>{ const lh=parseFloat(getComputedStyle(d).lineHeight)||22.4; d.closest(".sm").classList.toggle("short",d.getBoundingClientRect().height/(ui.scale||1)<=lh*1.4); }); }
+/* student text packed to the narrowest width that keeps the same number of lines (shrink-wrap, same as BR-7147, Hannes 26.11); the workbook line follows the text width */
+function msgLines(d){ const lh=parseFloat(getComputedStyle(d).lineHeight)||22.4; return Math.round(d.clientHeight/lh); }
+function shrinkWrapMsg(d){ d.style.width=""; const lines=msgLines(d); if(lines<2) return; let lo=0, hi=d.offsetWidth; while(hi-lo>1){ const mid=(lo+hi)/2; d.style.width=mid+"px"; if(msgLines(d)>lines) lo=mid; else hi=mid; } d.style.width=Math.ceil(hi)+"px"; }
+function markShortMsgs(){ document.querySelectorAll("#pwrap .sm .tx").forEach(d=>{ shrinkWrapMsg(d); d.closest(".sm").classList.toggle("short",msgLines(d)<2); }); }
 function fit(){
   const st=document.getElementById("stage"), w=document.getElementById("pwrap");
   const nat=document.body.classList.contains("proto")&&innerWidth<=600; document.body.classList.toggle("native",nat); document.body.classList.toggle("ctx-dark",isDarkCtx(ui.context));
@@ -377,7 +393,7 @@ function viewerFiles(as,tapped){
 let VW=null;
 function openViewer(as,tapped){ const {files,start}=viewerFiles(as,tapped); VW={files,i:start,eng:false,zoom:false}; drawViewer(); }
 function closeViewer(){ const v=$("#pwrap .vw"); if(!v) return; v.classList.add("out"); setTimeout(()=>{ v.remove(); VW=null; },220); }
-function vwPage(f){ return `<div class="vw-page"><img src="assets/document.png" alt=""><div class="vw-lines"><i style="width:92%"></i><i style="width:85%"></i><i style="width:96%"></i><i style="width:60%"></i><i style="width:88%"></i><i style="width:74%"></i></div><div class="vw-lines"><i style="width:90%"></i><i style="width:80%"></i><i style="width:52%"></i></div></div>`; }
+function vwPage(f){ return `<div class="vw-page"><img src="assets/${PORTRAIT()?"document-portrait":"document"}.png" alt=""><div class="vw-lines"><i style="width:92%"></i><i style="width:85%"></i><i style="width:96%"></i><i style="width:60%"></i><i style="width:88%"></i><i style="width:74%"></i></div><div class="vw-lines"><i style="width:90%"></i><i style="width:80%"></i><i style="width:52%"></i></div></div>`; }
 function drawViewer(dir){
   const ph=$("#pwrap .phone"); if(!ph||!VW) return; let v=ph.querySelector(".vw");
   if(!v){ v=document.createElement("div"); v.className="vw"; ph.appendChild(v); wireViewer(v); }

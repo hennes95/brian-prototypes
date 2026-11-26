@@ -42,7 +42,7 @@ body.native .phone.dark .ci{padding-bottom:calc(12px + env(safe-area-inset-botto
 /* Chat_StudentMessage: indented, asset slot on top, workbook line under the answer */
 .sm{display:flex;flex-direction:column;align-items:flex-end;gap:16px;padding:12px 24px 12px 64px}
 .sm .ans{display:flex;flex-direction:column;gap:8px;width:fit-content;max-width:100%}
-.sm .ans .tx{text-wrap:balance}  /* student text packed as narrow as possible (spec, Hannes 25.11) */
+.sm .ans .tx{max-width:100%}  /* width set by shrinkWrapMsg (pack.js) */
 .sm .tx{overflow-wrap:anywhere}
 .sm.short .ans{width:auto}
 .sm.short .tx{text-align:right}
@@ -223,4 +223,20 @@ body.native .vw-hd{padding-top:env(safe-area-inset-top)}
 
 /* variant "No attachment subtitles" (Hannes 26.11): name/info lines under attachments hidden; loading still shows through the ink dots, the +N badge still counts */
 .phone.nocap .as .cap{display:none}
-.phone.nocap .as-more:has(.more-n){padding-bottom:16px}  /* room for the +N badge that hangs below the stack */
+.phone.nocap .as-more:has(.more-n){padding-bottom:2px}  /* the +N badge hangs below the stack; spacing to the text optically like the 4-file message (Hannes 26.11) */
+
+/* v3 page tag (Hannes 26.11): documents show their page count in a small tag, bottom right on the page */
+.th-doc .pg{display:none}
+.phone.pagetag .th-doc .pg{display:block;position:absolute;right:12px;bottom:10px;z-index:1;font:700 11px/1 var(--b-font);color:var(--b-ink);background:#fff;padding:4px 6px}
+.phone.pagetag .th-doc .pg::before{content:"";position:absolute;left:0;top:0;width:133.334%;height:133.334%;border:1px solid var(--b-ink);transform:scale(.75);transform-origin:0 0;box-sizing:border-box}
+/* v4 portrait (Hannes 26.11): A4 upright, photo in portrait; canvas stays landscape */
+.phone.portrait .as-doc .th-doc{width:170px;aspect-ratio:170/240}
+.phone.portrait .as-image .th-img{width:180px;height:240px}
+.phone.portrait .th-doc .dink{clip-path:polygon(0 0,82.4% 0,82.4% 10.3%,97.4% 10.3%,97.4% 98.2%,0 98.2%)}
+.phone.portrait .as-two{justify-content:flex-end}
+.phone.portrait .as-two .col{flex:none}
+.phone.portrait .as-two .col:first-child{width:85px}
+.phone.portrait .as-two .th-doc{width:85px;height:120px;aspect-ratio:auto}
+.phone.portrait .as-two .th-draw{height:120px;width:auto;aspect-ratio:320/188}
+.phone.portrait .as-more .st.th-doc{width:60px;margin-right:-22px}
+.phone.portrait .as-more .st.last{width:66px}
