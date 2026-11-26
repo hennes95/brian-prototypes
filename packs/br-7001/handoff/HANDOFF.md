@@ -1,6 +1,6 @@
 # BR-7001 · AI Tutor use cases — handoff
 
-**Source of truth:** `packs/br-7001/handoff/` at commit `52323d0`. The Notion ticket holds a copy of `spec.md` for reading; it is regenerated from here, never edited by hand.
+**Source of truth:** `packs/br-7001/handoff/` at commit `a4f3706`. The Notion ticket holds a copy of `spec.md` for reading; it is regenerated from here, never edited by hand.
 
 ## Read in this order
 1. `spec.md` — what the user sees and can do, per state (human-readable).

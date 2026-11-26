@@ -1,6 +1,6 @@
 # BR-7001 · AI Tutor use cases — spec
 
-> Generated from the Feature Workbench at commit `52323d0`. Same sections as the Notion ticket. Don't edit by hand; change the workbench and export again. Agents start at `HANDOFF.md`.
+> Generated from the Feature Workbench at commit `a4f3706`. Same sections as the Notion ticket. Don't edit by hand; change the workbench and export again. Agents start at `HANDOFF.md`.
 
 ## Brief
 
@@ -15,7 +15,7 @@
 
 - Coordinate with [FE Chat: Improve AI-Tutor Chat for Students](https://app.notion.com/p/3fdfca9f403c80699f29d4a8a7ba77cd) (renaming/archiving)
 - Coordinate with [Ralph Idea: Allow students to dive deeper into their attempts in AI Dialogues](https://app.notion.com/p/3e4fca9f403c80fcaaa0fe1264be7fb2) (feedback deep-dive and Tutor follow-up)
-- 
+- Blocking:
 
 #### Success Criteria
 
@@ -48,7 +48,7 @@
 - **R1** Use-case blocks use the block component of the course map activities (with the dots)
 - **R2** Tapping a block creates a new thread, named after the use case, and sends its prompt
 - **R3** Starting from the message field keeps today's logic (thread name etc.)
-- **R4** A tapped block flies into the student message; everything else crumbles/falls down
+- **R4** A tapped block flies into the student message; everything else crumbles away: what moves through the stack (the flying block, the keyboard) knocks the blocks loose, the rest follow one after another
 
 ### Empty state ([Figma](https://www.figma.com/design/GbI4xt40lr0Jmk3rkgrtM0/Student-App?node-id=12115-80))
 
@@ -85,10 +85,12 @@
 
 - Tapping the field brings up the keyboard
 - All blocks break away while the keyboard slides up
-  - Same break-away animation as the untapped blocks in Open
+  - A block lets go when the keyboard (top of the input bar) reaches it; the blocks it doesn't reach follow one after another, upwards
+  - Same fall as the untapped blocks in Open
   - [Motion: Focus ↗](https://claude.ai/artifact/E61jktbwanbpFAARpqKe4A)
 - Intro stays, so the screen doesn't look empty
 - Tapping outside or closing the keyboard: blocks come back
+  - Each block rises from behind the keyboard as soon as its spot is free, top block first
   - [Motion: Back out ↗](https://claude.ai/artifact/E61jktbwanbpFAARpqKe4A)
 
 #### Typing (`focus-typed`)
@@ -104,11 +106,14 @@
   - [Motion: Open ↗](https://claude.ai/artifact/E61jktbwanbpFAARpqKe4A)
 - Tapping a use case creates a new thread named after the use case, shown in the thread list
   - The header keeps "AI Tutor" (it doesn't switch to the thread name)
-  - Exact title: see open questions
+  - Title from the content, e.g. "Study Plan for {topic}" (today's thread naming allows it)
 - Other blocks fall away, intro fades
+  - Blocks the tapped block flies past let go as it passes them, pushed aside from its path
+  - Blocks below it follow one after another, nearest first
 - Tutor message shows the typing dots, then streams
 - What the tutor does per use case
   - Create a study plan: the tutor suggests the exercises the student struggled with and should repeat
+    - Each suggested exercise links to its activity; tapping it opens the activity
   - Show my knowledge gaps: the tutor analyses the learning history and gives the knowledge level per key evaluation rubric (later: competencies)
   - Explain a topic: the tutor asks for a topic, then explains it using course material where possible
 - \+ (new chat) goes back to the empty state
@@ -133,7 +138,7 @@
 
 ### Effects on existing data
 
-- Tapping a use case creates a new thread named after the use case (exact title: see open questions)
+- Tapping a use case creates a new thread named after the use case (title from the content, e.g. "Study Plan for {topic}")
 - Starting from the message field keeps today's logic (thread name etc., R3)
 - Existing threads don't change
 
@@ -158,5 +163,5 @@
 
 ## Open questions
 
-- [ ] Can the tutor link specific activities that open when tapped? (Jaap)
-- [ ] Thread title for a use-case thread: how does today's thread-naming logic work, and does it fit a title from the block label (Copies BR-7001, e.g. "Create a study plan")? (Jaap/Ataberk)
+- [x] Can the tutor link specific activities that open when tapped? (Jaap) → yes
+- [x] Thread title for a use-case thread: how does today's thread-naming logic work, and does it fit a title from the block label (Copies BR-7001, e.g. "Create a study plan")? (Jaap/Ataberk) → flexible so we can do "Study Plan for {dynamiccontentbased}"

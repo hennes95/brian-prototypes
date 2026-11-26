@@ -13,3 +13,5 @@
 - Sending a typed message has no animation: the message appears as in the app today. The earlier "text flies into the student message" (Send) was removed (Hannes 26.11.).
 - Back out (leaving the field without sending) uses the same Back animation as "+ new chat", started from where the blocks are.
 - Copy: no new strings needed beyond Copies BR-7001; the thread title is an open question for the dev.
+- Block motion: V4 is built (Hannes 26.11.), not V3. V4 = V3 plus a smart stagger: what moves through the stack (the flying block, the keyboard edge) knocks the blocks loose, the rest go as dominoes. V3's fixed orders (Open: nearest first; Focus: bottom first; Back out = Back) were replaced.
+- Open questions answered (Hannes 26.11.): the tutor can link activities that open on tap; the thread title is set from the content (e.g. "Study Plan for {topic}"), not a fixed copy from the block label.
