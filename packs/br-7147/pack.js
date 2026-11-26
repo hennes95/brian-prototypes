@@ -13,7 +13,7 @@ const PACK={
     {label:"Handoff", name:"added at handover", url:""}],
   protoUrl:"https://hennes95.github.io/brian-prototypes/br-7147/",
   dbDoc:"workbench/br-7147-v2", legacyDbDoc:"workbench/br-7147", lsKey:"wb-br7147-v2",
-  ui:{sel:{kind:"state",mode:"idle",state:"idle-rest"},variant:"pill-sq-w",context:"tutor"},
+  ui:{sel:{kind:"state",mode:"idle",state:"idle-rest"},variant:"pill-sq-w-sq",context:"tutor"},
   protoStartKind:"idle"
 };
 
@@ -164,7 +164,7 @@ const DEFAULT = {
  ]
 };
 /* Variants shown in the workbench. "pill" keeps its id (comments are stored per variant id) and is now "Pill inverted". */
-const VARIANTS=[{id:"pill-sq-w",name:"Status quo + white dialog"},{id:"pill-sq-w-sq",name:"Square miniatures"}];  /* exploration (Hannes 26.11, Ralph's point: documents are upright): same as the chosen design, attachment miniatures square at the same height */
+const VARIANTS=[{id:"pill-sq-w-sq",name:"Square miniatures"},{id:"pill-sq-w",name:"Status quo + white dialog"}];  /* square chosen (Hannes 26.11), now the default; the landscape one stays for comparison */  /* exploration (Hannes 26.11, Ralph's point: documents are upright): same as the chosen design, attachment miniatures square at the same height */
   /* the chosen design (Hannes 25.11): field as "Pill status quo" (white with outline on light screens, light inverted on dark screens), upload dialog white with black outline and dividers, field-like corners */
 /* Archived 23.11 (Hannes): explored, no longer shown. Code and CSS stay, so they still render if put back into VARIANTS.
    Notes and screenshots: packs/br-7147/archive/VARIANTS.md */
@@ -304,7 +304,7 @@ function diaryBody(extra){
 function phoneHTML(st,live={},interactive=true){
   const M=interactive?ensureModel():seed(st.kind); if(interactive) syncThreadCtx(M);
   const q={text:M.text,focused:M.focused,inline:isInline(M),fs:M.focused&&!!M.fs,sheet:M.menu,picker:M.picker,pickKind:M.pickKind,attach:M.atts.length?M.atts:false,typing:M.waiting,note:M.note,reserved:M.reserved};
-  if(!VARIANTS.some(x=>x.id===ui.variant)&&!(VARIANTS_ARCHIVED.some(x=>x.id===ui.variant)&&ui._showArchived)) ui.variant="pill-sq-w";
+  if(!VARIANTS.some(x=>x.id===ui.variant)&&!(VARIANTS_ARCHIVED.some(x=>x.id===ui.variant)&&ui._showArchived)) ui.variant="pill-sq-w-sq";
   const ctx=ui.context, dark=isDarkCtx(ctx), quiz=ctx==="quiz", disc=ctx==="discussion", diary=ctx==="diary", v=ui.variant, inv=v==="inv", vcls=(v==="pill-sq"||v==="pill-sq-w"||v==="pill-sq-w-sq")?(dark?"v-pill":"v-pill v-pill-light"):v==="pill-light"?"v-pill v-pill-light":inv?"v-open v-inv":v==="angled"?"v-open v-angled":"v-"+v;
   const tab=ctx==="tutor"&&!q.focused;
   const hasText=(q.text||"").trim().length>0||!!q.attach, canSend=(q.text||"").trim().length>0||(q.attach&&q.attach.some(t=>t!=="loading"&&!t.endsWith("~"))); /* send shows once the first attachment has finished uploading */
