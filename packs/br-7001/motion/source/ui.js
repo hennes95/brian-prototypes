@@ -97,7 +97,7 @@
     if(!foot){ foot = document.createElement('div'); foot.className = 'mk-foot';
       foot.innerHTML = '<button type="button" class="mk-num" title="Reset all changes (⌘R)"><span class="mk-n"></span><svg class="mk-r" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8a5 5 0 1 0 1.6-3.7"/><path d="M3 2.5v3h3"/></svg></button><button type="button" class="mk-save">Save</button>';
       foot.querySelector('.mk-save').addEventListener('click', save);
-      const num = foot.querySelector('.mk-num'); num.addEventListener('pointerdown', e=>{ e.preventDefault(); e.stopPropagation(); resetAll(); }); num._mkReset = resetAll;
+      const num = foot.querySelector('.mk-num'); num.addEventListener('click', e=>{ e.preventDefault(); e.stopPropagation(); resetAll(); }); num._mkReset = resetAll;
       num.addEventListener('mouseenter',()=>hover = num); num.addEventListener('mouseleave',()=>{ if(hover===num) hover = null; });
       inner.appendChild(foot); }
     const n = countChanges(s.variant,s.kind), num = foot.querySelector('.mk-num');

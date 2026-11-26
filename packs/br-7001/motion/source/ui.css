@@ -131,11 +131,10 @@ body.mk-focus-on #tl{width:auto!important;left:50%!important;right:auto!importan
 .dialkit-root .mk-foot{padding-left:9px!important}
 /* the count is a button: hover swaps it for the reset icon (resets every change of this animation) */
 .mk-num{border:0;cursor:pointer;position:relative}
-.mk-num{-webkit-appearance:none;appearance:none;line-height:22px}
-.mk-num .mk-n{display:block;font:600 12px/22px Inter,system-ui,-apple-system,sans-serif;color:#fff}
-.mk-num .mk-r{display:none;width:14px;height:14px;color:#fff}
-.mk-num:hover .mk-n{display:none}
-.mk-num:hover .mk-r{display:block}
+.mk-num{-webkit-appearance:none;appearance:none;line-height:22px;color:#fff!important;-webkit-text-fill-color:#fff;font:600 12px/22px Inter,system-ui,-apple-system,sans-serif!important;text-indent:0;overflow:visible}
+.mk-num .mk-n{display:inline;color:#fff;-webkit-text-fill-color:#fff;font:inherit;pointer-events:none}
+.mk-num .mk-r{position:absolute;left:50%;top:50%;width:14px;height:14px;margin:-7px 0 0 -7px;color:#fff;opacity:0;pointer-events:none}
+@media (hover:hover){.mk-num:hover .mk-n{opacity:0}.mk-num:hover .mk-r{opacity:1}}
 /* timing area: collapsed by default, fixed height when open (switching animations never makes the stage jump) */
 .mk-tracks{height:180px;overflow-y:auto}
 .mk-tracks[hidden]{display:none!important}
