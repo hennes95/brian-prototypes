@@ -227,8 +227,8 @@ body.native .vw-hd{padding-top:env(safe-area-inset-top)}
 
 /* v3 page tag (Hannes 26.11): documents show their page count in a small tag, bottom right on the page */
 .th-doc .pg{display:none}
-.phone.pagetag .th-doc .pg{display:block;position:absolute;right:12px;bottom:10px;z-index:1;font:700 11px/1 var(--b-font);color:var(--b-ink);background:#fff;padding:4px 6px}
-.phone.pagetag .th-doc .pg::before{content:"";position:absolute;left:0;top:0;width:133.334%;height:133.334%;border:1px solid var(--b-ink);transform:scale(.75);transform-origin:0 0;box-sizing:border-box}
+.phone.pagetag .th-doc .pg{display:block;position:absolute;right:12px;bottom:10px;z-index:1;background:#fff;color:#3a3a3a}  /* same look as the date badge (.tag), Hannes 26.11; sits on the white page, so it stays ink on white in dark chats too */
+.phone.pagetag .th-doc .pg::before{border-color:#3a3a3a}
 /* v4 portrait (Hannes 26.11): A4 upright, photo in portrait; canvas stays landscape */
 .phone.portrait .as-doc .th-doc{width:170px;aspect-ratio:170/240}
 .phone.portrait .as-image .th-img{width:180px;height:240px}

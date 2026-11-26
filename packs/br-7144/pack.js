@@ -13,7 +13,7 @@ const PACK={
     {label:"Handoff", name:"added at handover", url:""}],
   protoUrl:"https://hennes95.github.io/brian-prototypes/br-7144/flow/",
   dbDoc:"workbench/br-7144", lsKey:"wb-br7144",
-  ui:{sel:{kind:"state",mode:"layout",state:"layout-msgs"},variant:"v1",context:"tutor"},
+  ui:{sel:{kind:"state",mode:"layout",state:"layout-msgs"},variant:"v3-pagetag",context:"tutor"},
   protoStartKind:"layout"
 };
 
@@ -75,7 +75,9 @@ const DEFAULT = {
     +`<ul><li>${ai("Top bar gets shorter; title and icons follow the design system (Figma COMPONENT UPDATE)")}</li></ul>`}]}
  ]
 };
-const VARIANTS=[{id:"v1",name:"Design V1",figma:FIG("12117-83")},{id:"v2-nocap",name:"No attachment subtitles"},{id:"v3-pagetag",name:"Page count tag on documents"},{id:"v4-portrait",name:"Portrait documents & photos"}];  /* v3: no subtitles, documents carry their page count as a tag (Hannes 26.11); v4: A4 upright and a portrait photo (Hannes 26.11) */  /* exploration (Hannes 26.11): how much do the name/info lines under attachments add? */
+const VARIANTS=[{id:"v3-pagetag",name:"Page count tag on documents"},{id:"v4-portrait",name:"Portrait documents & photos"},{id:"v2-nocap",name:"No attachment subtitles"}];
+/* Archived 26.11 (Hannes): Design V1 (subtitles under every attachment). Code stays, so it still renders if put back into VARIANTS. */
+const VARIANTS_ARCHIVED=[{id:"v1",name:"Design V1",figma:FIG("12117-83")}];  /* v3: no subtitles, documents carry their page count as a tag (Hannes 26.11); v4: A4 upright and a portrait photo (Hannes 26.11) */  /* exploration (Hannes 26.11): how much do the name/info lines under attachments add? */
 const CONTEXTS=[
  {id:"tutor",name:"AI Tutor",ctx:"tutor",figma:FIG("12126-163424")},
  {id:"dialog",name:"AI Dialog",ctx:"dialog",figma:FIG("12495-101166")},
@@ -190,7 +192,7 @@ function thumb(k,loading,cls=""){
   const ld=loading!==false&&loading!=null;
   if(k==="image") return `<span class="th th-img ${cls} ${ld?"ld":""}"><span class="ph">${ld?ink(loading):`<img src="assets/${PORTRAIT()?"photo-portrait":"photo"}.png" alt="Photo">`}</span></span>`;
   if(k==="drawing") return `<span class="th th-draw ${cls} ${ld?"ld":""}">${ld?ink(loading):`<img src="assets/drawing.png" alt="Canvas">`}</span>`;
-  return `<span class="th th-doc ${cls} ${ld?"ld":""}">${docSVG(ld)}${ld?`<span class="dink">${ink(loading)}</span>`:""}${!ld&&!cls.includes("st")?`<span class="pg">3 pages</span>`:""}</span>`;
+  return `<span class="th th-doc ${cls} ${ld?"ld":""}">${docSVG(ld)}${ld?`<span class="dink">${ink(loading)}</span>`:""}${!ld&&!cls.includes("st")?`<span class="pg tag">3 pages</span>`:""}</span>`;
 }
 function assetHTML(a,g){
   const id=a.loading?"att-loading":a.k==="two"||a.k==="more"?"att-multi":"att-"+a.k;
@@ -256,12 +258,13 @@ const TABS=`<div class="p-tabs"><svg class="tline" viewBox="0 0 402 12" preserve
 /* ================= phone ================= */
 let THREAD=[], WAITING=false;   // what the student adds in the prototype (kept across screens; "new chat" resets)
 function phoneHTML(st,live={},interactive=true){
+  if(!VARIANTS.some(v=>v.id===ui.variant)&&!(VARIANTS_ARCHIVED.some(v=>v.id===ui.variant)&&ui._showArchived)) ui.variant="v3-pagetag";
   KIND=st?st.kind:"layout"; spkDone=false; wlDone=false;
   const dark=isDarkCtx(ui.context), tab=!dark;
   const items=interactive&&(THREAD.length||WAITING)?CHAT.filter(m=>m.t!=="brian"):CHAT;   // the scripted "Brian is generating" only ends the scripted chat
   const extra=interactive?THREAD.map(m=>itemHTML(m,dark)).join("")+(WAITING?brianHTML(""):""):"";
   const bp=KIND==="tablet"||KIND==="desktop";
-  return `<div class="phone bx ${dark?"dark":""}${ui.variant==="v2-nocap"||ui.variant==="v3-pagetag"?" nocap":""}${ui.variant==="v3-pagetag"?" pagetag":""}${ui.variant==="v4-portrait"?" portrait":""}">
+  return `<div class="phone bx ${dark?"dark":""}${ui.variant!=="v1"?" nocap":""}${ui.variant==="v3-pagetag"||ui.variant==="v4-portrait"?" pagetag":""}${ui.variant==="v4-portrait"?" portrait":""}">
     ${STATUS}${topbarHTML(dark)}
     <div class="p-chat"><div class="cx">${items.map(m=>itemHTML(m,dark)).join("")}${extra}</div></div>
     ${composerHTML()}${tab?TABS:`<div class="home"></div>`}
