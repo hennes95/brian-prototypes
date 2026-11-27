@@ -44,6 +44,8 @@ const setSync=t=>{ syncEl.textContent=t+" · "+SHELL_V; };
 function unwrap(s){ if(!s) return null; if(typeof s.data==="function") return s.data(); if(s.exists===false) return null; return s.data!==undefined?s.data:s; }
 const valid=d=>d&&d.v===2&&Array.isArray(d.modes)&&d.docs;
 async function initDb(){
+  /* BR-6891 V1 frozen copy (27.11.): never touch the live database, show the spec baked into frozen.js */
+  if(window.WB_FROZEN_SPEC){ S=structuredClone(window.WB_FROZEN_SPEC); base=structuredClone(S); render(true); setSync("frozen"); return; }
   let db=null;
   try{ db=window.claude&&window.claude.use?await window.claude.use("db"):null; }catch(e){}
   if(!db){ loadLocal(); setSync("local only"); return; }
