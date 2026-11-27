@@ -81,8 +81,9 @@ const hidTip = (cls, el) => `<div class="htip ${cls||""}" role="tooltip"${el?' d
   <table class="htip-tbl"><thead><tr><th></th><th>Students can see</th><th>Brian can use</th></tr></thead><tbody>
     <tr><th>Visible</th><td>${YES}</td><td>${YES}</td></tr><tr><th>Hidden</th><td>${NO}</td><td>${YES}</td></tr><tr><th>Excluded</th><td>${NO}</td><td>${NO}</td></tr></tbody></table></div>`;
 /* info icon in the dropdown: one image each (Hannes 27.11.) */
-const optTip = (k) => `<div class="htip otip" role="tooltip"><p class="htip-t">${k==="v"?"Students see the source and can open it.":"Students get the answer, but no source."}</p>
-  <div class="htip-prev"><div class="htip-card"><p>But your solution has to be different. You should solve for X.</p>${k==="v"?"<span>Workbook Maths 8 Solutions, p. 3</span>":""}${SPK}</div></div></div>`;
+const OPT_TXT = { v:"Students see the source and can open it.", h:"Students get the answer, but no source.", x:"Brian cannot access the source" };
+const optTip = (k) => `<div class="htip otip" role="tooltip"><p class="htip-t">${OPT_TXT[k]}</p>
+  <div class="htip-prev"><div class="htip-card"><p>But your solution has to be different. You should solve for X.</p>${k!=="h"?"<span>Workbook Maths 8 Solutions, p. 3</span>":""}${SPK}</div></div></div>`;
 const SPK = `<svg class="htip-spk" aria-hidden="true" width="7" height="7" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"><path d="M1.5 6h2.5l4-3v10l-4-3H1.5z"/><path d="M10.5 6.2c.6.5.6 3.1 0 3.6M12.5 4.8c1.4 1.3 1.4 5.1 0 6.4"/></svg>`;
 /* eye icon for hidden material: same tooltip on hover (R6) */
 const BAN = (w=16) => `<svg aria-hidden="true" width="${w}" height="${w}" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><circle cx="8" cy="8" r="6"/><path d="M3.8 12.2l8.4-8.4"/></svg>`;
@@ -94,7 +95,6 @@ const INFO16 = `<svg aria-hidden="true" width="16" height="16" viewBox="0 0 16 1
 function accessMenu(cur, id, up){
   const opt = k => `<button class="am-o ${k===cur?"on":""}" role="menuitemradio" aria-checked="${k===cur}" data-act="${id?"sa-pick":"bulk-pick"}" ${id?`data-id="${id}"`:""} data-v="${k}">
       <span class="am-ic">${ACC_IC[k]()}</span><span class="am-tx"><b>${ACC_NAME[k]}</b><span>${ACC_SUB[k]}</span></span>
-      ${k!=="x"?`<span class="am-info otip-src" data-tipk="${k}" tabindex="0" aria-label="What students see">${INFO16}</span>`:""}
       ${k===cur?`<span class="am-ck">${CHECK}</span>`:""}</button>`;
   return `<div class="am ${up?"up":""}" role="menu" aria-label="Student access" data-el="cm.menu" data-label="Student access menu">${["v","h","x"].map(opt).join("")}</div>`;
 }
@@ -106,7 +106,7 @@ function showHidTip(eye){
   const tk = eye.dataset.tipk; const w = document.createElement("div"); w.innerHTML = tk ? optTip(tk) : hidTip(); const tip = w.firstElementChild; tip.classList.add("float"); app.appendChild(tip);
   const a = app.getBoundingClientRect(), r = eye.getBoundingClientRect(), k = a.width / app.offsetWidth || 1;
   const W = tip.classList.contains("otip") ? 178 : 357;
-  if (eye.dataset.tipk){ const m = eye.closest(".am").getBoundingClientRect(); const right = (m.right - a.left)/k + 8; tip.style.left = (right + W + 8 <= app.offsetWidth ? right : (m.left - a.left)/k - W - 8) + "px"; tip.style.top = ((r.top - a.top)/k - 12) + "px"; tip.classList.add("on"); return; }
+  if (eye.dataset.tipk && eye.closest(".am")){ const m = eye.closest(".am").getBoundingClientRect(); const right = (m.right - a.left)/k + 8; tip.style.left = (right + W + 8 <= app.offsetWidth ? right : (m.left - a.left)/k - W - 8) + "px"; tip.style.top = ((r.top - a.top)/k - 12) + "px"; tip.classList.add("on"); return; }
   const x = (r.right - a.left) / k, y = (r.bottom - a.top) / k;
   tip.style.left = Math.max(8, Math.min(x + 12 - W, app.offsetWidth - W - 8)) + "px";
   const below = y + 8, h = tip.offsetHeight || 125;
@@ -225,17 +225,16 @@ function dialogueContent(){
     </div></div>`;
 }
 
-const exclNote = n => n ? `<div class="x-note" data-el="kb.note" data-label="Excluded note">${BAN(16)}<span>${n===1?"1 excluded document isn't listed. Brian never uses it in student chats.":n+" excluded documents aren't listed. Brian never uses them in student chats."} <a href="#">Change in Course Materials</a></span></div>` : "";
 function kbDialog(m){
-  const files = FILES.filter(f => ACC(m, f.id) !== "x"); const nExcl = FILES.length - files.length;
+  const files = FILES; const usable = FILES.filter(f => ACC(m, f.id) !== "x");
   const sync = m.kbSync;
   const custom = m.kbCustom;
-  const n = sync ? files.length : files.filter(f => custom[f.id]).length;
+  const n = sync ? usable.length : usable.filter(f => custom[f.id]).length;
   const rows = files.map(f => {
-    const hidden = ACC(m, f.id) === "h"; const on = sync || !!custom[f.id];
-    return `<div class="kb-row">${kbCheck(on, `${sync?"disabled":""} data-act="kb-pick" data-id="${f.id}" aria-label="${esc(f.name)}"`)}
+    const k = ACC(m, f.id), ex = k === "x"; const on = !ex && (sync || !!custom[f.id]);
+    return `<div class="kb-row ${ex?"kb-off":""}">${kbCheck(on, `${sync||ex?"disabled":""} data-act="kb-pick" data-id="${f.id}" aria-label="${esc(f.name)}${ex?" (excluded)":""}"`)}
       <span class="kb-doc">${KBI.doc}</span><span class="kb-name">${esc(f.name)}</span>
-      ${hidden?hidEye("kb-hid", f.id==="s"?' data-el="kb.tag" data-label="Hidden icon"':""):""}</div>`;
+      ${k!=="v"?hidEye("kb-hid", ` data-tipk="${k}"`+(f.id==="s"?' data-el="kb.tag" data-label="Hidden icon"':f.id==="x1"?' data-el="kb.excl" data-label="Excluded icon"':""), k):""}</div>`;
   }).join("");
   return `<div class="dim"><div class="dlg kb-dlg" role="dialog" aria-label="Edit Knowledge Base">
     <div class="kbd-h"><h2>Edit Knowledge Base</h2><button data-act="kb-close" aria-label="Close">${KBI.close24}</button></div>
@@ -248,9 +247,8 @@ function kbDialog(m){
             <button class="sw ${sync?"on":""}" role="switch" aria-checked="${sync}" aria-label="Sync with course materials" data-act="kb-sync" data-el="kb.toggle" data-label="Sync toggle"></button></div>
           <p class="kb-desc" data-el="kb.copy" data-label="Sync description">${sync?"All course materials are added and removed automatically, including material that is hidden from students.":"Choose the documents this activity uses. Your selection won't change when the course materials change."}</p>
         </div>
-        <div class="kb-all">${kbCheck(sync||n===files.length, `${sync?"disabled":""} aria-label="Select all"`)}<b>Select all</b><span class="x-sp"></span><span class="kb-n">${n} selected</span></div>
+        <div class="kb-all">${kbCheck(sync||n===usable.length, `${sync?"disabled":""} aria-label="Select all"`)}<b>Select all</b><span class="x-sp"></span><span class="kb-n">${n} selected</span></div>
         <div class="kb-rows">${rows}</div>
-        ${exclNote(nExcl)}
       </div>
     </div>
     <div class="kbd-f"><button class="btn" ${m.kbDirty?"":"disabled"} data-act="kb-close">Apply Changes</button></div>
@@ -271,12 +269,11 @@ const QZ_FILES = [
 ];
 function quizPage(m){
   const label = (t, info) => `<div class="ac-label">${esc(t)}${info?KBI.info12:""}</div>`;
-  const nExcl = QZ_FILES.filter(f => f.excluded).length;
-  const rows = QZ_FILES.filter(f => !f.excluded).map(f => {
-    const hid = m.qzHidden ? !!m.qzHidden[f.id] : f.hidden;
+  const rows = QZ_FILES.map(f => {
+    const hid = f.excluded || (m.qzHidden ? !!m.qzHidden[f.id] : f.hidden);
     const ic = f.icon === "video" ? QZI.video : f.icon === "text" ? QZI.text : KBI.doc;
     return `<div class="qz-row ${hid?"hid":""}"><span class="qz-ic">${ic}</span><div class="qz-tx"><b>${esc(f.name)}</b><span>${esc(f.meta)}</span></div>
-      ${hid?(f.id==="qv"?`<span class="qz-eye" role="img" aria-label="Hidden from students" data-el="qz.hidden" data-label="Hidden attached file (blocked, no tooltip)">${IC.eyeOff(16)}</span>`:hidEye("qz-eye", ' data-label="Hidden attached file (tooltip)"')):""}</div>`;
+      ${hid?(f.id==="qv"?`<span class="qz-eye" role="img" aria-label="Hidden from students" data-el="qz.hidden" data-label="Hidden attached file (blocked, no tooltip)">${IC.eyeOff(16)}</span>`:f.excluded?hidEye("qz-eye", ' data-tipk="x" data-el="qz.excl" data-label="Excluded attached file"', "x"):hidEye("qz-eye", ' data-tipk="h" data-label="Hidden attached file (tooltip)"')):""}</div>`;
   }).join("");
   return `<div class="ac qz">
     <div class="ac-bar"><div class="ac-crumbs"><span>Content</span>${KBI.arrowR}<span>Quiz</span><span class="ac-copy">${KBI.link}Copy link for students</span></div>
@@ -285,7 +282,7 @@ function quizPage(m){
       <div class="qz-g">${label("Name")}<div class="qz-name">Plus and Minus - Check-In</div></div>
       <div class="qz-g">${label("Context")}<div class="qz-ctx"><div class="qz-video"><span>Integers: adding and subtracting</span>${QZI.play}</div><p>In diesem Quiz übst du das Addieren und Subtrahieren ganzer Zahlen mit positiven und negativen Vorzeichen.</p></div></div>
       <div class="qz-g"><div class="ac-label qz-lbl"><span class="qz-l">Attached Files${KBI.info12}</span><span class="qz-show">Show attached files${KBI.info12}<button class="sw ${m.qzShow===false?"":"on"}" role="switch" aria-checked="${m.qzShow!==false}" aria-label="Show attached files" data-act="qz-show"></button></span></div>
-        <div class="qz-list" data-el="qz.list" data-label="Attached Files list">${rows}${m.qzShow===false?"":exclNote(nExcl)}</div></div>
+        <div class="qz-list" data-el="qz.list" data-label="Attached Files list">${rows}</div></div>
     </div></div>`;
 }
 
@@ -354,7 +351,7 @@ const STATE_DOCS = {
     "cm-hover": ul(["Row hover or keyboard focus in the row", "Toggle appears in the column", "Visible file: \"Visible\" with eye icon"], "Click toggles the state, row stays hovered"),
     "cm-hover-h": ul(["Hidden file on hover", "Toggle shows \"Hidden\" with crossed-out eye", "Light grey, not dark (Hannes 20.11)"], "Click → visible"),
     "cm-tip": ul("Tooltip on the info icon", ["Copy", "\"Brian still uses hidden material, but students can't open it when Brian cites it.\"", "\"Use this for solutions or teacher notes.\""]),
-    "cm-menu": ul(["Click on the row's access button", "Dropdown with Visible / Hidden / Excluded", "Icon left, subtext, check right on the current value", "Info icon on Visible and Hidden: hover shows one preview image"], "Pick → state changes, menu closes"),
+    "cm-menu": ul(["Click on the row's access button", "Dropdown with Visible / Hidden / Excluded", "Icon left, subtext, check right on the current value", "No info icons (Hannes 27.11.)"], "Pick → state changes, menu closes"),
     "cm-bulk": ul(["One or more rows selected", "Bulk bar replaces the card footer (style as Admin Panel, Figma 10235:40916)", "Count left; right: existing \"Delete (n)\", then \"Show to students\" / \"Hide from students\""], "After the action the selection clears"),
     "kb-sync": ul(["Toggle on", "List read-only, all files ticked"], "Description: \"All course materials are added and removed automatically, including material that is hidden from students.\"", "Hidden files show only the crossed-out eye icon, as in Course Materials (Hannes 24.11)"),
     "kb-custom": ul("Toggle off: list active, as in \"Update - 18.11.26\" of this ticket (BR-6891)", "Crossed-out eye stays visible so the teacher knows students can't open those files"),
@@ -377,7 +374,7 @@ const CONTEXTS = [
   { id:"quiz", name:"Quiz · Attached Files", ctx:"quiz", figma:FIG("10520-43974") },
   { id:"student", name:"Student · AI Tutor / Chatbot", ctx:"student" }
 ];
-const EL_ORDER = ["cm.col","cm.info","cm.rest","cm.access","cm.tip","cm.bulk","cm.bulkHide","cm.bulkShow","cm.menu","kb.note","kb.toggle","kb.copy","kb.tag","qz.list","qz.hidden","st.chipVisible","st.chipHidden","cm.add"];
+const EL_ORDER = ["cm.col","cm.info","cm.rest","cm.access","cm.tip","cm.bulk","cm.bulkHide","cm.bulkShow","cm.menu","kb.excl","qz.excl","kb.toggle","kb.copy","kb.tag","qz.list","qz.hidden","st.chipVisible","st.chipHidden","cm.add"];
 const DEVICES = { desktop:{ w:1720, h:1080 }, phone:{ w:402, h:874 } };
 const META = id => MODES.find(m => m.id === id) || MODES[0];
 
