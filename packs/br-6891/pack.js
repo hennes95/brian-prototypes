@@ -81,9 +81,10 @@ const hidTip = (cls, el) => `<div class="htip ${cls||""}" role="tooltip"${el?' d
   <table class="htip-tbl"><thead><tr><th></th><th>Students can see</th><th>Brian can use</th></tr></thead><tbody>
     <tr><th>Visible</th><td>${YES}</td><td>${YES}</td></tr><tr><th>Hidden</th><td>${NO}</td><td>${YES}</td></tr><tr><th>Excluded</th><td>${NO}</td><td>${NO}</td></tr></tbody></table></div>`;
 /* info icon in the dropdown: one image each (Hannes 27.11.) */
-const OPT_TXT = { v:"Students see the source and can open it.", h:"Students get the answer, but no source.", x:"Brian cannot access the source" };
-const optTip = (k) => k === "x" ? `<div class="htip otip" role="tooltip"><p class="htip-t">${OPT_TXT[k]}</p></div>` : `<div class="htip otip" role="tooltip"><p class="htip-t">${OPT_TXT[k]}</p>
-  <div class="htip-prev"><div class="htip-card"><p>But your solution has to be different. You should solve for X.</p>${k!=="h"?"<span>Workbook Maths 8 Solutions, p. 3</span>":""}${SPK}</div></div></div>`;
+const OPT_TXT = { v:"Students see the source and can open it.", h:"Students get the answer, but no source.", x:"Brian cannot access the source", qx:"Students cannot access this file" };
+const optTip = (k) => k === "x" || k === "qx" ? `<div class="htip otip" role="tooltip"><p class="htip-t">${OPT_TXT[k]}</p></div>` : `<div class="htip otip ${k==="h"?"two":""}" role="tooltip"><p class="htip-t">${OPT_TXT[k]}</p>
+  <div class="htip-prev">${k==="h"?`<div class="htip-card"><p>But your solution has to be different. You should solve for X.</p><span>Workbook Maths 8 Solutions, p. 3</span>${SPK}</div>`:""}<div class="htip-card"><p>But your solution has to be different. You should solve for X.</p>${k!=="h"?"<span>Workbook Maths 8 Solutions, p. 3</span>":""}${SPK}</div></div></div>`;
+/* Hidden: two images, with source (Visible) next to without (Hidden), like the V1 tooltip (Hannes 27.11.) */
 const SPK = `<svg class="htip-spk" aria-hidden="true" width="7" height="7" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"><path d="M1.5 6h2.5l4-3v10l-4-3H1.5z"/><path d="M10.5 6.2c.6.5.6 3.1 0 3.6M12.5 4.8c1.4 1.3 1.4 5.1 0 6.4"/></svg>`;
 /* eye icon for hidden material: same tooltip on hover (R6) */
 const BAN = (w=16) => `<svg aria-hidden="true" width="${w}" height="${w}" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><circle cx="8" cy="8" r="6"/><path d="M3.8 12.2l8.4-8.4"/></svg>`;
@@ -105,7 +106,7 @@ function showHidTip(eye){
   app.querySelectorAll(":scope > .htip.float").forEach(t => t.remove());
   const tk = eye.dataset.tipk; const w = document.createElement("div"); w.innerHTML = tk ? optTip(tk) : hidTip(); const tip = w.firstElementChild; tip.classList.add("float"); app.appendChild(tip);
   const a = app.getBoundingClientRect(), r = eye.getBoundingClientRect(), k = a.width / app.offsetWidth || 1;
-  const W = tip.classList.contains("otip") ? 178 : 357;
+  const W = tip.classList.contains("two") ? 357 : tip.classList.contains("otip") ? 178 : 374;
   if (eye.dataset.tipk && eye.closest(".am")){ const m = eye.closest(".am").getBoundingClientRect(); const right = (m.right - a.left)/k + 8; tip.style.left = (right + W + 8 <= app.offsetWidth ? right : (m.left - a.left)/k - W - 8) + "px"; tip.style.top = ((r.top - a.top)/k - 12) + "px"; tip.classList.add("on"); return; }
   const x = (r.right - a.left) / k, y = (r.bottom - a.top) / k;
   tip.style.left = Math.max(8, Math.min(x + 12 - W, app.offsetWidth - W - 8)) + "px";
@@ -275,7 +276,7 @@ function quizPage(m){
     const hid = f.excluded || (m.qzHidden ? !!m.qzHidden[f.id] : f.hidden);
     const ic = f.icon === "video" ? QZI.video : f.icon === "text" ? QZI.text : KBI.doc;
     return `<div class="qz-row ${hid?"hid":""}"><span class="qz-ic">${ic}</span><div class="qz-tx"><b>${esc(f.name)}</b><span>${esc(f.meta)}</span></div>
-      ${hid?(f.id==="qv"?`<span class="qz-eye" role="img" aria-label="Hidden from students" data-el="qz.hidden" data-label="Hidden attached file (blocked, no tooltip)">${IC.eyeOff(16)}</span>`:f.excluded?hidEye("qz-eye", ' data-tipk="x" data-el="qz.excl" data-label="Excluded attached file"', "x"):hidEye("qz-eye", ' data-tipk="h" data-label="Hidden attached file (tooltip)"')):""}</div>`;
+      ${hid?(f.id==="qv"?`<span class="qz-eye" role="img" aria-label="Hidden from students" data-el="qz.hidden" data-label="Hidden attached file (blocked, no tooltip)">${IC.eyeOff(16)}</span>`:f.excluded?hidEye("qz-eye", ' data-tipk="qx" data-el="qz.excl" data-label="Excluded attached file"', "x"):hidEye("qz-eye", ' data-tipk="h" data-label="Hidden attached file (tooltip)"')):""}</div>`;
   }).join("");
   return `<div class="ac qz">
     <div class="ac-bar"><div class="ac-crumbs"><span>Content</span>${KBI.arrowR}<span>Quiz</span><span class="ac-copy">${KBI.link}Copy link for students</span></div>
