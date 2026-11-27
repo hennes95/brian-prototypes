@@ -75,7 +75,7 @@ const DEFAULT = {
     +`<ul><li>${ai("Top bar gets shorter; title and icons follow the design system (Figma COMPONENT UPDATE)")}</li></ul>`}]}
  ]
 };
-const VARIANTS=[{id:"v3-pagetag",name:"Page count tag on documents"},{id:"v4-portrait",name:"Portrait documents & photos"},{id:"v2-nocap",name:"No attachment subtitles"}];
+const VARIANTS=[{id:"v3-pagetag",name:"Page count tag on documents"},{id:"v4-portrait",name:"Portrait documents & photos"},{id:"v2-nocap",name:"No attachment subtitles"},{id:"v5-square",name:"Square visuals"}];  /* v5: every attachment preview square, page tag, no subtitles (Hannes 27.11) */
 /* Archived 26.11 (Hannes): Design V1 (subtitles under every attachment). Code stays, so it still renders if put back into VARIANTS. */
 const VARIANTS_ARCHIVED=[{id:"v1",name:"Design V1",figma:FIG("12117-83")}];  /* v3: no subtitles, documents carry their page count as a tag (Hannes 26.11); v4: A4 upright and a portrait photo (Hannes 26.11) */  /* exploration (Hannes 26.11): how much do the name/info lines under attachments add? */
 const CONTEXTS=[
@@ -164,6 +164,7 @@ let docN=0;
 const PORTRAIT=()=>ui.variant==="v4-portrait";
 function docSVG(loading){
   if(PORTRAIT()) return docSVGp(loading);
+  if(ui.variant==="v5-square") return docSVGp(loading,200,200);
   const id="dpc"+(++docN), page="M0 0H291.1L316.5 24.8L317.1 178.8H0Z";
   return `<svg class="docsvg" viewBox="0 0 321 183" preserveAspectRatio="none" ${loading?'aria-hidden="true"':'role="img" aria-label="Document"'}>
     <defs><clipPath id="${id}"><path d="${page}"/></clipPath></defs>
@@ -174,8 +175,8 @@ function docSVG(loading){
   </svg>`;
 }
 /* portrait A4 (variant v4): same page, fold and shadow as docSVG, upright 170×240 */
-function docSVGp(loading){
-  const W=170,H=240,id="dpc"+(++docN), page=`M0 0H${W-29.9}L${W-4.5} 24.8L${W-3.9} ${H-4.2}H0Z`;
+function docSVGp(loading,W=170,H=240){
+  const id="dpc"+(++docN), page=`M0 0H${W-29.9}L${W-4.5} 24.8L${W-3.9} ${H-4.2}H0Z`;
   return `<svg class="docsvg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" ${loading?'aria-hidden="true"':'role="img" aria-label="Document"'}>
     <defs><clipPath id="${id}"><path d="${page}"/></clipPath></defs>
     <g clip-path="url(#${id})"><rect width="${W}" height="${H}" fill="#fff"/>${loading?"":`<image href="assets/document-portrait.png" width="${W-3.9}" height="${H-4.2}" preserveAspectRatio="xMidYMin slice"/><rect width="${W}" height="${H}" fill="#000" opacity=".03"/>`}</g>
@@ -264,7 +265,7 @@ function phoneHTML(st,live={},interactive=true){
   const items=interactive&&(THREAD.length||WAITING)?CHAT.filter(m=>m.t!=="brian"):CHAT;   // the scripted "Brian is generating" only ends the scripted chat
   const extra=interactive?THREAD.map(m=>itemHTML(m,dark)).join("")+(WAITING?brianHTML(""):""):"";
   const bp=KIND==="tablet"||KIND==="desktop";
-  return `<div class="phone bx ${dark?"dark":""}${ui.variant!=="v1"?" nocap":""}${ui.variant==="v3-pagetag"||ui.variant==="v4-portrait"?" pagetag":""}${ui.variant==="v4-portrait"?" portrait":""}">
+  return `<div class="phone bx ${dark?"dark":""}${ui.variant!=="v1"?" nocap":""}${["v3-pagetag","v4-portrait","v5-square"].includes(ui.variant)?" pagetag":""}${ui.variant==="v5-square"?" square":""}${ui.variant==="v4-portrait"?" portrait":""}">
     ${STATUS}${topbarHTML(dark)}
     <div class="p-chat"><div class="cx">${items.map(m=>itemHTML(m,dark)).join("")}${extra}</div></div>
     ${composerHTML()}${tab?TABS:`<div class="home"></div>`}
