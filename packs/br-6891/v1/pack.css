@@ -1,0 +1,320 @@
+@import url("https://fonts.googleapis.com/css2?family=Nunito+Sans:opsz,wght@6..12,400..800&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800&family=Nunito+Sans:wght@500&display=swap");
+/* Brian Teacher Design System, for teacher-side screens only (Teacher CMS / web app).
+   Source: claude.ai artifact "Brian Teacher Design System" (slug 46c23e88-bce3-4c8d-b0ca-b6d200e35427),
+   synced from brian-study/brian main@11cdeb6. Values copied from its tokens.json and component READMEs.
+   Scope: everything sits under .ds-teacher, so student screens (other design system) are never touched.
+   Student screens use the brian-mobile-design-kit instead (not in this folder). */
+.ds-teacher{
+  --white:#ffffff; --light-blue:#c8e9ff; --bright-blue:#63c0ff; --dark-blue:#157ec5; --red:#ff5a5a;
+  --dark-grey:#3a3a3a; --mono-100:#fafafa; --mono-200:#f5f5f5; --mono-300:#ebebeb; --mono-400:#dddddd;
+  --mono-500:#b1b1b1; --mono-600:#858585; --mono-700:#585858; --hover:#f0f9ff; --flagged-bg:#ffd6d7; --dark-red:#d84e4e;
+  --rounded:4px; --rounded-lg:8px; --rounded-xl:12px; --rounded-2xl:16px;
+  --shadow-sm:0 1px 2px 0 rgba(0,0,0,.05); --shadow-md:0 4px 6px -1px rgba(0,0,0,.1),0 2px 4px -2px rgba(0,0,0,.1);
+  --shadow-lg:0 10px 15px -3px rgba(0,0,0,.1),0 4px 6px -4px rgba(0,0,0,.1);
+  --ring-preferred:inset 0 0 0 1px #157ec5; --ring-primary:inset 0 0 0 1px #63c0ff;
+  --duration-fast:150ms; --duration-base:300ms;
+  font-family:"Nunito Sans",ui-sans-serif,system-ui,sans-serif; font-size:15px; line-height:1.4; font-weight:500; color:var(--dark-grey);
+}
+.ds-teacher *{box-sizing:border-box}
+/* type: the 8 styles */
+.ds-teacher .h1{font-size:24px;line-height:1.2;font-weight:700}
+.ds-teacher .h2{font-size:20px;line-height:1.2;font-weight:700}
+.ds-teacher .h3{font-size:16px;line-height:1.4;font-weight:800}
+.ds-teacher .body-md{font-size:15px;line-height:1.4;font-weight:500}
+.ds-teacher .body-md-strong{font-size:15px;line-height:1.4;font-weight:700}
+.ds-teacher .body-sm{font-size:12px;line-height:1.4;font-weight:500}
+.ds-teacher .body-sm-strong{font-size:12px;line-height:1.4;font-weight:700}
+.ds-teacher .caption{font-size:10px;line-height:1.4;font-weight:700;text-transform:uppercase}
+/* Button: :preferred dark-blue, :primary bright-blue, :secondary dark-blue outline, :ghost icon-only. Sizes sm 24, md 32, lg 40, xl 48 */
+.ds-teacher .btn{display:inline-flex;align-items:center;justify-content:center;gap:12px;border:0;border-radius:var(--rounded);font-family:inherit;font-size:15px;line-height:1.4;font-weight:700;white-space:nowrap;cursor:pointer;transition:background-color var(--duration-base),color var(--duration-base);height:40px;padding:0 16px;background:var(--bright-blue);color:var(--white)}
+.ds-teacher .btn svg{width:16px;height:16px;flex:0 0 16px}
+.ds-teacher .btn:hover{background:var(--white);color:var(--bright-blue);box-shadow:var(--ring-primary)}
+.ds-teacher .btn.preferred{background:var(--dark-blue)}
+.ds-teacher .btn.preferred:hover{background:var(--white);color:var(--dark-blue);box-shadow:var(--ring-preferred)}
+.ds-teacher .btn.secondary{background:var(--white);color:var(--dark-blue);box-shadow:var(--ring-preferred)}
+.ds-teacher .btn.secondary:hover{background:var(--hover)}
+.ds-teacher .btn.ghost{background:none;color:var(--dark-grey);padding:0;box-shadow:none}
+.ds-teacher .btn.sm{height:24px;padding:0 8px;gap:8px;font-size:12px}
+.ds-teacher .btn.md{height:32px;padding:0 12px;gap:8px}
+.ds-teacher .btn.xl{height:48px}
+.ds-teacher .btn:active{transform:scale(.98)}
+.ds-teacher .btn:disabled{opacity:.5;pointer-events:none}
+/* Checkbox: 24px, rounded, 1px mono-400, hover border bright-blue, checked bright-blue + white checkmark */
+.ds-teacher input[type=checkbox]{appearance:none;-webkit-appearance:none;width:24px;height:24px;margin:0;border:1px solid var(--mono-400);border-radius:var(--rounded);background:var(--white);cursor:pointer;display:block;position:relative;flex:0 0 24px}
+.ds-teacher input[type=checkbox]:hover{border-color:var(--bright-blue)}
+.ds-teacher input[type=checkbox]:checked{background:var(--bright-blue);border-color:var(--bright-blue)}
+.ds-teacher input[type=checkbox]:checked::after{content:"";position:absolute;left:8px;top:4px;width:6px;height:11px;border:solid var(--white);border-width:0 2px 2px 0;transform:rotate(45deg)}
+.ds-teacher input[type=checkbox]:checked:hover{background:var(--white)}
+.ds-teacher input[type=checkbox]:checked:hover::after{border-color:var(--bright-blue)}
+.ds-teacher input[type=checkbox]:disabled{opacity:.6;cursor:default}
+.ds-teacher input[type=checkbox]:disabled:not(:checked){background:var(--mono-200)}
+/* Table: head 48px bold 12px mono-600; body 12px, 16px vertical padding, 1px mono-400 row rules, no rule under the last row, hover wash */
+.ds-teacher .table{width:100%;border-collapse:collapse;font-size:12px;line-height:1.4}
+.ds-teacher .table th{height:48px;padding:12px 16px 12px 0;text-align:left;font-weight:700;color:var(--mono-600);vertical-align:middle;white-space:nowrap}
+.ds-teacher .table td{padding:16px 16px 16px 0;vertical-align:middle}
+.ds-teacher .table tr{border-bottom:1px solid var(--mono-400)}
+.ds-teacher .table thead tr{border-bottom-width:1px}
+.ds-teacher .table tbody tr:last-child{border-bottom:0}
+.ds-teacher .table tbody tr:hover,.ds-teacher .table tbody tr.hov{background:var(--hover)}
+/* Tab bar: text-lg extrabold, dark-grey active / mono-500 inactive, 32px gap, 1px mono-400 line, 3px bright-blue bar */
+.ds-teacher .tab-bar{display:flex;gap:32px;border-bottom:1px solid var(--mono-400)}
+.ds-teacher .tab-bar .tab{padding-bottom:12px;font-size:16px;line-height:1.4;font-weight:800;color:var(--mono-500);border-bottom:3px solid transparent;margin-bottom:-1px}
+.ds-teacher .tab-bar .tab:hover{color:var(--dark-grey)}
+.ds-teacher .tab-bar .tab.on{color:var(--dark-grey);border-bottom-color:var(--bright-blue)}
+/* Sidebar nav item: min 48px, py 8 px 16, gap 12, rounded, body-md-strong; active white/dark-grey; hover wash */
+.ds-teacher .nav-item{display:flex;align-items:center;gap:12px;min-height:48px;padding:8px 16px;border-radius:var(--rounded);font-size:15px;line-height:1.4;font-weight:700;white-space:nowrap;color:var(--white);text-decoration:none;transition:background-color var(--duration-base),color var(--duration-base)}
+.ds-teacher .nav-item svg{width:24px;height:24px;flex:0 0 24px}
+.ds-teacher .nav-item:hover{background:var(--hover);color:var(--dark-grey)}
+.ds-teacher .nav-item.on{background:var(--white);color:var(--dark-grey)}
+.ds-teacher .nav-sep{height:2px;width:100%;background:rgba(255,255,255,.3)}
+/* Tooltip: dark-grey, white text-base regular, 20px x 16px padding, rounded, shadow-lg, max 24rem, 8px arrow */
+.ds-teacher .tooltip{position:absolute;z-index:50;max-width:24rem;padding:16px 20px;border-radius:var(--rounded);background:var(--dark-grey);color:var(--white);font-size:15px;line-height:1.4;font-weight:500;box-shadow:var(--shadow-lg);white-space:normal}
+.ds-teacher .tooltip::before{content:"";position:absolute;width:8px;height:8px;background:var(--dark-grey);transform:rotate(45deg)}
+.ds-teacher .tooltip.bottom::before{top:-4px;left:var(--arrow-x,16px)}
+/* info-tooltip trigger: 20px bright-blue info icon */
+.ds-teacher .info-icon{width:20px;height:20px;padding:0;border:0;background:none;color:var(--bright-blue);display:inline-flex;cursor:pointer}
+/* Badge (status pill, rounded): active dark-blue on light-blue, inactive mono-600 on mono-300 */
+.ds-teacher .badge{display:inline-flex;align-items:center;gap:6px;border-radius:var(--rounded);padding:4px 10px;font-size:12px;line-height:1.4;font-weight:700;background:var(--light-blue);color:var(--dark-blue)}
+.ds-teacher .badge.inactive{background:var(--mono-300);color:var(--mono-600)}
+.ds-teacher :focus-visible{outline:2px solid var(--bright-blue);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){.ds-teacher *{transition:none!important}}
+
+/* BR-6891 pack styles: Teacher CMS + Student app screens, scoped to .fx */
+.fx{color-scheme:light;font-family:'Nunito',system-ui,sans-serif;color:#3a3a3a;-webkit-font-smoothing:antialiased}
+.fx *{box-sizing:border-box}
+.fx button{font-family:inherit;cursor:pointer}
+/* Teacher CMS layout: Figma 10500:26471 (1720×1080). Components, type and colours come from the
+   Brian Teacher Design System (design-systems/brian-teacher/ds.css, scoped to .ds-teacher). */
+.fx .t-app{width:100%;height:100%;background:var(--bright-blue);position:relative;overflow:hidden}
+.fx .t-side{position:absolute;left:0;top:0;width:296px;height:100%}
+.fx .t-nav{position:absolute;left:32px;top:40px;width:232px;display:flex;flex-direction:column;gap:24px}
+.fx .t-logo{display:block;width:67px;height:60px}
+.fx .t-collapse{margin-left:15px;width:24px;height:24px;color:var(--white)}
+.fx .t-collapse svg{width:24px;height:24px;flex-basis:24px}
+.fx .t-group{display:flex;flex-direction:column;gap:16px}
+.fx .t-collapse + .t-group{margin-top:24px}
+.fx .t-avatar{position:absolute;left:32px;bottom:40px;width:56px;height:56px;border-radius:9999px}
+.fx .t-ask{position:absolute;right:0;top:0;width:116px;height:100%;color:var(--white)}
+.fx .t-ask svg{position:absolute;left:46px;top:50px;width:28px;height:28px}
+.fx .t-card{position:absolute;left:296px;top:40px;width:1308px;height:1002px;background:var(--white);border-radius:24px;overflow:hidden;display:flex;flex-direction:column;padding-top:36px}
+.fx .t-top{display:flex;justify-content:space-between;align-items:flex-start;padding:0 28px}
+.fx .t-title{display:flex;flex-direction:column;gap:8px}
+.fx .t-title .h1{margin:0}
+.fx .t-school{color:var(--mono-500)}
+.fx .t-tabs{margin:24px 28px 0}
+.fx .t-cm{flex:1;min-height:0;display:flex;flex-direction:column}
+.fx .t-bulk{display:flex;align-items:center;gap:8px;min-height:60px;padding:12px 28px;background:var(--light-blue,#c8e9ff);border-top:1px solid #ddd}
+.fx .t-bulk b{font-size:16px;font-weight:800;color:#585858}
+.fx .t-bulk .btn{height:32px;padding:0 12px;font-size:14px}
+.fx .t-bulk .x-sp{flex:1}
+.fx .t-tablewrap{margin:16px 28px 0}
+.fx .t-table{table-layout:fixed}
+.fx .t-table .c-cb{width:40px}
+.fx .t-table td{font-size:14px;line-height:1.4;font-weight:500;color:var(--mono-700)}
+.fx .t-table tr.sel{background:var(--hover)}
+.fx .c-tx{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fx .c-fn{display:flex;align-items:center;gap:12px;min-width:0}
+.fx .c-doc{position:relative;flex:0 0 24px;width:24px;height:24px;display:flex}
+.fx .c-sort{display:flex;justify-content:space-between;align-items:center;padding-right:8px}
+.fx .c-acc{display:flex;align-items:center;gap:4px;position:relative}
+.fx .c-dl{width:24px;height:24px}
+.fx .t-foot{margin-top:auto;border-top:1px solid var(--mono-300);padding:12px 28px}
+/* access cell (spec): V1 = toggle always; V2 = resting shows only the crossed-out eye for hidden files, the toggle appears on row hover / focus */
+.fx .sa:hover{border-color:var(--bright-blue)}
+.fx .v2 .sa{min-width:0}
+.fx .v2 .sa-rest{display:flex;align-items:center;height:20px;color:var(--mono-700)}
+.fx .v2 .sa{display:none}
+.fx .v2 tr:hover .sa,.fx .v2 tr:focus-within .sa,.fx .v2 tr.hov .sa{display:inline-flex}
+.fx .v2 tr:hover .sa-rest,.fx .v2 tr:focus-within .sa-rest,.fx .v2 tr.hov .sa-rest{display:none}
+/* small file icon still used in the dialogs */
+.fx .fi{position:relative;display:inline-flex;width:24px;height:24px;border-radius:4px;background:#c8e9ff;color:#157ec5;align-items:center;justify-content:center;vertical-align:middle;margin-right:10px}
+.fx .fi .lk{position:absolute;right:-6px;bottom:-6px;width:15px;height:15px;border-radius:8px;background:#3a3a3a;color:#fff;display:flex;align-items:center;justify-content:center;border:1.5px solid #fff}
+/* dialogs */
+.fx .dim{position:absolute;inset:0;background:rgba(99,192,255,.5);display:flex;align-items:center;justify-content:center;z-index:5}
+.fx .dlg{background:#fff;border-radius:16px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+.fx .dlg-h{background:#63c0ff;color:#fff;padding:18px 24px;display:flex;align-items:center;justify-content:space-between}
+.fx .dlg-h h2{margin:0;font-size:20px;line-height:1.2;font-weight:700}
+.fx .dlg-h button{border:0;background:none;color:#fff;width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center}
+.fx .dlg-b{padding:24px;display:flex;flex-direction:column;gap:16px}
+.fx .dlg-f{border-top:1px solid #ddd;padding:16px 24px;display:flex;justify-content:flex-end;gap:12px}
+.fx .frow{display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid #ddd;border-radius:8px}
+.fx .callout{display:flex;gap:14px;padding:16px;border-radius:8px;background:#f0f9ff;border:1px solid #c8e9ff}
+.fx .callout .lkc{flex:0 0 auto;width:32px;height:32px;border-radius:16px;background:var(--bright-blue,#63c0ff);color:#fff;display:flex;align-items:center;justify-content:center}
+.fx .tag{font-size:12px;font-weight:700;color:#585858;padding:2px 8px;border-radius:10px;background:#eee;margin-left:auto;white-space:nowrap}
+.fx .sw{width:36px;height:20px;border-radius:10px;background:#ddd;position:relative;border:0;padding:0;flex:0 0 auto}
+.fx .sw.on{background:#63c0ff}
+.fx .sw::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:8px;background:#fff;transition:left .15s}
+.fx .sw.on::after{left:18px}
+/* student app (phone) */
+.fx .pdf{position:absolute;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:flex-end;z-index:4}
+.fx .pdf-sheet{background:#fff;width:100%;height:78%;border-radius:16px 16px 0 0;display:flex;flex-direction:column}
+.fx .pdf-sheet .pdf-h{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:.75px solid #ddd;font-weight:700;font-size:14px}
+.fx .pdf-page{margin:16px;flex:1;border:1px solid #ddd;border-radius:4px;padding:18px;font-size:12px;color:#858585;display:flex;flex-direction:column;gap:8px}
+.fx .pdf-page mark{background:#fff3b0;color:#3a3a3a}
+/* device frames on the stage */
+#pwrap .phone{background:#fff;overflow:hidden;position:relative;box-shadow:0 18px 60px rgba(0,0,0,.18)}
+#pwrap .phone.dev-desktop{border-radius:8px}
+#pwrap .phone.dev-phone{border-radius:44px;outline:10px solid #1d1d1b}
+.fx .x-ib{width:32px;height:32px;border:0;background:none;color:#3a3a3a;display:inline-flex;align-items:center;justify-content:center;padding:0}
+
+
+/* Edit Knowledge Base dialog (Figma 10500:25996 + Uploads Table 10452:224) */
+.fx .kb-dlg{width:1016px}
+.fx .kbd-h{background:var(--bright-blue);color:var(--white);display:flex;align-items:flex-start;justify-content:space-between}
+.fx .kbd-h h2{margin:0;padding:24px;font-size:24px;line-height:1.2;font-weight:700}
+.fx .kbd-h button{border:0;background:none;color:var(--white);padding:18px 24px 18px 0;display:flex}
+.fx .kbd-b{display:flex;gap:24px;padding:24px;align-items:stretch}
+.fx .kb-up{width:442px;height:445px;flex:0 0 442px;background:var(--mono-300);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:16px}
+.fx .kb-seg{width:363px;height:44px;background:var(--mono-100);border-radius:4px;padding:10px 6px;display:flex;align-items:center;gap:8px}
+.fx .kb-seg span{padding:4px 8px;border-radius:4px;font-size:14px;line-height:1.4;font-weight:700;color:var(--mono-500);white-space:nowrap}
+.fx .kb-seg span.on{background:var(--bright-blue);color:var(--white)}
+.fx .kb-drop{flex:1;background:var(--white);border:1px dashed var(--mono-400);border-radius:8px;padding:48px 24px;display:flex;flex-direction:column;align-items:center;gap:24px;text-align:center;color:var(--mono-700)}
+.fx .kb-drop img{width:80px;height:105px;display:block}
+.fx .kb-dropt{display:flex;flex-direction:column;gap:10px}
+.fx .kb-dropt p{margin:0;font-size:14px;line-height:1.4;font-weight:500}
+.fx .kb-dropt .kb-dropb{font-size:24px;line-height:1.2;font-weight:700}
+.fx .kb-dropb span{color:var(--bright-blue)}
+.fx .kb-list{flex:1;min-width:0;border:1px solid var(--mono-400);border-radius:4px;display:flex;flex-direction:column;overflow:hidden}
+.fx .kb-head{padding:16px 16px 12px}
+.fx .kb-title{display:flex;align-items:center;gap:4px;padding-bottom:8px;color:var(--dark-grey)}
+.fx .kb-title b{font-size:14px;line-height:1.4;font-weight:700}
+.fx .kb-title .x-sp{flex:1}
+.fx .kb-desc{margin:0;font-size:14px;line-height:1.4;font-weight:500;color:var(--mono-600)}
+.fx .kb-all{display:flex;align-items:center;height:36px;padding:0 16px 4px;border-bottom:1px solid var(--mono-400)}
+.fx .kb-all b{margin-left:16px;font-size:14px;line-height:1.4;font-weight:700;color:var(--dark-grey)}
+.fx .kb-all .x-sp{flex:1}
+.fx .kb-n{font-size:12px;line-height:1.4;font-weight:700;color:var(--mono-500)}
+.fx .kb-rows{padding:8px 16px;overflow:auto}
+.fx .kb-row{height:32px;display:flex;align-items:center;gap:4px}
+.fx .kb-doc{display:flex;padding-left:12px}
+.fx .kb-name{padding:6px 12px;font-size:14px;line-height:1.4;font-weight:500;color:var(--dark-grey);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fx .kb-hid{margin-left:auto;display:flex;color:var(--mono-700)}
+.fx .kb-list.kb-synced .kb-all,.fx .kb-list.kb-synced .kb-rows{opacity:.4}
+.fx .ds-teacher input.kb-cb{width:16px;height:16px;flex:0 0 16px}
+.fx .ds-teacher input.kb-cb:checked::after{left:4.5px;top:1.5px;width:4px;height:8px}
+.fx .ds-teacher input.kb-cb:disabled{opacity:1}
+.fx .kbd-f{border-top:1px solid var(--mono-400);padding:24px;display:flex;justify-content:flex-end}
+.fx .kbd-f .btn{height:36px;padding:8px 16px;font-size:14px}
+.fx .kbd-f .btn:disabled{opacity:.4}
+/* AI Dialogue Content tab behind the dialog (Figma 10500:25996) */
+.fx .ac{flex:1;min-height:0;display:flex;flex-direction:column;gap:8px;margin:36px 28px 16px}
+.fx .ac-bar{display:flex;align-items:center;justify-content:space-between;height:28px}
+.fx .ac-crumbs{display:flex;align-items:center;gap:8px;font-size:12px;line-height:1.4;font-weight:700;color:var(--mono-600)}
+.fx .ac-copy{display:flex;align-items:center;gap:4px;margin-left:8px;color:var(--bright-blue)}
+.fx .ac-copy svg{width:12px;height:12px}
+.fx .ac-active{display:flex;align-items:center;gap:8px;padding:4px 4px 4px 8px;border-radius:4px;background:var(--light-blue);color:var(--dark-blue);font-size:14px;line-height:1.4;font-weight:700}
+.fx .ac-main{flex:1;min-height:0;display:flex;gap:10px}
+.fx .ac-left{width:427px;flex:0 0 427px;display:flex;flex-direction:column;gap:24px}
+.fx .ac-seg{align-self:flex-start;height:44px;background:var(--mono-200);border-radius:4px;padding:10px 6px;display:flex;align-items:center;gap:8px}
+.fx .ac-seg span{padding:4px 8px;border-radius:4px;font-size:14px;line-height:1.4;font-weight:700;color:var(--mono-500)}
+.fx .ac-seg span.on{background:var(--bright-blue);color:var(--white)}
+.fx .ac-panel{flex:1;min-height:0;background:var(--mono-200);border-radius:8px;padding:24px;display:flex;flex-direction:column;justify-content:flex-end;gap:16px;overflow:hidden}
+.fx .ac-group{flex:0 0 auto}
+.fx .ac-label{display:flex;align-items:center;gap:4px;padding-bottom:8px;font-size:14px;line-height:1.4;font-weight:700;color:var(--mono-700)}
+.fx .ac-field{background:var(--white);border:.75px solid var(--mono-400);border-radius:4px;padding:16px;font-size:14px;line-height:1.4;font-weight:500;color:var(--dark-grey)}
+.fx .ac-clip{height:202px;overflow:hidden}
+.fx .ac-kb{display:flex;align-items:center;background:var(--white);border:.75px solid var(--mono-400);border-radius:4px;padding:0 8px 0 12px;height:40px}
+.fx .ac-kbic{position:relative;width:24px;height:24px;border-radius:4px;background:var(--bright-blue);color:var(--white);display:flex;align-items:center;justify-content:center}
+.fx .ac-kbic i{position:absolute;left:11px;top:15px;height:15px;padding:0 4px;border-radius:30px;background:var(--dark-grey);border:1px solid var(--white);font-style:normal;font-size:10px;font-weight:700;line-height:13px;color:var(--white)}
+.fx .ac-kbtx{flex:1;padding:8px 12px;font-size:14px;line-height:1.4;font-weight:500;color:var(--dark-grey)}
+.fx .ac-edit{padding:2px 16px;border-radius:4px;background:var(--bright-blue);color:var(--white);font-size:14px;line-height:1.4;font-weight:700}
+.fx .ac-row{display:flex;gap:16px}
+.fx .ac-btn{display:flex;align-items:center;gap:8px;padding:8px 16px;border-radius:4px;background:var(--bright-blue);color:var(--white);font-size:14px;line-height:1.4;font-weight:700;white-space:nowrap}
+.fx .ac-select{flex:1;display:flex;align-items:center;justify-content:space-between;padding:8px 16px;background:var(--white);border:.75px solid var(--mono-400);border-radius:4px;font-size:14px;line-height:1.4;font-weight:700;color:var(--dark-grey)}
+.fx .ac-right{flex:1;display:flex;flex-direction:column;gap:12px;min-width:0}
+.fx .ac-prevh{height:43px;display:flex;align-items:center;font-size:16px;line-height:1.4;font-weight:800;color:var(--mono-500)}
+.fx .ac-prev{height:594px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:var(--mono-500)}
+.fx .ac-prev span{font-size:14px;font-weight:700;color:var(--mono-600)}
+
+/* Figma sizes win over the design system here (Hannes 24.11): 16px checkboxes with a 12px check, 12px info icon */
+.fx .ds-teacher input[type=checkbox]{width:16px;height:16px;flex:0 0 16px}
+.fx .ds-teacher input[type=checkbox]:checked::after{left:4.5px;top:1.5px;width:4px;height:8px}
+.fx .ds-teacher .info-icon{width:12px;height:12px}
+.fx .t-table .c-cb{width:28px}
+
+/* Student app · AI Tutor (Figma 10513:30436), 402×874, Nunito Sans */
+.fx .s-app{position:relative;width:402px;height:874px;background:#fff;overflow:hidden;font-family:"Nunito Sans",sans-serif;color:#3a3a3a}
+.fx .s-scroll{position:absolute;inset:0;overflow:auto;padding:83px 0 200px;display:flex;flex-direction:column;gap:8px;scrollbar-width:none}
+.fx .s-me{display:flex;flex-direction:column;align-items:flex-end;gap:24px;padding:12px 24px 12px 64px}
+.fx .s-me p{margin:0;width:100%;font-size:16px;line-height:1.4;font-weight:500}
+.fx .s-wl{display:block;width:100%;height:.75px;background:#3a3a3a;margin-top:-12px}
+.fx .s-asset{display:flex;flex-direction:column;align-items:flex-end;gap:12px}
+.fx .s-asset img{display:block;width:317px;height:auto}
+.fx .s-asset span{font-size:12px;line-height:1.4;color:#858585}
+.fx .s-tutor{display:flex;flex-direction:column;gap:20px;padding:12px 0 4px}
+.fx .s-tc{display:flex;flex-direction:column;gap:12px}
+.fx .s-p{margin:0;padding:0 24px;font-size:15px;line-height:1.4;font-weight:500}
+.fx .s-cit .s-p{padding:0}
+.fx .s-cit{padding:20px 24px 12px;display:flex;flex-direction:column;gap:12px}
+.fx .s-cit-b{gap:8px}
+.fx .s-cit1{display:flex;flex-direction:column;gap:8px;align-items:flex-start}
+.fx .s-quote{display:flex;gap:8px;padding:4px 0}
+.fx .s-quote i{flex:0 0 2px;background:#3a3a3a}
+.fx .s-quote p{margin:0;font-size:15px;line-height:1.4}
+.fx .s-src{border:0;background:none;padding:0;font:inherit;font-size:15px;line-height:1.4;font-weight:500;color:#858585;text-decoration:underline;text-underline-offset:2px;text-align:left;cursor:pointer}
+.fx .s-hidsrc{display:inline-flex;align-items:center;gap:2px;padding:2px 0;font-size:15px;line-height:1.4;font-weight:500;color:#858585}
+.fx .s-hidsrc svg{width:16px;height:16px}
+.fx .s-fn{display:flex;gap:8px;font-size:14px;line-height:1.4;color:#858585}
+.fx .s-fn .s-src{font-size:14px}
+.fx .s-act{padding-left:24px;display:flex;color:#3a3a3a}
+.fx .s-day{display:flex;align-items:center;gap:21px;padding:16px 0}
+.fx .s-day i{flex:1;height:.75px;background:#3a3a3a}
+.fx .s-day span{border:.75px solid #3a3a3a;padding:4px 8px;font-size:12px;line-height:1.4;font-weight:700}
+.fx .s-typing{display:flex;align-items:center;gap:4px;padding:0 24px 16px}
+.fx .s-ava{width:40px;height:40px;border-radius:20px;background:#c8e9ff;border:.75px solid #3a3a3a;margin-right:11px}
+.fx .s-typing i{width:6px;height:6px;border-radius:4px;background:#3a3a3a}
+.fx .s-nav{position:absolute;left:0;top:0;width:402px;background:#fff;padding-bottom:8px;border-bottom:.75px solid #3a3a3a;display:flex;flex-direction:column;gap:12px}
+.fx .s-status{height:40px;display:flex;align-items:flex-end;justify-content:space-between;padding:0 12px 0 30px}
+.fx .s-status b{font-family:Inter,"Nunito Sans",sans-serif;font-size:15px;font-weight:600;line-height:22px}
+.fx .s-status svg{margin-bottom:6px}
+.fx .s-head{display:flex;align-items:center;padding:0 24px}
+.fx .s-head b{flex:1;text-align:center;font-size:16px;line-height:1.4;font-weight:700;padding:12px 24px}
+.fx .s-input{position:absolute;left:0;bottom:88px;width:402px;display:flex;align-items:center;gap:8px;padding:4px 24px}
+.fx .s-plus{flex:0 0 32px;width:32px;height:32px;border-radius:32px;background:#3a3a3a;display:flex;align-items:center;justify-content:center}
+.fx .s-field{flex:1;display:flex;align-items:center;gap:8px;background:#fff;border:.75px solid #3a3a3a;border-radius:50px;padding:6px 6px 6px 12px}
+.fx .s-field span:first-child{flex:1;padding:4px;font-size:14px;line-height:1.4;color:#858585}
+.fx .s-send{flex:0 0 30px;width:30px;height:30px;border-radius:30px;background:#3a3a3a;display:flex;align-items:center;justify-content:center}
+.fx .s-tabbar{position:absolute;left:0;bottom:0;width:402px;height:83px;display:block}
+/* Figma trims text boxes to cap height / baseline (text-box-trim) */
+.fx .s-app p,.fx .s-app .s-src,.fx .s-app .s-hidsrc,.fx .s-fn,.fx .s-day span,.fx .s-field span:first-child,.fx .s-head b,.fx .s-asset span{text-box:trim-both cap alphabetic}
+.fx .s-src{text-decoration:none}
+/* Quiz · Attached Files (Figma 10520:43974) */
+.fx .qz{gap:24px}
+.fx .qz-body{display:flex;flex-direction:column;gap:24px;min-height:0;overflow:hidden}
+.fx .qz-name{width:283px;border:1px solid var(--mono-400);padding:8px 16px;font-size:14px;line-height:1.4;font-weight:700;color:var(--dark-grey)}
+.fx .qz-ctx{border:1px solid var(--mono-400);border-radius:4px;padding:12px;display:flex;flex-direction:column;gap:16px}
+.fx .qz-video{width:520px;height:280px;border-radius:2px;background:#2f3e4d;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;font-size:22px;font-weight:700}
+.fx .qz-ctx p{margin:0;font-size:12px;line-height:1.4;font-weight:500;color:var(--mono-500)}
+.fx .qz-lbl{justify-content:space-between;padding-right:0}
+.fx .qz-l,.fx .qz-show{display:flex;align-items:center;gap:4px}
+.fx .qz-show .sw{margin-left:6px}
+.fx .qz-list{border:1px solid var(--mono-400);border-radius:4px;overflow:hidden}
+.fx .qz-row{display:flex;align-items:stretch;min-height:55px}
+.fx .qz-row.hid{background:var(--mono-200)}
+.fx .qz-ic{display:flex;align-items:center;padding:0 12px 0 16px}
+.fx .qz-tx{flex:1;display:flex;flex-direction:column;gap:2px;padding:16px 0}
+.fx .qz-tx b{font-size:14px;line-height:1.4;font-weight:500;color:var(--mono-700)}
+.fx .qz-tx span{font-size:12px;line-height:1.4;font-weight:500;color:var(--mono-600)}
+.fx .qz-row.hid .qz-ic,.fx .qz-row.hid .qz-tx{opacity:.4}
+.fx .qz-eye{display:flex;align-items:center;padding:0 24px 0 4px;color:var(--mono-700)}
+
+/* Tooltip "Hidden from students" (Figma 10520:37427): dark grey, 8px corners, 12px text, preview of the student chat */
+.fx .htip{position:absolute;z-index:60;width:357px;background:var(--dark-grey,#3a3a3a);border:.75px solid #3a3a3a;border-radius:8px;overflow:hidden;text-align:left;white-space:normal;font-family:"Nunito Sans",sans-serif;cursor:default}
+.fx .htip-t{margin:0;padding:12px;font-size:12px;line-height:1.4;font-weight:500;color:#fff}
+.fx .htip-prev{display:flex;gap:1px;height:65px;overflow:hidden}
+.fx .htip-card{flex:1;background:#fff;padding:9px 10px;display:flex;flex-direction:column;gap:4px;color:#3a3a3a}
+.fx .htip-card p{margin:0;font-size:6.6px;line-height:1.4;font-weight:500}
+.fx .htip-card span{font-size:6.6px;line-height:1.4;color:#858585}
+.fx .htip-spk{margin-top:4px;color:#3a3a3a}
+.fx .c-tip{top:24px;right:-40px}
+.fx .heye{position:relative;display:inline-flex;outline:none}
+/* Student access toggle = Figma btn-secondary: light-blue fill, dark-blue label, no edge; label and icon get darker on hover.
+   Pulled 8px left so its icon sits exactly where the resting eye was (no jump on hover). */
+.fx .sa{display:inline-flex;align-items:center;gap:8px;height:28px;padding:4px 8px;margin:-4px 0 -4px -8px;border:0;border-radius:4px;background:var(--light-blue,#c8e9ff);color:var(--dark-blue,#157ec5);box-shadow:none;font-family:inherit;font-size:14px;line-height:1.4;font-weight:700;cursor:pointer;white-space:nowrap}
+.fx .sa svg{color:currentColor;flex:0 0 16px}
+.fx .sa:hover{color:#0c4f7c}
+.fx .htip.float{display:none;z-index:9999;pointer-events:none}
+.fx .htip.float.on{display:block}
+.fx .t-bulk .btn.caution{background:#ff5a5a}
+.fx .t-bulk .btn.caution:hover{background:#fff;color:#ff5a5a;box-shadow:inset 0 0 0 1px #ff5a5a}

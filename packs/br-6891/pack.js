@@ -494,3 +494,6 @@ document.getElementById("pwrap").addEventListener("click", e => {
   if (t.tagName !== "INPUT") e.preventDefault();
   ensureModel(); act(t);
 });
+
+/* ticket versions (V1 frozen in v1/, 27.11.) */
+(function(){ const s=document.createElement("script"); s.src="versions.js"; document.head.appendChild(s); })();
