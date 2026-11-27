@@ -237,3 +237,38 @@
 .fx .htip.float.on{display:block}
 .fx .t-bulk .btn.caution{background:#ff5a5a}
 .fx .t-bulk .btn.caution:hover{background:#fff;color:#ff5a5a;box-shadow:inset 0 0 0 1px #ff5a5a}
+/* ===== V2 (27.11.): Student access with three states ===== */
+.fx .t-tablewrap{overflow:visible}
+.fx .sa-cell{position:relative;display:flex;align-items:center;min-height:20px}
+.fx .sa .sa-car{display:inline-flex;margin-left:-2px}
+.fx .sa .sa-car svg{width:12px;height:12px}
+.fx .v2 .sa-cell.open .sa{display:inline-flex}
+.fx .v2 .sa-cell.open .sa-rest{display:none}
+/* Brian dropdown (Dropdown / List + Dropdown / Option) */
+.fx .am{position:absolute;z-index:70;top:calc(100% + 8px);left:-12px;width:320px;padding:4px;background:#fff;border:1px solid var(--mono-400,#ddd);border-radius:4px;box-shadow:0 4px 6px -1px rgba(0,0,0,.1),0 2px 4px -2px rgba(0,0,0,.1);display:flex;flex-direction:column;text-align:left}
+.fx .am.up{top:auto;bottom:calc(100% + 8px);left:auto;right:0}
+.fx .am-o{display:flex;align-items:flex-start;gap:8px;padding:10px 12px;border:0;border-radius:4px;background:#fff;font-family:inherit;color:var(--dark-grey,#3a3a3a);text-align:left;cursor:pointer}
+.fx .am-o:hover,.fx .am-o:focus-visible{background:var(--hover,#f0f9ff);outline:none}
+.fx .am-o.on{background:var(--light-blue,#c8e9ff)}
+.fx .am-ic,.fx .am-info,.fx .am-ck{flex:0 0 16px;display:inline-flex;margin-top:1px}
+.fx .am-info{color:var(--mono-600,#858585)}
+.fx .am-info:hover{color:var(--dark-grey,#3a3a3a)}
+.fx .am-ck{color:var(--dark-blue,#157ec5)}
+.fx .am-tx{flex:1;display:flex;flex-direction:column;gap:4px;min-width:0}
+.fx .am-tx b{font-size:15px;line-height:1.2;font-weight:700}
+.fx .am-tx span{font-size:12px;line-height:1.4;font-weight:500;color:var(--mono-700,#585858);text-wrap:pretty}
+.fx .bk-wrap{position:relative;display:inline-flex}
+.fx .t-bulk .bk-btn{background:#fff;color:var(--dark-blue,#157ec5);box-shadow:inset 0 0 0 1px var(--dark-blue,#157ec5)}
+/* tooltips: column tooltip with table, option tooltip with one image */
+.fx .htip-t{display:flex;flex-direction:column;gap:6px}
+.fx .htip-i{display:inline-flex;color:var(--bright-blue,#63c0ff)}
+.fx .htip-tbl{width:calc(100% - 24px);margin:0 12px 12px;border-collapse:collapse;font-size:12px;color:#fff}
+.fx .htip-tbl th,.fx .htip-tbl td{padding:6px 4px;text-align:center;font-weight:700}
+.fx .htip-tbl thead th{color:#b1b1b1}
+.fx .htip-tbl tbody th{text-align:left}
+.fx .htip-tbl tbody tr{border-top:1px solid #585858}
+.fx .htip.otip{width:178px}
+/* excluded note: bottom of the Edit Knowledge Base list and of the quiz attached files (one component) */
+.fx .x-note{display:flex;align-items:flex-start;gap:8px;padding:12px 16px;border-top:1px solid var(--mono-300,#ebebeb);font-size:12px;line-height:1.4;font-weight:500;color:var(--mono-700,#585858);background:#fff}
+.fx .x-note svg{flex:0 0 16px}
+.fx .x-note a{color:var(--dark-blue,#157ec5)}

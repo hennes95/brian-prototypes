@@ -18,8 +18,14 @@ const FILES = [
   { id:"t", name:"Teacher notes – The City of London.docx", usedIn:"The City of London" },
   { id:"i", name:"Irregular verbs list.pdf", usedIn:"Irregular verbs" },
   { id:"v", name:"Unit 6 Vocabulary.pdf", usedIn:"The City of London, Irregular verbs" },
-  { id:"k", name:"Test Unit 6 – Answer key.pdf", usedIn:"Unit 6 Check-In" }
+  { id:"k", name:"Test Unit 6 – Answer key.pdf", usedIn:"Unit 6 Check-In" },
+  { id:"x1", name:"Mock exam – Unit 5.pdf", usedIn:"Unit 5 Check-In" },
+  { id:"x2", name:"Final exam 2026 – Unit 6.pdf", usedIn:"Unit 6 Check-In" }
 ];
+/* V2 (27.11.): three states. m.hidden[id] = "h" (Hidden) | "x" (Excluded) | nothing (Visible); true from older models = Hidden */
+const ACC = (m, id) => { const v = m.hidden && m.hidden[id]; return v === "x" ? "x" : v ? "h" : "v"; };
+const ACC_NAME = { v:"Visible", h:"Hidden", x:"Excluded" };
+const ACC_SUB = { v:"Students can view and download the document.", h:"Brian uses it in student chats, but students can't view or download the document.", x:"Only for creating activities. Brian never uses it in student chats." };
 const NEW_FILE = { id:"n", name:"Access 3 – Unit 7 Solutions.pdf", usedIn:"–" };
 
 /* esc() comes from the shell */
@@ -67,37 +73,56 @@ const TI = {
   add: FI('<path d="M8 2.5v11M2.5 8h11"/>', 16, 16, "none", "currentColor", 1.8)
 };
 
-/* "Hidden from students" tooltip, Figma 10520:37427: text + preview (student chat with the source / without it) */
+/* Column tooltip (V2, Figma "3 · Info tooltip – Student access"): Tooltip / Image Slot with the access table */
+const YES = `<svg aria-hidden="true" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3 3 7-7"/></svg>`;
+const NO = `<svg aria-hidden="true" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#858585" stroke-width="1.8" stroke-linecap="round"><path d="M4 4l8 8M12 4l-8 8"/></svg>`;
 const hidTip = (cls, el) => `<div class="htip ${cls||""}" role="tooltip"${el?' data-el="cm.tip" data-label="Tooltip"':""}>
-  <p class="htip-t">Brian can use hidden course material, but students can't see it. Use this to hide solutions, for example.</p>
-  <div class="htip-prev"><div class="htip-card"><p>But your solution has to be different. You should solve for X.</p><span>Workbook Maths 8 Solutions, p. 3</span>${SPK}</div>
-    <div class="htip-card"><p>But your solution has to be different. You should solve for X.</p>${SPK}</div></div></div>`;
+  <p class="htip-t"><span class="htip-i">${TI.info}</span>You can protect documents from student access<br>The Teaching Assistant can still use it to create activities.</p>
+  <table class="htip-tbl"><thead><tr><th></th><th>Students can see</th><th>Brian can use</th></tr></thead><tbody>
+    <tr><th>Visible</th><td>${YES}</td><td>${YES}</td></tr><tr><th>Hidden</th><td>${NO}</td><td>${YES}</td></tr><tr><th>Excluded</th><td>${NO}</td><td>${NO}</td></tr></tbody></table></div>`;
+/* info icon in the dropdown: one image each (Hannes 27.11.) */
+const optTip = (k) => `<div class="htip otip" role="tooltip"><p class="htip-t">${k==="v"?"Students see the source and can open it.":"Students get the answer, but no source."}</p>
+  <div class="htip-prev"><div class="htip-card"><p>But your solution has to be different. You should solve for X.</p>${k==="v"?"<span>Workbook Maths 8 Solutions, p. 3</span>":""}${SPK}</div></div></div>`;
 const SPK = `<svg class="htip-spk" aria-hidden="true" width="7" height="7" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"><path d="M1.5 6h2.5l4-3v10l-4-3H1.5z"/><path d="M10.5 6.2c.6.5.6 3.1 0 3.6M12.5 4.8c1.4 1.3 1.4 5.1 0 6.4"/></svg>`;
 /* eye icon for hidden material: same tooltip on hover (R6) */
-const hidEye = (cls, attrs) => `<span class="${cls} heye" tabindex="0" role="img" aria-label="Hidden from students"${attrs||""}>${IC.eyeOff(16)}</span>`;
+const BAN = (w=16) => `<svg aria-hidden="true" width="${w}" height="${w}" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><circle cx="8" cy="8" r="6"/><path d="M3.8 12.2l8.4-8.4"/></svg>`;
+const ACC_IC = { v:(w)=>IC.eye(w||16), h:(w)=>IC.eyeOff(w||16), x:(w)=>BAN(w||16) };
+const hidEye = (cls, attrs, k) => `<span class="${cls} heye" tabindex="0" role="img" aria-label="${k==="x"?"Excluded":"Hidden from students"}"${attrs||""}>${(k==="x"?BAN:IC.eyeOff)(16)}</span>`;
+/* Brian dropdown (draft component "Dropdown / List" + "Dropdown / Option", Figma V2 section) */
+const CHECK = `<svg aria-hidden="true" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3 3 7-7"/></svg>`;
+const INFO16 = `<svg aria-hidden="true" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="8" cy="8" r="6.3"/><path d="M8 7.2v4M8 4.9v.1" stroke-linecap="round" stroke-width="1.6"/></svg>`;
+function accessMenu(cur, id, up){
+  const opt = k => `<button class="am-o ${k===cur?"on":""}" role="menuitemradio" aria-checked="${k===cur}" data-act="${id?"sa-pick":"bulk-pick"}" ${id?`data-id="${id}"`:""} data-v="${k}">
+      <span class="am-ic">${ACC_IC[k]()}</span><span class="am-tx"><b>${ACC_NAME[k]}</b><span>${ACC_SUB[k]}</span></span>
+      ${k!=="x"?`<span class="am-info otip-src" data-tipk="${k}" tabindex="0" aria-label="What students see">${INFO16}</span>`:""}
+      ${k===cur?`<span class="am-ck">${CHECK}</span>`:""}</button>`;
+  return `<div class="am ${up?"up":""}" role="menu" aria-label="Student access" data-el="cm.menu" data-label="Student access menu">${["v","h","x"].map(opt).join("")}</div>`;
+}
 /* quiz attached files: 1st row (blocked file, BR-6428) has no hidden-material tooltip; 2nd row does (Hannes 24.11) */
 /* the hover tooltip lives on the top layer of the screen (one element in .t-app), so no list or dialog can clip it */
 function showHidTip(eye){
   const app = eye.closest(".t-app"); if (!app) return;
-  let tip = app.querySelector(":scope > .htip.float");
-  if (!tip){ const w = document.createElement("div"); w.innerHTML = hidTip("float"); tip = w.firstElementChild; app.appendChild(tip); }
+  app.querySelectorAll(":scope > .htip.float").forEach(t => t.remove());
+  const tk = eye.dataset.tipk; const w = document.createElement("div"); w.innerHTML = tk ? optTip(tk) : hidTip(); const tip = w.firstElementChild; tip.classList.add("float"); app.appendChild(tip);
   const a = app.getBoundingClientRect(), r = eye.getBoundingClientRect(), k = a.width / app.offsetWidth || 1;
-  const x = (r.right - a.left) / k, y = (r.bottom - a.top) / k, W = 357;
+  const W = tip.classList.contains("otip") ? 178 : 357;
+  if (eye.dataset.tipk){ const m = eye.closest(".am").getBoundingClientRect(); const right = (m.right - a.left)/k + 8; tip.style.left = (right + W + 8 <= app.offsetWidth ? right : (m.left - a.left)/k - W - 8) + "px"; tip.style.top = ((r.top - a.top)/k - 12) + "px"; tip.classList.add("on"); return; }
+  const x = (r.right - a.left) / k, y = (r.bottom - a.top) / k;
   tip.style.left = Math.max(8, Math.min(x + 12 - W, app.offsetWidth - W - 8)) + "px";
   const below = y + 8, h = tip.offsetHeight || 125;
   tip.style.top = (below + h > app.offsetHeight - 8 ? (r.top - a.top) / k - h - 8 : below) + "px";
   tip.classList.add("on");
 }
-function hideHidTip(eye){ const app = eye && eye.closest(".t-app"); const tip = app && app.querySelector(":scope > .htip.float"); if (tip) tip.classList.remove("on"); }
-document.getElementById("pwrap").addEventListener("mouseover", e => { const eye = e.target.closest && e.target.closest(".heye"); if (eye) showHidTip(eye); });
-document.getElementById("pwrap").addEventListener("mouseout", e => { const eye = e.target.closest && e.target.closest(".heye"); if (eye && !eye.contains(e.relatedTarget)) hideHidTip(eye); });
-document.getElementById("pwrap").addEventListener("focusin", e => { const eye = e.target.closest && e.target.closest(".heye"); if (eye) showHidTip(eye); });
-document.getElementById("pwrap").addEventListener("focusout", e => { const eye = e.target.closest && e.target.closest(".heye"); if (eye) hideHidTip(eye); });
+function hideHidTip(eye){ const app = eye && eye.closest(".t-app"); if (app) app.querySelectorAll(":scope > .htip.float").forEach(t => t.remove()); }
+document.getElementById("pwrap").addEventListener("mouseover", e => { const eye = e.target.closest && e.target.closest(".heye,.otip-src"); if (eye) showHidTip(eye); });
+document.getElementById("pwrap").addEventListener("mouseout", e => { const eye = e.target.closest && e.target.closest(".heye,.otip-src"); if (eye && !eye.contains(e.relatedTarget)) hideHidTip(eye); });
+document.getElementById("pwrap").addEventListener("focusin", e => { const eye = e.target.closest && e.target.closest(".heye,.otip-src"); if (eye) showHidTip(eye); });
+document.getElementById("pwrap").addEventListener("focusout", e => { const eye = e.target.closest && e.target.closest(".heye,.otip-src"); if (eye) hideHidTip(eye); });
 
-const accessCell = (f, hidden, variant) => {
-  const btn = `<button class="sa ${hidden?"hid":""}" data-act="sa" data-id="${f.id}" data-el="cm.access" data-label="Student access toggle" aria-pressed="${hidden}" aria-label="${hidden?"Show":"Hide"} ${esc(f.name)} ${hidden?"to":"from"} students">${hidden?IC.eyeOff(16):IC.eye(16)}${hidden?"Hidden":"Visible"}</button>`;
-  if (variant === "v1") return btn;
-  return `<span class="sa-rest">${hidden?hidEye("", ' data-el="cm.rest" data-label="Resting: hidden icon"'):""}</span>${btn}`;
+const accessCell = (f, k, variant, open) => {
+  const btn = `<button class="sa acc-${k}" data-act="sa-open" data-id="${f.id}" data-el="cm.access" data-label="Student access button" aria-haspopup="menu" aria-expanded="${!!open}" aria-label="Student access for ${esc(f.name)}: ${ACC_NAME[k]}">${ACC_IC[k]()}${ACC_NAME[k]}<span class="sa-car">${TI.chevron}</span></button>${open?accessMenu(k, f.id):""}`;
+  if (variant === "v1") return `<div class="sa-cell">${btn}</div>`;
+  return `<div class="sa-cell ${open?"open":""}"><span class="sa-rest">${k!=="v"?hidEye("", ` data-el="cm.rest" data-label="Resting icon"`, k):""}</span>${btn}</div>`;
 };
 
 function teacherShell(inner, overlay, tab, course){
@@ -128,19 +153,18 @@ function courseMaterials(variant, m){
   const files = FILES.concat(m.added ? [NEW_FILE] : []);
   const sel = files.filter(f => m.selected[f.id]);
   const all = sel.length === files.length;
-  const colName = variant === "v1" ? "Students" : "Hidden from students";
+  const colName = "Student access";
   /* Figma 10235:40916 (Admin Panel bulk selection): the bar replaces the card footer, light-blue, count left, filled buttons right */
   const bulk = `<div class="t-foot t-bulk" data-el="cm.bulk" data-label="Bulk bar"><b>${sel.length} ${sel.length===1?"document":"documents"} selected</b><span class="x-sp"></span>
       <button class="btn caution" data-act="bulk-del" data-label="Delete (existing)">${FI('<path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/>', 24, 24, "none", "currentColor", 1.7)}Delete (${sel.length})</button>
-      <button class="btn" data-act="bulk-show" data-el="cm.bulkShow" data-label="Show to students">Show to students</button>
-      <button class="btn" data-act="bulk-hide" data-el="cm.bulkHide" data-label="Hide from students">Hide from students</button></div>`;
+      <span class="bk-wrap"><button class="btn bk-btn" data-act="bulk-menu" aria-haspopup="menu" aria-expanded="${!!m.bulkMenu}" data-el="cm.bulkShow" data-label="Change student access">Change student access</button>${m.bulkMenu?accessMenu(null, null, true):""}</span></div>`;
   const rows = files.map(f => {
-    const hidden = !!m.hidden[f.id];
-    return `<tr class="${m.selected[f.id]?"sel":""} ${m.hover===f.id?"hov":""}">
+    const k = ACC(m, f.id), open = m.menu === f.id;
+    return `<tr class="${m.selected[f.id]?"sel":""} ${m.hover===f.id||open?"hov":""}">
       <td class="c-cb"><input type="checkbox" data-act="sel" data-id="${f.id}" ${m.selected[f.id]?"checked":""} aria-label="Select ${esc(f.name)}"></td>
       <td><div class="c-fn">${TI.doc()}<span class="c-tx">${esc(f.name)}</span></div></td>
       <td><span class="c-tx">11.09.2026</span></td><td><span class="c-tx">Klasse 7</span></td><td><span class="c-tx">${esc(f.usedIn)}</span></td>
-      <td>${accessCell(f, hidden, variant)}</td>
+      <td>${accessCell(f, k, variant, open)}</td>
       <td><button class="btn ghost c-dl" aria-label="Download ${esc(f.name)}">${TI.download}</button></td></tr>`;
   }).join("");
   const tip = m.tip ? hidTip("c-tip", true) : "";
@@ -148,7 +172,7 @@ function courseMaterials(variant, m){
     <div class="t-tablewrap"><table class="table t-table" aria-label="Course materials"><colgroup><col style="width:28px"><col style="width:26%"><col><col><col style="width:20%"><col style="width:15%"><col style="width:96px"></colgroup><thead><tr>
       <th class="c-cb"><input type="checkbox" data-act="sel-all" ${all?"checked":""} aria-label="Select all files"></th>
       <th>Filename</th><th>Uploaded</th><th>Tags</th><th><div class="c-sort">Used In${TI.arrowDown}</div></th>
-      <th><div class="c-acc"><span data-el="cm.col" data-label="Column name">${colName}</span><button class="info-icon" data-act="tip" aria-expanded="${!!m.tip}" aria-label="What does hidden mean?" data-el="cm.info" data-label="Info icon">${TI.info}</button>${tip}</div></th>
+      <th><div class="c-acc"><span data-el="cm.col" data-label="Column name">${colName}</span><button class="info-icon" data-act="tip" aria-expanded="${!!m.tip}" aria-label="What does student access mean?" data-el="cm.info" data-label="Info icon">${TI.info}</button>${tip}</div></th>
       <th>Download</th></tr></thead><tbody>${rows}</tbody></table></div>
     ${sel.length ? bulk : `<div class="t-foot"><button class="btn" data-act="add" data-el="cm.add" data-label="Add Course Material">${TI.add}Add Course Material</button></div>`}</div>`;
 }
@@ -201,13 +225,14 @@ function dialogueContent(){
     </div></div>`;
 }
 
+const exclNote = n => n ? `<div class="x-note" data-el="kb.note" data-label="Excluded note">${BAN(16)}<span>${n===1?"1 excluded document isn't listed. Brian never uses it in student chats.":n+" excluded documents aren't listed. Brian never uses them in student chats."} <a href="#">Change in Course Materials</a></span></div>` : "";
 function kbDialog(m){
-  const files = FILES;
+  const files = FILES.filter(f => ACC(m, f.id) !== "x"); const nExcl = FILES.length - files.length;
   const sync = m.kbSync;
   const custom = m.kbCustom;
   const n = sync ? files.length : files.filter(f => custom[f.id]).length;
   const rows = files.map(f => {
-    const hidden = !!m.hidden[f.id]; const on = sync || !!custom[f.id];
+    const hidden = ACC(m, f.id) === "h"; const on = sync || !!custom[f.id];
     return `<div class="kb-row">${kbCheck(on, `${sync?"disabled":""} data-act="kb-pick" data-id="${f.id}" aria-label="${esc(f.name)}"`)}
       <span class="kb-doc">${KBI.doc}</span><span class="kb-name">${esc(f.name)}</span>
       ${hidden?hidEye("kb-hid", f.id==="s"?' data-el="kb.tag" data-label="Hidden icon"':""):""}</div>`;
@@ -225,6 +250,7 @@ function kbDialog(m){
         </div>
         <div class="kb-all">${kbCheck(sync||n===files.length, `${sync?"disabled":""} aria-label="Select all"`)}<b>Select all</b><span class="x-sp"></span><span class="kb-n">${n} selected</span></div>
         <div class="kb-rows">${rows}</div>
+        ${exclNote(nExcl)}
       </div>
     </div>
     <div class="kbd-f"><button class="btn" ${m.kbDirty?"":"disabled"} data-act="kb-close">Apply Changes</button></div>
@@ -240,11 +266,13 @@ const QZI = {
 const QZ_FILES = [
   { id:"qv", name:"Plus & Minus", meta:"Video - retrieved: 06.08.2026", icon:"video", hidden:true },
   { id:"qw", name:"Rational Numbers - Exercise 3A", meta:"Website - retrieved: 06.08.2026", icon:"text", hidden:true },
-  { id:"qd", name:"Plus & Minus", meta:"Page 1-5 - uploaded: DD.MM.YYYY", icon:"doc", hidden:false }
+  { id:"qd", name:"Plus & Minus", meta:"Page 1-5 - uploaded: DD.MM.YYYY", icon:"doc", hidden:false },
+  { id:"qx", name:"Final exam 2026 – Unit 6.pdf", meta:"Page 2-4 - uploaded: 11.09.2026", icon:"doc", excluded:true }
 ];
 function quizPage(m){
   const label = (t, info) => `<div class="ac-label">${esc(t)}${info?KBI.info12:""}</div>`;
-  const rows = QZ_FILES.map(f => {
+  const nExcl = QZ_FILES.filter(f => f.excluded).length;
+  const rows = QZ_FILES.filter(f => !f.excluded).map(f => {
     const hid = m.qzHidden ? !!m.qzHidden[f.id] : f.hidden;
     const ic = f.icon === "video" ? QZI.video : f.icon === "text" ? QZI.text : KBI.doc;
     return `<div class="qz-row ${hid?"hid":""}"><span class="qz-ic">${ic}</span><div class="qz-tx"><b>${esc(f.name)}</b><span>${esc(f.meta)}</span></div>
@@ -257,7 +285,7 @@ function quizPage(m){
       <div class="qz-g">${label("Name")}<div class="qz-name">Plus and Minus - Check-In</div></div>
       <div class="qz-g">${label("Context")}<div class="qz-ctx"><div class="qz-video"><span>Integers: adding and subtracting</span>${QZI.play}</div><p>In diesem Quiz übst du das Addieren und Subtrahieren ganzer Zahlen mit positiven und negativen Vorzeichen.</p></div></div>
       <div class="qz-g"><div class="ac-label qz-lbl"><span class="qz-l">Attached Files${KBI.info12}</span><span class="qz-show">Show attached files${KBI.info12}<button class="sw ${m.qzShow===false?"":"on"}" role="switch" aria-checked="${m.qzShow!==false}" aria-label="Show attached files" data-act="qz-show"></button></span></div>
-        <div class="qz-list" data-el="qz.list" data-label="Attached Files list">${rows}</div></div>
+        <div class="qz-list" data-el="qz.list" data-label="Attached Files list">${rows}${m.qzShow===false?"":exclNote(nExcl)}</div></div>
     </div></div>`;
 }
 
@@ -326,6 +354,7 @@ const STATE_DOCS = {
     "cm-hover": ul(["Row hover or keyboard focus in the row", "Toggle appears in the column", "Visible file: \"Visible\" with eye icon"], "Click toggles the state, row stays hovered"),
     "cm-hover-h": ul(["Hidden file on hover", "Toggle shows \"Hidden\" with crossed-out eye", "Light grey, not dark (Hannes 20.11)"], "Click → visible"),
     "cm-tip": ul("Tooltip on the info icon", ["Copy", "\"Brian still uses hidden material, but students can't open it when Brian cites it.\"", "\"Use this for solutions or teacher notes.\""]),
+    "cm-menu": ul(["Click on the row's access button", "Dropdown with Visible / Hidden / Excluded", "Icon left, subtext, check right on the current value", "Info icon on Visible and Hidden: hover shows one preview image"], "Pick → state changes, menu closes"),
     "cm-bulk": ul(["One or more rows selected", "Bulk bar replaces the card footer (style as Admin Panel, Figma 10235:40916)", "Count left; right: existing \"Delete (n)\", then \"Show to students\" / \"Hide from students\""], "After the action the selection clears"),
     "kb-sync": ul(["Toggle on", "List read-only, all files ticked"], "Description: \"All course materials are added and removed automatically, including material that is hidden from students.\"", "Hidden files show only the crossed-out eye icon, as in Course Materials (Hannes 24.11)"),
     "kb-custom": ul("Toggle off: list active, as in \"Update - 18.11.26\" of this ticket (BR-6891)", "Crossed-out eye stays visible so the teacher knows students can't open those files"),
@@ -334,7 +363,7 @@ const STATE_DOCS = {
     "st-hid": ul(["Answer draws on hidden material", "Brian says it in his own words, no citation", "No source line, no quote, no marker"], "Attaching material in the chat: hidden material is hidden there as well", "Follow-up ticket (Student + Backend)")
   };
 const MODES = [
-  { id:"cm", name:"Course Materials", ctx:"cms", device:"desktop", figma:FIG("10491-24801"), states:[["cm-rest","Resting"],["cm-hover","Row hover (visible file)"],["cm-hover-h","Row hover (hidden file)"],["cm-tip","Info tooltip"],["cm-bulk","Rows selected"]] },
+  { id:"cm", name:"Course Materials", ctx:"cms", device:"desktop", figma:FIG("10491-24801"), states:[["cm-rest","Resting"],["cm-hover","Row hover (visible file)"],["cm-hover-h","Row hover (hidden file)"],["cm-menu","Access menu open"],["cm-tip","Info tooltip"],["cm-bulk","Rows selected"]] },
   { id:"kb", name:"Edit Knowledge Base", ctx:"kb", device:"desktop", figma:FIG("10442-5055"), states:[["kb-sync","Synced (toggle on)"],["kb-custom","Custom selection"]] },
   { id:"qz", name:"Quiz · Attached Files", ctx:"quiz", device:"desktop", figma:FIG("10520-43974"), states:[["qz-files","Attached files"]] },
   { id:"st", name:"Student · AI Tutor", ctx:"student", device:"phone", figma:FIG("10520-40919"), states:[["st-vis","Default (source visible)"],["st-hid","Hidden (no citation)"]] }
@@ -348,7 +377,7 @@ const CONTEXTS = [
   { id:"quiz", name:"Quiz · Attached Files", ctx:"quiz", figma:FIG("10520-43974") },
   { id:"student", name:"Student · AI Tutor / Chatbot", ctx:"student" }
 ];
-const EL_ORDER = ["cm.col","cm.info","cm.rest","cm.access","cm.tip","cm.bulk","cm.bulkHide","cm.bulkShow","kb.toggle","kb.copy","kb.tag","qz.list","qz.hidden","st.chipVisible","st.chipHidden","cm.add"];
+const EL_ORDER = ["cm.col","cm.info","cm.rest","cm.access","cm.tip","cm.bulk","cm.bulkHide","cm.bulkShow","cm.menu","kb.note","kb.toggle","kb.copy","kb.tag","qz.list","qz.hidden","st.chipVisible","st.chipHidden","cm.add"];
 const DEVICES = { desktop:{ w:1720, h:1080 }, phone:{ w:402, h:874 } };
 const META = id => MODES.find(m => m.id === id) || MODES[0];
 
@@ -364,11 +393,12 @@ function migrate(old){
 
 /* ================= prototype model ================= */
 function preset(stateId, m){
-    const base = { hidden: m.hidden || { s:true, t:true, k:true }, added: !!m.added, selected:{}, tip:false, hover:null,
+    const base = { hidden: m.hidden || { s:"h", t:"h", k:"h", x1:"x", x2:"x" }, menu:null, bulkMenu:false, added: !!m.added, selected:{}, tip:false, hover:null,
       kbSync: true, kbCustom: { b:true, e:true, i:true, v:true, s:true }, kbDirty:false, stPop:false, stPdf:false, stHid:false };
     if (stateId === "cm-hover") base.hover = "e";
     if (stateId === "cm-hover-h") base.hover = "s";
     if (stateId === "cm-tip") base.tip = true;
+    if (stateId === "cm-menu"){ base.hover = "x2"; base.menu = "x2"; }
     if (stateId === "cm-bulk") base.selected = { b:true, v:true };
     if (stateId === "kb-custom") base.kbSync = false;
     if (stateId === "st-hid") base.stHid = true;
@@ -440,10 +470,12 @@ const api = {
 function act(t){
     const a = t.dataset.act, m = api.model, id = t.dataset.id;
     const h = Object.assign({}, m.hidden), s = Object.assign({}, m.selected);
-    if (a === "sa"){ h[id] = !h[id]; api.set({ hidden:h }); }
+    if (a === "sa-open"){ api.set({ menu: m.menu === id ? null : id, hover: id }, m.menu === id ? "cm-rest" : "cm-menu"); }
+    else if (a === "sa-pick"){ const v = t.dataset.v; if (v === "v") delete h[id]; else h[id] = v; KEEP.hidden = h; api.set({ hidden:h, menu:null }, "cm-rest"); }
+    else if (a === "bulk-menu"){ api.set({ bulkMenu: !m.bulkMenu }); }
+    else if (a === "bulk-pick"){ const v = t.dataset.v; Object.keys(s).forEach(k => { if (!s[k]) return; if (v === "v") delete h[k]; else h[k] = v; }); KEEP.hidden = h; api.set({ hidden:h, selected:{}, bulkMenu:false }, "cm-rest"); }
     else if (a === "sel"){ s[id] = !s[id]; const any = Object.values(s).some(Boolean); api.set({ selected:s }, any ? "cm-bulk" : "cm-rest"); }
     else if (a === "sel-all"){ const files = FILES.concat(m.added?[NEW_FILE]:[]); const all = files.every(f => s[f.id]); const n = {}; if (!all) files.forEach(f => n[f.id] = true); api.set({ selected:n }, all ? "cm-rest" : "cm-bulk"); }
-    else if (a === "bulk-hide" || a === "bulk-show"){ Object.keys(s).forEach(k => { if (s[k]) h[k] = a === "bulk-hide"; }); api.set({ hidden:h, selected:{} }, "cm-rest"); }
     else if (a === "tip"){ api.set({ tip: !m.tip }, m.tip ? "cm-rest" : "cm-tip"); }
     else if (a === "up-keep" || a === "up-hide"){ h.n = a === "up-hide"; api.set({ hidden:h, added:true }, "cm-rest"); }
     else if (a === "up-close" || a === "kb-close"){ api.go("cm-rest"); }
@@ -456,7 +488,9 @@ function act(t){
 }
 document.getElementById("pwrap").addEventListener("click", e => {
   if (ui.commenting || e.altKey) return;
-  const t = e.target.closest("[data-act]"); if (!t) return;
+  const t = e.target.closest("[data-act]");
+  if (!t){ const m = ui.live; if (m && (m.menu || m.bulkMenu)){ ensureModel(); api.set({ menu:null, bulkMenu:false }); } return; }
+  if (e.target.closest(".otip-src")) return;
   if (t.tagName !== "INPUT") e.preventDefault();
   ensureModel(); act(t);
 });
