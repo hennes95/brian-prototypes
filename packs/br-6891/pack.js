@@ -77,12 +77,12 @@ const TI = {
 const YES = `<svg aria-hidden="true" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3 3 7-7"/></svg>`;
 const NO = `<svg aria-hidden="true" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#858585" stroke-width="1.8" stroke-linecap="round"><path d="M4 4l8 8M12 4l-8 8"/></svg>`;
 const hidTip = (cls, el) => `<div class="htip ${cls||""}" role="tooltip"${el?' data-el="cm.tip" data-label="Tooltip"':""}>
-  <p class="htip-t"><span class="htip-i">${TI.info}</span>You can protect documents from student access<br>The Teaching Assistant can still use it to create activities.</p>
+  <p class="htip-t">You can protect documents from student access<br>The Teaching Assistant can still use it to create activities.</p>
   <table class="htip-tbl"><thead><tr><th></th><th>Students can see</th><th>Brian can use</th></tr></thead><tbody>
     <tr><th>Visible</th><td>${YES}</td><td>${YES}</td></tr><tr><th>Hidden</th><td>${NO}</td><td>${YES}</td></tr><tr><th>Excluded</th><td>${NO}</td><td>${NO}</td></tr></tbody></table></div>`;
 /* info icon in the dropdown: one image each (Hannes 27.11.) */
 const OPT_TXT = { v:"Students see the source and can open it.", h:"Students get the answer, but no source.", x:"Brian cannot access the source" };
-const optTip = (k) => `<div class="htip otip" role="tooltip"><p class="htip-t">${OPT_TXT[k]}</p>
+const optTip = (k) => k === "x" ? `<div class="htip otip" role="tooltip"><p class="htip-t">${OPT_TXT[k]}</p></div>` : `<div class="htip otip" role="tooltip"><p class="htip-t">${OPT_TXT[k]}</p>
   <div class="htip-prev"><div class="htip-card"><p>But your solution has to be different. You should solve for X.</p>${k!=="h"?"<span>Workbook Maths 8 Solutions, p. 3</span>":""}${SPK}</div></div></div>`;
 const SPK = `<svg class="htip-spk" aria-hidden="true" width="7" height="7" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"><path d="M1.5 6h2.5l4-3v10l-4-3H1.5z"/><path d="M10.5 6.2c.6.5.6 3.1 0 3.6M12.5 4.8c1.4 1.3 1.4 5.1 0 6.4"/></svg>`;
 /* eye icon for hidden material: same tooltip on hover (R6) */
@@ -153,11 +153,13 @@ function courseMaterials(variant, m){
   const files = FILES.concat(m.added ? [NEW_FILE] : []);
   const sel = files.filter(f => m.selected[f.id]);
   const all = sel.length === files.length;
+  /* bulk button shows the state the selected rows share, like the column; different states -> "Mixed" (Hannes 27.11.) */
+  const selK = [...new Set(sel.map(f => ACC(m, typeof f === "string" ? f : f.id)))]; const bk = selK.length === 1 ? selK[0] : null;
   const colName = "Student access";
   /* Figma 10235:40916 (Admin Panel bulk selection): the bar replaces the card footer, light-blue, count left, filled buttons right */
   const bulk = `<div class="t-foot t-bulk" data-el="cm.bulk" data-label="Bulk bar"><b>${sel.length} ${sel.length===1?"document":"documents"} selected</b><span class="x-sp"></span>
       <button class="btn caution" data-act="bulk-del" data-label="Delete (existing)">${FI('<path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/>', 24, 24, "none", "currentColor", 1.7)}Delete (${sel.length})</button>
-      <span class="bk-wrap"><button class="btn bk-btn" data-act="bulk-menu" aria-haspopup="menu" aria-expanded="${!!m.bulkMenu}" data-el="cm.bulkShow" data-label="Change student access">Change student access</button>${m.bulkMenu?accessMenu(null, null, true):""}</span></div>`;
+      <span class="bk-wrap"><button class="btn bk-btn" data-act="bulk-menu" aria-haspopup="menu" aria-expanded="${!!m.bulkMenu}" aria-label="Student access of the selected documents: ${bk?ACC_NAME[bk]:"mixed"}" data-el="cm.bulkShow" data-label="Student access (selection)">${bk?ACC_IC[bk]():""}${bk?ACC_NAME[bk]:"Mixed"}<span class="sa-car">${TI.chevron}</span></button>${m.bulkMenu?accessMenu(bk, null, true):""}</span></div>`;
   const rows = files.map(f => {
     const k = ACC(m, f.id), open = m.menu === f.id;
     return `<tr class="${m.selected[f.id]?"sel":""} ${m.hover===f.id||open?"hov":""}">
@@ -360,7 +362,7 @@ const STATE_DOCS = {
     "st-hid": ul(["Answer draws on hidden material", "Brian says it in his own words, no citation", "No source line, no quote, no marker"], "Attaching material in the chat: hidden material is hidden there as well", "Follow-up ticket (Student + Backend)")
   };
 const MODES = [
-  { id:"cm", name:"Course Materials", ctx:"cms", device:"desktop", figma:FIG("10491-24801"), states:[["cm-rest","Resting"],["cm-hover","Row hover (visible file)"],["cm-hover-h","Row hover (hidden file)"],["cm-menu","Access menu open"],["cm-tip","Info tooltip"],["cm-bulk","Rows selected"]] },
+  { id:"cm", name:"Course Materials", ctx:"cms", device:"desktop", figma:FIG("10491-24801"), states:[["cm-rest","Resting"],["cm-hover","Row hover"],["cm-menu","Access menu open"],["cm-tip","Info tooltip"],["cm-bulk","Rows selected"]] },
   { id:"kb", name:"Edit Knowledge Base", ctx:"kb", device:"desktop", figma:FIG("10442-5055"), states:[["kb-sync","Synced (toggle on)"],["kb-custom","Custom selection"]] },
   { id:"qz", name:"Quiz · Attached Files", ctx:"quiz", device:"desktop", figma:FIG("10520-43974"), states:[["qz-files","Attached files"]] },
   { id:"st", name:"Student · AI Tutor", ctx:"student", device:"phone", figma:FIG("10520-40919"), states:[["st-vis","Default (source visible)"],["st-hid","Hidden (no citation)"]] }
